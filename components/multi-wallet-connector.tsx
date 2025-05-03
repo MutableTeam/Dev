@@ -85,7 +85,7 @@ export default function MultiWalletConnector() {
     {
       name: "Phantom",
       type: "phantom",
-      icon: "/images/phantom-icon.svg",
+      icon: "/images/phantom-wallet.png",
       available: false,
     },
     {
@@ -356,7 +356,7 @@ export default function MultiWalletConnector() {
             <TestTube className="h-5 w-5 text-purple-500" />
           ) : (
             <Image
-              src={activeWallet === "phantom" ? "/images/phantom-icon.svg" : "/images/solflare-icon.png"}
+              src={activeWallet === "phantom" ? "/images/phantom-wallet.png" : "/images/solflare-icon.png"}
               alt={activeWallet === "phantom" ? "Phantom" : "Solflare"}
               width={20}
               height={20}
@@ -440,7 +440,9 @@ export default function MultiWalletConnector() {
                       ) : (
                         <>
                           <Image
-                            src={activeWallet === "phantom" ? "/images/phantom-icon.svg" : "/images/solflare-icon.png"}
+                            src={
+                              activeWallet === "phantom" ? "/images/phantom-wallet.png" : "/images/solflare-icon.png"
+                            }
                             alt={activeWallet === "phantom" ? "Phantom" : "Solflare"}
                             width={20}
                             height={20}

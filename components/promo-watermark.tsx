@@ -26,7 +26,7 @@ export default function PromoWatermark() {
     >
       <div className="relative">
         <Image
-          src="/images/mutable-logo-transparent.png"
+          src="/images/mutable-token.png"
           alt="MUTB Token"
           width={16}
           height={16}
