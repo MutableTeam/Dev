@@ -33,6 +33,24 @@ interface Particle {
   maxFrames: number
 }
 
+// Map game engine animation states to sprite animation states
+const mapAnimationState = (state: string): string => {
+  const stateMap: Record<string, string> = {
+    idle: "idle",
+    run: "run", // Now directly supported
+    fire: "fire", // Now directly supported
+    walk: "walk",
+    attack: "attack",
+    hit: "hit",
+    death: "death",
+    dash: "dash",
+    special: "special",
+  }
+
+  const result = stateMap[state] || "idle" // Default to idle if unknown state
+  return result
+}
+
 export default function GameRenderer({ gameState, localPlayerId }: GameRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animatorsRef = useRef<Record<string, SpriteAnimator>>({})
@@ -75,7 +93,8 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
 
     // Get the animator for this player
     const animator = animatorsRef.current[player.id]
-    const animationState = player.animationState
+    const animationState = mapAnimationState(player.animationState)
+
     const frame = frameCountRef.current
 
     // Flip based on direction
@@ -594,65 +613,94 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
 
   // Main render function
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-
-    // Set canvas size
-    canvas.width = gameState.arenaSize.width
-    canvas.height = gameState.arenaSize.height
-
-    // Draw background with tiles
-    drawBackground(ctx, gameState.arenaSize.width, gameState.arenaSize.height)
-
-    // Draw walls
-    gameState.walls.forEach((wall) => {
-      drawWall(ctx, wall)
-    })
-
-    // Draw pickups
-    gameState.pickups.forEach((pickup) => {
-      drawPickup(ctx, pickup)
-    })
-
-    // Draw death effects first (so they appear under players)
-    Object.values(gameState.players).forEach((player) => {
-      const animator = animatorsRef.current[player.id]
-      if (animator && animator.getCurrentAnimationName() === "death" && animator.isDeathEffectStarted()) {
-        generateDeathEffect(ctx, player.position.x, player.position.y, player.size, player.color, frameCountRef.current)
+    try {
+      const canvas = canvasRef.current
+      if (!canvas) {
+        console.error("RENDERER", "Canvas reference is null")
+        return
       }
-    })
 
-    // Draw arrows
-    gameState.arrows.forEach((arrow) => {
-      drawArrow(ctx, arrow)
-    })
-
-    // Draw particles
-    particles.forEach((particle) => {
+      // Set canvas dimensions
       try {
-        // Wrap particle generation in try/catch to prevent errors from crashing the game
-        generateParticle(ctx, particle.x, particle.y, particle.size, particle.color, particle.type, particle.frame)
+        canvas.width = gameState.arenaSize.width
+        canvas.height = gameState.arenaSize.height
       } catch (error) {
-        console.error("Error generating particle:", error)
-        // Remove problematic particle
-        particlesRef.current = particlesRef.current.filter((p) => p !== particle)
+        console.error("RENDERER", "Error setting canvas dimensions", error)
+        return
       }
-    })
 
-    // Draw players
-    Object.values(gameState.players).forEach((player) => {
-      drawPlayer(ctx, player, player.id === localPlayerId)
-    })
+      // Get rendering context
+      let ctx
+      try {
+        ctx = canvas.getContext("2d")
+        if (!ctx) {
+          console.error("RENDERER", "Failed to get 2D context from canvas")
+          return
+        }
+      } catch (error) {
+        console.error("RENDERER", "Error getting canvas context", error)
+        return
+      }
 
-    // Draw UI
-    drawUI(ctx, gameState, localPlayerId)
+      // Draw background with tiles
+      drawBackground(ctx, gameState.arenaSize.width, gameState.arenaSize.height)
 
-    // Draw debug info if enabled
-    if (debugMode) {
-      drawDebugInfo(ctx, gameState)
+      // Draw walls
+      gameState.walls.forEach((wall) => {
+        drawWall(ctx, wall)
+      })
+
+      // Draw pickups
+      gameState.pickups.forEach((pickup) => {
+        drawPickup(ctx, pickup)
+      })
+
+      // Draw death effects first (so they appear under players)
+      Object.values(gameState.players).forEach((player) => {
+        const animator = animatorsRef.current[player.id]
+        if (animator && animator.getCurrentAnimationName() === "death" && animator.isDeathEffectStarted()) {
+          generateDeathEffect(
+            ctx,
+            player.position.x,
+            player.position.y,
+            player.size,
+            player.color,
+            frameCountRef.current,
+          )
+        }
+      })
+
+      // Draw arrows
+      gameState.arrows.forEach((arrow) => {
+        drawArrow(ctx, arrow)
+      })
+
+      // Draw particles
+      particles.forEach((particle) => {
+        try {
+          // Wrap particle generation in try/catch to prevent errors from crashing the game
+          generateParticle(ctx, particle.x, particle.y, particle.size, particle.color, particle.type, particle.frame)
+        } catch (error) {
+          console.error("Error generating particle:", error)
+          // Remove problematic particle
+          particlesRef.current = particlesRef.current.filter((p) => p !== particle)
+        }
+      })
+
+      // Draw players
+      Object.values(gameState.players).forEach((player) => {
+        drawPlayer(ctx, player, player.id === localPlayerId)
+      })
+
+      // Draw UI
+      drawUI(ctx, gameState, localPlayerId)
+
+      // Draw debug info if enabled
+      if (debugMode) {
+        drawDebugInfo(ctx, gameState)
+      }
+    } catch (error) {
+      console.error("RENDERER", "Critical error in renderer setup", error)
     }
   }, [gameState, localPlayerId, particles, debugMode])
 

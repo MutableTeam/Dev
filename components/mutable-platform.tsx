@@ -92,12 +92,13 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
                   {mutbBalance.toFixed(2)} MUTB
                 </Badge>
               </div>
-              {selectedGame === "top-down-shooter" ? (
+              {selectedGame === "top-down-shooter" || selectedGame === "mutball-pool" ? (
                 <MatchmakingLobby
                   publicKey={publicKey}
                   playerName="Player"
                   mutbBalance={mutbBalance}
                   onExit={handleBackToSelection}
+                  selectedGame={selectedGame}
                 />
               ) : (
                 <Card className="bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">

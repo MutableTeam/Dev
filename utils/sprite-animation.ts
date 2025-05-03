@@ -1,5 +1,5 @@
 // Define animation types
-export type AnimationName = "idle" | "walk" | "attack" | "hit" | "death" | "dash" | "special"
+export type AnimationName = "idle" | "walk" | "attack" | "hit" | "death" | "dash" | "special" | "run" | "fire"
 
 // Animation frame interface
 export interface AnimationFrame {
@@ -46,8 +46,35 @@ export function createArcherAnimationSet(): AnimationSet {
       ],
       loop: true,
     },
+    // Add run as an alias for walk
+    run: {
+      name: "run",
+      frames: [
+        { duration: 0.12, frameIndex: 10 },
+        { duration: 0.12, frameIndex: 11 },
+        { duration: 0.12, frameIndex: 12 },
+        { duration: 0.12, frameIndex: 13 },
+        { duration: 0.12, frameIndex: 14 },
+        { duration: 0.12, frameIndex: 15 },
+        { duration: 0.12, frameIndex: 16 },
+        { duration: 0.12, frameIndex: 17 },
+      ],
+      loop: true,
+    },
     attack: {
       name: "attack",
+      frames: [
+        { duration: 0.1, frameIndex: 5 },
+        { duration: 0.1, frameIndex: 6 },
+        { duration: 0.1, frameIndex: 7 },
+        { duration: 0.1, frameIndex: 8 },
+        { duration: 0.1, frameIndex: 9 },
+      ],
+      loop: false,
+    },
+    // Add fire as an alias for attack
+    fire: {
+      name: "fire",
       frames: [
         { duration: 0.1, frameIndex: 5 },
         { duration: 0.1, frameIndex: 6 },
@@ -126,6 +153,10 @@ export class SpriteAnimator {
     const animation = this.animations[animationName]
     if (!animation) {
       console.error(`Animation ${animationName} not found`)
+      // Fall back to idle animation if the requested one doesn't exist
+      if (animationName !== "idle" && this.animations["idle"]) {
+        this.play("idle")
+      }
       return
     }
 
