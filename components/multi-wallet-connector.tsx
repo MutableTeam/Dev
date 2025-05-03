@@ -9,7 +9,6 @@ import { Connection, clusterApiUrl, PublicKey } from "@solana/web3.js"
 import MutablePlatform from "./mutable-platform"
 import Image from "next/image"
 import SoundButton from "./sound-button"
-import AudioToggleButton from "./audio-toggle-button"
 import { audioManager, playIntroSound, initializeAudio, loadAudioFiles } from "@/utils/audio-manager"
 
 // Define types for Phantom wallet
@@ -405,7 +404,6 @@ export default function MultiWalletConnector() {
             <CardTitle className="font-mono">SOLANA WALLET</CardTitle>
           </div>
           <div className="flex items-center gap-2">
-            {!isCollapsed && <AudioToggleButton />}
             {connected && !isCollapsed && (
               <SoundButton variant="ghost" size="icon" className="h-8 w-8" onClick={toggleCollapse}>
                 <ChevronUp className="h-4 w-4" />

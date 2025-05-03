@@ -29,7 +29,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
   const games: Game[] = [
     {
       id: "top-down-shooter",
-      name: "MUTBow PvP",
+      name: "mutBow PvP",
       description: "Fast-paced arena shooter with physics-based projectiles and dodge mechanics",
       image: "/images/archer-game.png",
       icon: <Crosshair className="h-5 w-5" />,
@@ -38,9 +38,9 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
     },
     {
       id: "mutball-pool",
-      name: "MUTBall Pool",
+      name: "mutBall Pool",
       description: "Strategic pool game with power-ups and special abilities to sink balls",
-      image: "/pixel-art-pool.png",
+      image: "/images/pixel-art-pool.png",
       icon: <BilliardBall className="h-5 w-5" />,
       status: "coming-soon",
       minWager: 3,

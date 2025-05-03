@@ -688,7 +688,7 @@ export default function MatchmakingLobby({
                       )}
                     </div>
                     <div className="font-bold font-mono">
-                      {selectedGameType === "shooter" ? "Top-Down Shooter" : "MUTBall Pool"}
+                      {selectedGameType === "shooter" ? "mutBow PvP" : "mutBall Pool"}
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground">
