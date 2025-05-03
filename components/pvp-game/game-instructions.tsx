@@ -26,7 +26,7 @@ export default function GameInstructions() {
           <HelpCircle className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md border-2 border-black bg-[#fbf3de]">
+      <DialogContent className="sm:max-w-md border-2 border-black bg-[#fbf3de] z-50 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <DialogHeader>
           <DialogTitle className="font-mono">GAME INSTRUCTIONS</DialogTitle>
           <DialogDescription>How to play the bow and arrow game</DialogDescription>
@@ -68,14 +68,11 @@ export default function GameInstructions() {
             <h3 className="font-bold mb-1">Game Modes</h3>
             <ul className="list-disc pl-5 space-y-1 text-sm">
               <li>
-                <span className="font-medium">1v1 Duel:</span> First to 10 kills or highest score after 2 minutes wins
+                <span className="font-medium">1v1 Duel:</span> One life only! First to eliminate the opponent wins
               </li>
               <li>
                 <span className="font-medium">Free-For-All:</span> Every player for themselves, highest score after 2
                 minutes wins
-              </li>
-              <li>
-                <span className="font-medium">Timed Match:</span> Score as many kills as possible within 2 minutes
               </li>
             </ul>
           </div>

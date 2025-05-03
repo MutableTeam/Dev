@@ -1,11 +1,11 @@
 "use client"
 
-import type React from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Gamepad2, Crosshair, WalletCardsIcon as Cards, BombIcon as BilliardBall } from "lucide-react"
+import { Gamepad2 } from "lucide-react"
 import Image from "next/image"
 import SoundButton from "../sound-button"
+import { gameRegistry } from "@/types/game-registry"
 
 interface GameSelectionProps {
   publicKey: string
@@ -14,47 +14,17 @@ interface GameSelectionProps {
   onSelectGame: (gameId: string) => void
 }
 
-interface Game {
-  id: string
-  name: string
-  description: string
-  image: string
-  icon: React.ReactNode
-  status: "live" | "coming-soon"
-  minWager: number
-}
-
 export default function GameSelection({ publicKey, balance, mutbBalance, onSelectGame }: GameSelectionProps) {
-  // Available games
-  const games: Game[] = [
-    {
-      id: "top-down-shooter",
-      name: "mutBow PvP",
-      description: "Fast-paced arena shooter with physics-based projectiles and dodge mechanics",
-      image: "/images/archer-game.png",
-      icon: <Crosshair className="h-5 w-5" />,
-      status: "live",
-      minWager: 1,
-    },
-    {
-      id: "mutball-pool",
-      name: "mutBall Pool",
-      description: "Strategic pool game with power-ups and special abilities to sink balls",
-      image: "/images/pixel-art-pool.png",
-      icon: <BilliardBall className="h-5 w-5" />,
-      status: "coming-soon",
-      minWager: 3,
-    },
-    {
-      id: "deck-building",
-      name: "Deck-Building Battle",
-      description: "Strategic card game with skillful drafting and deck building before matches",
-      image: "/placeholder.svg?key=6x9fw",
-      icon: <Cards className="h-5 w-5" />,
-      status: "coming-soon",
-      minWager: 5,
-    },
-  ]
+  // Get all games from registry
+  const games = gameRegistry.getAllGames().map((game) => ({
+    id: game.config.id,
+    name: game.config.name,
+    description: game.config.description,
+    image: game.config.image,
+    icon: game.config.icon,
+    status: game.config.status,
+    minWager: game.config.minWager,
+  }))
 
   return (
     <Card className="bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -91,7 +61,9 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                 />
                 {game.status === "coming-soon" && (
                   <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <Badge className="bg-yellow-500 text-black font-mono">COMING SOON</Badge>
+                    <Badge className="bg-yellow-500 text-black font-mono">
+                      {game.id === "pixel-pool" ? "IN DEVELOPMENT" : "COMING SOON"}
+                    </Badge>
                   </div>
                 )}
               </div>

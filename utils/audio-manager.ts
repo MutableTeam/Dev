@@ -1,3 +1,5 @@
+import type { Howl } from "howler"
+
 type SoundType =
   | "coin"
   | "bow-draw"
@@ -13,6 +15,9 @@ type SoundType =
   | "game-over"
   | "victory"
   | "intro"
+  | "connect"
+  | "disconnect"
+  | "error"
 
 class AudioManager {
   private static instance: AudioManager
@@ -26,6 +31,8 @@ class AudioManager {
   private lastPlayedTime: Map<string, number> = new Map()
   private minTimeBetweenSounds = 100
   private unlocked = false
+
+  private sounds: { [key: string]: Howl } = {}
 
   public static getInstance(): AudioManager {
     if (!AudioManager.instance) {
@@ -155,6 +162,15 @@ class AudioManager {
           break
         case "intro":
           this.playIntroSound()
+          break
+        case "connect":
+          this.playConnectSound()
+          break
+        case "disconnect":
+          this.playDisconnectSound()
+          break
+        case "error":
+          this.playErrorSound()
           break
         default:
           this.playDefaultSound()
@@ -590,6 +606,84 @@ class AudioManager {
     }
   }
 
+  private playConnectSound(): void {
+    if (!this.audioContext) return
+
+    const oscillator = this.audioContext.createOscillator()
+    const gainNode = this.audioContext.createGain()
+
+    oscillator.type = "sine"
+    oscillator.frequency.setValueAtTime(440, this.audioContext.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(880, this.audioContext.currentTime + 0.2)
+
+    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime)
+    gainNode.gain.linearRampToValueAtTime(this.volume * 0.5, this.audioContext.currentTime + 0.05)
+    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.2)
+
+    oscillator.connect(gainNode)
+    gainNode.connect(this.audioContext.destination)
+
+    oscillator.start()
+    oscillator.stop(this.audioContext.currentTime + 0.2)
+
+    oscillator.onended = () => {
+      oscillator.disconnect()
+      gainNode.disconnect()
+    }
+  }
+
+  private playDisconnectSound(): void {
+    if (!this.audioContext) return
+
+    const oscillator = this.audioContext.createOscillator()
+    const gainNode = this.audioContext.createGain()
+
+    oscillator.type = "triangle"
+    oscillator.frequency.setValueAtTime(440, this.audioContext.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(220, this.audioContext.currentTime + 0.2)
+
+    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime)
+    gainNode.gain.linearRampToValueAtTime(this.volume * 0.5, this.audioContext.currentTime + 0.05)
+    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.2)
+
+    oscillator.connect(gainNode)
+    gainNode.connect(this.audioContext.destination)
+
+    oscillator.start()
+    oscillator.stop(this.audioContext.currentTime + 0.2)
+
+    oscillator.onended = () => {
+      oscillator.disconnect()
+      gainNode.disconnect()
+    }
+  }
+
+  private playErrorSound(): void {
+    if (!this.audioContext) return
+
+    const oscillator = this.audioContext.createOscillator()
+    const gainNode = this.audioContext.createGain()
+
+    oscillator.type = "square"
+    oscillator.frequency.setValueAtTime(220, this.audioContext.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(110, this.audioContext.currentTime + 0.3)
+
+    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime)
+    gainNode.gain.linearRampToValueAtTime(this.volume * 0.7, this.audioContext.currentTime + 0.05)
+    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.3)
+
+    oscillator.connect(gainNode)
+    gainNode.connect(this.audioContext.destination)
+
+    oscillator.start()
+    oscillator.stop(this.audioContext.currentTime + 0.3)
+
+    oscillator.onended = () => {
+      oscillator.disconnect()
+      gainNode.disconnect()
+    }
+  }
+
   private playDefaultSound(): void {
     if (!this.audioContext) return
 
@@ -922,6 +1016,18 @@ export const playVictorySound = (): void => {
 
 export const playIntroSound = (): void => {
   audioManager.playSound("intro")
+}
+
+export const playConnectSound = (): void => {
+  audioManager.playSound("connect")
+}
+
+export const playDisconnectSound = (): void => {
+  audioManager.playSound("disconnect")
+}
+
+export const playErrorSound = (): void => {
+  audioManager.playSound("error")
 }
 
 export const initializeAudio = async (): Promise<void> => {

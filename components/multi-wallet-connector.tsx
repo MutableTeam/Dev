@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Copy, Check, Wallet, TestTube, ChevronUp, ChevronDown } from "lucide-react"
 import { Connection, clusterApiUrl, PublicKey } from "@solana/web3.js"
-import MutablePlatform from "./mutable-platform"
 import Image from "next/image"
 import SoundButton from "./sound-button"
 import { audioManager, playIntroSound, initializeAudio, loadAudioFiles } from "@/utils/audio-manager"
@@ -78,7 +77,11 @@ const createMockProvider = () => {
   }
 }
 
-export default function MultiWalletConnector() {
+interface MultiWalletConnectorProps {
+  onConnectionChange?: (connected: boolean, publicKey: string, balance: number | null, provider: any) => void
+}
+
+export default function MultiWalletConnector({ onConnectionChange }: MultiWalletConnectorProps) {
   const [activeWallet, setActiveWallet] = useState<WalletType | null>(null)
   const [wallets, setWallets] = useState<WalletInfo[]>([
     {
@@ -152,6 +155,7 @@ export default function MultiWalletConnector() {
         setConnected(true)
         setPublicKey(solWindow.solana!.publicKey.toString())
         setActiveWallet("phantom")
+        setIsCollapsed(true) // Minimize wallet by default for already connected wallets
       }
 
       // Check if already connected to Solflare
@@ -160,6 +164,7 @@ export default function MultiWalletConnector() {
         setConnected(true)
         setPublicKey(solWindow.solflare!.publicKey.toString())
         setActiveWallet("solflare")
+        setIsCollapsed(true) // Minimize wallet by default for already connected wallets
       }
     }
 
@@ -220,6 +225,14 @@ export default function MultiWalletConnector() {
     getBalance()
   }, [connected, publicKey, isTestMode])
 
+  // Notify parent component when connection state changes
+  useEffect(() => {
+    if (onConnectionChange) {
+      console.log("Notifying parent of connection change:", { connected, publicKey, balance })
+      onConnectionChange(connected, publicKey, balance, provider)
+    }
+  }, [connected, publicKey, balance, provider, onConnectionChange])
+
   // Connect to wallet
   const connectWallet = async (walletType: WalletType) => {
     // Initialize and load audio files on first interaction
@@ -236,6 +249,7 @@ export default function MultiWalletConnector() {
       setActiveWallet("test")
       setIsTestMode(true)
       setBalance(5.0) // Set mock balance
+      setIsCollapsed(true) // Minimize wallet by default after connection
 
       // Play intro sound when wallet is connected (if not muted)
       if (!audioManager.isSoundMuted()) {
@@ -277,6 +291,7 @@ export default function MultiWalletConnector() {
         if (!audioManager.isSoundMuted()) {
           playIntroSound()
         }
+        setIsCollapsed(true) // Minimize wallet by default after connection
       } else {
         console.log(`Already connected to ${walletType} Wallet`)
         // Make sure we have the publicKey even if already connected
@@ -291,6 +306,7 @@ export default function MultiWalletConnector() {
           if (!audioManager.isSoundMuted()) {
             playIntroSound()
           }
+          setIsCollapsed(true) // Minimize wallet by default after connection
         }
       }
     } catch (error) {
@@ -612,10 +628,6 @@ export default function MultiWalletConnector() {
           </>
         )}
       </Card>
-
-      {connected && (
-        <MutablePlatform publicKey={publicKey} balance={balance} provider={provider} connection={connection} />
-      )}
     </div>
   )
 }

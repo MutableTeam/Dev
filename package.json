@@ -60,7 +60,9 @@
     "zod": "^3.24.1",
     "@solana/web3.js": "latest",
     "buffer": "latest",
-    "@solana/spl-token": "latest"
+    "@solana/spl-token": "latest",
+    "uuid": "latest",
+    "howler": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

@@ -1,25 +1,21 @@
 "use client"
-
-import type React from "react"
-
 import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Gamepad2, Users, Trophy, Clock, BombIcon as BilliardBall, Crosshair } from "lucide-react"
+import { Gamepad2 } from "lucide-react"
 import Image from "next/image"
-import GameController from "./game-controller"
-import GameInstructions from "./game-instructions"
 import WaitingRoom from "./waiting-room"
 import { loadAudioFiles } from "@/utils/audio-manager"
 import SoundButton from "../sound-button"
 import { withClickSound } from "@/utils/sound-utils"
-// Add import for GameErrorBoundary at the top of the file
 import GameErrorBoundary from "@/components/game-error-boundary"
 import { debugManager } from "@/utils/debug-utils"
 import transitionDebugger from "@/utils/transition-debug"
+import { gameRegistry, type GameImplementation } from "@/types/game-registry"
+import { GameContainer } from "@/components/game-container"
 
 interface MatchmakingLobbyProps {
   publicKey: string
@@ -27,15 +23,6 @@ interface MatchmakingLobbyProps {
   mutbBalance: number
   onExit: () => void
   selectedGame?: string
-}
-
-interface GameMode {
-  id: string
-  name: string
-  description: string
-  players: number
-  icon: React.ReactNode
-  minWager: number
 }
 
 interface GameLobby {
@@ -48,13 +35,7 @@ interface GameLobby {
   players: number
   maxPlayers: number
   status: "waiting" | "full" | "in-progress"
-  gameType: "shooter" | "pool"
-}
-
-// Add this after the component declaration
-const gameTypeMap: Record<string, "shooter" | "pool"> = {
-  "top-down-shooter": "shooter",
-  "mutball-pool": "pool",
+  gameType: string
 }
 
 export default function MatchmakingLobby({
@@ -66,7 +47,7 @@ export default function MatchmakingLobby({
 }: MatchmakingLobbyProps) {
   const [activeTab, setActiveTab] = useState("browse")
   const [selectedMode, setSelectedMode] = useState<string | null>(null)
-  const [selectedGameType, setSelectedGameType] = useState<"shooter" | "pool">(gameTypeMap[selectedGame] || "shooter")
+  const [selectedGameImpl, setSelectedGameImpl] = useState<GameImplementation | null>(null)
   const [wagerAmount, setWagerAmount] = useState<number>(1)
   const [localPlayerName, setLocalPlayerName] = useState(playerName)
 
@@ -79,6 +60,20 @@ export default function MatchmakingLobby({
   const componentIdRef = useRef<string>(`matchmaking-${Date.now()}`)
   const lobbyUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const newLobbyIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Load selected game implementation
+  useEffect(() => {
+    const gameImpl = gameRegistry.getGame(selectedGame)
+    if (gameImpl) {
+      setSelectedGameImpl(gameImpl)
+    } else {
+      // Default to first available game if selected game not found
+      const availableGames = gameRegistry.getLiveGames()
+      if (availableGames.length > 0) {
+        setSelectedGameImpl(availableGames[0])
+      }
+    }
+  }, [selectedGame])
 
   // Track component mount
   useEffect(() => {
@@ -94,57 +89,6 @@ export default function MatchmakingLobby({
     }
   }, [publicKey, selectedGame])
 
-  // Game modes
-  const shooterModes: GameMode[] = [
-    {
-      id: "duel",
-      name: "1v1 Duel",
-      description: "Face off against a single opponent in a 2-minute battle to the death",
-      players: 2,
-      icon: <Trophy className="h-6 w-6" />,
-      minWager: 1,
-    },
-    {
-      id: "ffa",
-      name: "Free-For-All",
-      description: "Every player for themselves in a 2-minute chaotic battle royale",
-      players: 4,
-      icon: <Users className="h-6 w-6" />,
-      minWager: 2,
-    },
-    {
-      id: "timed",
-      name: "Timed Match",
-      description: "Score as many kills as possible within 2 minutes",
-      players: 4,
-      icon: <Clock className="h-6 w-6" />,
-      minWager: 2,
-    },
-  ]
-
-  // Pool game modes
-  const poolModes: GameMode[] = [
-    {
-      id: "eight-ball",
-      name: "8-Ball",
-      description: "Classic 8-ball pool. Sink your balls (solids or stripes) and then the 8-ball to win",
-      players: 2,
-      icon: <BilliardBall className="h-6 w-6" />,
-      minWager: 3,
-    },
-    {
-      id: "nine-ball",
-      name: "9-Ball",
-      description: "Hit the lowest numbered ball first and sink the 9-ball to win",
-      players: 2,
-      icon: <BilliardBall className="h-6 w-6" />,
-      minWager: 5,
-    },
-  ]
-
-  // Get the appropriate game modes based on selected game type
-  const gameModes = selectedGameType === "shooter" ? shooterModes : poolModes
-
   // Mock lobbies with a more realistic structure
   const [lobbies, setLobbies] = useState<GameLobby[]>([
     {
@@ -157,7 +101,7 @@ export default function MatchmakingLobby({
       players: 1,
       maxPlayers: 2,
       status: "waiting",
-      gameType: "shooter",
+      gameType: "top-down-shooter",
     },
     {
       id: "lobby-2",
@@ -169,56 +113,9 @@ export default function MatchmakingLobby({
       players: 2,
       maxPlayers: 4,
       status: "waiting",
-      gameType: "shooter",
+      gameType: "top-down-shooter",
     },
-    {
-      id: "lobby-3",
-      host: "Player3",
-      hostName: "MUTBChampion",
-      mode: "timed",
-      modeName: "Timed Match",
-      wager: 20,
-      players: 3,
-      maxPlayers: 4,
-      status: "waiting",
-      gameType: "shooter",
-    },
-    {
-      id: "lobby-4",
-      host: "Player4",
-      hostName: "TokenShooter",
-      mode: "duel",
-      modeName: "1v1 Duel",
-      wager: 50,
-      players: 2,
-      maxPlayers: 2,
-      status: "full",
-      gameType: "shooter",
-    },
-    {
-      id: "lobby-5",
-      host: "Player5",
-      hostName: "PoolShark",
-      mode: "eight-ball",
-      modeName: "8-Ball",
-      wager: 15,
-      players: 1,
-      maxPlayers: 2,
-      status: "waiting",
-      gameType: "pool",
-    },
-    {
-      id: "lobby-6",
-      host: "Player6",
-      hostName: "BilliardsMaster",
-      mode: "nine-ball",
-      modeName: "9-Ball",
-      wager: 25,
-      players: 1,
-      maxPlayers: 2,
-      status: "waiting",
-      gameType: "pool",
-    },
+    // Add more mock lobbies as needed
   ])
 
   // Simulate lobby updates with safe intervals
@@ -289,9 +186,13 @@ export default function MatchmakingLobby({
     newLobbyIntervalRef.current = transitionDebugger.safeSetInterval(
       () => {
         if (Math.random() > 0.8) {
-          const gameType = Math.random() > 0.7 ? "pool" : "shooter"
-          const modes = gameType === "shooter" ? shooterModes : poolModes
-          const randomMode = modes[Math.floor(Math.random() * modes.length)]
+          // Get a random game
+          const games = gameRegistry.getLiveGames()
+          if (games.length === 0) return
+
+          const randomGame = games[Math.floor(Math.random() * games.length)]
+          const randomMode = randomGame.config.modes[Math.floor(Math.random() * randomGame.config.modes.length)]
+
           const botNames = ["CryptoArcher", "TokenShooter", "BlockchainGamer", "NFTWarrior", "SolanaSniper"]
           const randomName = botNames[Math.floor(Math.random() * botNames.length)]
 
@@ -305,7 +206,7 @@ export default function MatchmakingLobby({
             players: 1,
             maxPlayers: randomMode.players,
             status: "waiting",
-            gameType,
+            gameType: randomGame.config.id,
           }
 
           setLobbies((prev) => [...prev.slice(-9), newLobby]) // Keep last 10 lobbies
@@ -322,16 +223,12 @@ export default function MatchmakingLobby({
         debugManager.logInfo("MatchmakingLobby", "Cleared new lobby interval")
       }
     }
-  }, [gameState, shooterModes, poolModes])
+  }, [gameState])
 
   const createLobby = () => {
-    if (!selectedMode) return
-    if (selectedGameType === "pool") {
-      alert("Pool games are coming soon!")
-      return
-    }
+    if (!selectedMode || !selectedGameImpl) return
 
-    const mode = gameModes.find((m) => m.id === selectedMode)
+    const mode = selectedGameImpl.config.modes.find((m) => m.id === selectedMode)
     if (!mode) return
 
     if (wagerAmount < mode.minWager) {
@@ -359,7 +256,7 @@ export default function MatchmakingLobby({
       players: 1,
       maxPlayers: mode.players,
       status: "waiting",
-      gameType: selectedGameType,
+      gameType: selectedGameImpl.config.id,
     }
 
     setLobbies([...lobbies, newLobby])
@@ -376,10 +273,6 @@ export default function MatchmakingLobby({
     if (lobby.status !== "waiting") return
     if (lobby.wager > mutbBalance) {
       alert("You don't have enough MUTB tokens for this wager")
-      return
-    }
-    if (lobby.gameType === "pool") {
-      alert("Pool games are coming soon!")
       return
     }
 
@@ -467,6 +360,8 @@ export default function MatchmakingLobby({
   }
 
   const startGame = () => {
+    if (!selectedLobby || !selectedGameImpl) return
+
     // Track state transition
     transitionDebugger.trackTransition("waiting", "playing", "MatchmakingLobby")
     setGameState("playing")
@@ -475,7 +370,7 @@ export default function MatchmakingLobby({
   }
 
   // Render based on game state
-  if (gameState === "playing") {
+  if (gameState === "playing" && selectedLobby && selectedGameImpl) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -487,7 +382,7 @@ export default function MatchmakingLobby({
             Exit Game
           </SoundButton>
           <div className="flex items-center gap-2">
-            <GameInstructions />
+            {selectedGameImpl.InstructionsComponent && <selectedGameImpl.InstructionsComponent />}
             <Badge variant="outline" className="bg-[#FFD54F] text-black border-2 border-black font-mono">
               WAGER: {selectedLobby?.wager} MUTB
             </Badge>
@@ -495,10 +390,12 @@ export default function MatchmakingLobby({
         </div>
 
         <GameErrorBoundary>
-          <GameController
+          <GameContainer
+            gameId={selectedLobby.gameType}
             playerId={publicKey}
             playerName={localPlayerName}
-            isHost={selectedLobby?.host === publicKey}
+            isHost={selectedLobby.host === publicKey}
+            gameMode={selectedLobby.mode}
             onGameEnd={handleGameEnd}
           />
         </GameErrorBoundary>
@@ -555,7 +452,10 @@ export default function MatchmakingLobby({
   }
 
   // Default: lobby state
-  const filteredLobbies = lobbies.filter((lobby) => lobby.gameType === selectedGameType)
+  const allGames = gameRegistry.getLiveGames()
+  const filteredLobbies = selectedGameImpl
+    ? lobbies.filter((lobby) => lobby.gameType === selectedGameImpl.config.id)
+    : []
 
   return (
     <Card className="bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -576,6 +476,28 @@ export default function MatchmakingLobby({
         <CardDescription>Battle other players and win MUTB tokens</CardDescription>
       </CardHeader>
       <CardContent>
+        {/* Game selection tabs */}
+        <div className="mb-4">
+          <Label className="font-mono mb-2 block">SELECT GAME</Label>
+          <div className="flex flex-wrap gap-2">
+            {allGames.map((game) => (
+              <Badge
+                key={game.config.id}
+                variant={selectedGameImpl?.config.id === game.config.id ? "default" : "outline"}
+                className={`cursor-pointer ${
+                  selectedGameImpl?.config.id === game.config.id ? "bg-[#FFD54F] text-black" : "hover:bg-gray-100"
+                } border-2 border-black`}
+                onClick={() => setSelectedGameImpl(game)}
+              >
+                <div className="flex items-center gap-1">
+                  <span className="mr-1">{game.config.icon}</span>
+                  {game.config.name}
+                </div>
+              </Badge>
+            ))}
+          </div>
+        </div>
+
         <Tabs defaultValue="browse" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4 border-2 border-black bg-[#FFD54F]">
             <TabsTrigger
@@ -598,10 +520,8 @@ export default function MatchmakingLobby({
             {filteredLobbies.length > 0 ? (
               <div className="space-y-3">
                 {filteredLobbies.map((lobby) => {
-                  const gameMode =
-                    lobby.gameType === "shooter"
-                      ? shooterModes.find((m) => m.id === lobby.mode)
-                      : poolModes.find((m) => m.id === lobby.mode)
+                  const gameImpl = gameRegistry.getGame(lobby.gameType)
+                  const gameMode = gameImpl?.config.modes.find((m) => m.id === lobby.mode)
 
                   return (
                     <div
@@ -610,11 +530,7 @@ export default function MatchmakingLobby({
                     >
                       <div className="flex items-center gap-3">
                         <div className="bg-[#FFD54F] p-2 rounded-md border-2 border-black">
-                          {lobby.gameType === "pool" ? (
-                            <BilliardBall className="h-5 w-5" />
-                          ) : (
-                            gameMode?.icon || <Gamepad2 className="h-5 w-5" />
-                          )}
+                          {gameMode?.icon || gameImpl?.config.icon || <Gamepad2 className="h-5 w-5" />}
                         </div>
                         <div>
                           <div className="font-bold font-mono flex items-center gap-2">
@@ -655,7 +571,7 @@ export default function MatchmakingLobby({
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <Gamepad2 className="h-12 w-12 mx-auto mb-2 opacity-20" />
-                <p className="font-mono">NO ACTIVE {selectedGameType.toUpperCase()} GAMES</p>
+                <p className="font-mono">NO ACTIVE GAMES</p>
                 <p className="text-sm mt-2">Create a new game to start playing</p>
               </div>
             )}
@@ -676,57 +592,51 @@ export default function MatchmakingLobby({
                 />
               </div>
 
-              <div>
-                <Label className="font-mono">GAME TYPE</Label>
-                <div className="p-3 border-2 rounded-md border-black bg-[#FFD54F] mt-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="bg-white p-1 rounded-md border border-black">
-                      {selectedGameType === "shooter" ? (
-                        <Crosshair className="h-5 w-5" />
-                      ) : (
-                        <BilliardBall className="h-5 w-5" />
-                      )}
-                    </div>
-                    <div className="font-bold font-mono">
-                      {selectedGameType === "shooter" ? "mutBow PvP" : "mutBall Pool"}
+              {selectedGameImpl && (
+                <>
+                  <div>
+                    <Label className="font-mono">GAME TYPE</Label>
+                    <div className="p-3 border-2 rounded-md border-black bg-[#FFD54F] mt-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-white p-1 rounded-md border border-black">
+                          {selectedGameImpl.config.icon}
+                        </div>
+                        <div className="font-bold font-mono">{selectedGameImpl.config.name}</div>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{selectedGameImpl.config.description}</p>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedGameType === "shooter"
-                      ? "Fast-paced arena shooter with projectiles and dodge mechanics"
-                      : "Strategic pool game with power-ups and special abilities"}
-                  </p>
-                </div>
-              </div>
 
-              <div>
-                <Label className="font-mono">GAME MODE</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                  {gameModes.map((mode) => (
-                    <div
-                      key={mode.id}
-                      className={`p-3 border-2 rounded-md cursor-pointer transition-colors ${
-                        selectedMode === mode.id
-                          ? "border-black bg-[#FFD54F]"
-                          : "border-gray-300 bg-[#f5efdc] hover:border-black"
-                      }`}
-                      onClick={withClickSound(() => setSelectedMode(mode.id))}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="bg-white p-1 rounded-md border border-black">{mode.icon}</div>
-                        <div className="font-bold font-mono">{mode.name}</div>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{mode.description}</p>
-                      <div className="mt-2 text-sm">
-                        <span className="font-medium">Players:</span> {mode.players}
-                      </div>
-                      <div className="text-sm">
-                        <span className="font-medium">Min Wager:</span> {mode.minWager} MUTB
-                      </div>
+                  <div>
+                    <Label className="font-mono">GAME MODE</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                      {selectedGameImpl.config.modes.map((mode) => (
+                        <div
+                          key={mode.id}
+                          className={`p-3 border-2 rounded-md cursor-pointer transition-colors ${
+                            selectedMode === mode.id
+                              ? "border-black bg-[#FFD54F]"
+                              : "border-gray-300 bg-[#f5efdc] hover:border-black"
+                          }`}
+                          onClick={withClickSound(() => setSelectedMode(mode.id))}
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="bg-white p-1 rounded-md border border-black">{mode.icon}</div>
+                            <div className="font-bold font-mono">{mode.name}</div>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{mode.description}</p>
+                          <div className="mt-2 text-sm">
+                            <span className="font-medium">Players:</span> {mode.players}
+                          </div>
+                          <div className="text-sm">
+                            <span className="font-medium">Min Wager:</span> {mode.minWager} MUTB
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                </>
+              )}
 
               <div>
                 <Label htmlFor="wagerAmount" className="font-mono">
@@ -757,7 +667,7 @@ export default function MatchmakingLobby({
         {activeTab === "create" ? (
           <SoundButton
             className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
-            disabled={!selectedMode || wagerAmount <= 0 || wagerAmount > mutbBalance}
+            disabled={!selectedMode || !selectedGameImpl || wagerAmount <= 0 || wagerAmount > mutbBalance}
             onClick={createLobby}
           >
             CREATE GAME

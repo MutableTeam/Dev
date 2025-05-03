@@ -25,6 +25,12 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
   const [selectedGame, setSelectedGame] = useState<string | null>(null)
   const [mutbBalance, setMutbBalance] = useState<number>(100) // Mock MUTB balance
 
+  // Generate a player name from the public key
+  const getPlayerName = () => {
+    if (!publicKey) return "Player"
+    return "Player_" + publicKey.substring(0, 4)
+  }
+
   const handleSelectGame = (gameId: string) => {
     setSelectedGame(gameId)
   }
@@ -95,7 +101,7 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
               {selectedGame === "top-down-shooter" || selectedGame === "mutball-pool" ? (
                 <MatchmakingLobby
                   publicKey={publicKey}
-                  playerName="Player"
+                  playerName={getPlayerName()}
                   mutbBalance={mutbBalance}
                   onExit={handleBackToSelection}
                   selectedGame={selectedGame}

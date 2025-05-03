@@ -25,6 +25,7 @@ export interface Player extends GameObject {
   score: number
   kills: number
   deaths: number
+  lives: number // Added lives property
   cooldown: number
   dashCooldown: number
   isDashing: boolean
@@ -44,6 +45,8 @@ export interface Player extends GameObject {
   // State timers
   hitAnimationTimer: number
   respawnTimer: number
+  // Track who last damaged this player
+  lastDamageFrom: string | null
   // Controls
   controls: {
     up: boolean
@@ -56,7 +59,7 @@ export interface Player extends GameObject {
   }
 }
 
-// Update the GameState interface to include maxGameTime
+// Update the GameState interface to include maxGameTime and gameMode
 export interface GameState {
   players: Record<string, Player>
   arrows: GameObject[]
@@ -67,6 +70,7 @@ export interface GameState {
   maxGameTime: number
   isGameOver: boolean
   winner: string | null
+  gameMode: string // Added gameMode property
 }
 
 // Available colors for players
@@ -84,6 +88,7 @@ export const createInitialGameState = (): GameState => {
     maxGameTime: 120, // 2 minutes in seconds
     isGameOver: false,
     winner: null,
+    gameMode: "ffa", // Default game mode
   }
 }
 
@@ -101,6 +106,7 @@ export const createPlayer = (id: string, name: string, position: Vector2D, color
     score: 0,
     kills: 0,
     deaths: 0,
+    lives: 3, // Default lives
     cooldown: 0,
     dashCooldown: 0,
     isDashing: false,
@@ -120,6 +126,7 @@ export const createPlayer = (id: string, name: string, position: Vector2D, color
     // State timers
     hitAnimationTimer: 0,
     respawnTimer: 0,
+    lastDamageFrom: null,
     // Controls
     controls: {
       up: false,
@@ -266,7 +273,11 @@ const calculateArrowSpeed = (drawTime: number, maxDrawTime: number): number => {
 }
 
 // Update the updateGameState function to check for time limit and update animation states
-export const updateGameState = (state: GameState, deltaTime: number): GameState => {
+export const updateGameState = (
+  state: GameState,
+  deltaTime: number,
+  onPlayerDeath?: (playerId: string) => void,
+): GameState => {
   try {
     // Create a deep copy of the state to avoid mutation issues
     const newState = {
@@ -331,6 +342,11 @@ export const updateGameState = (state: GameState, deltaTime: number): GameState 
     Object.keys(newState.players).forEach((playerId) => {
       const player = newState.players[playerId]
 
+      // Skip players with no lives left
+      if (player.lives <= 0) {
+        return
+      }
+
       // Handle cooldowns
       if (player.cooldown > 0) {
         player.cooldown -= deltaTime
@@ -365,15 +381,18 @@ export const updateGameState = (state: GameState, deltaTime: number): GameState 
       if (player.respawnTimer > 0) {
         player.respawnTimer -= deltaTime
         if (player.respawnTimer <= 0 && player.health <= 0) {
-          // Respawn player
-          player.health = 100
-          player.animationState = "idle"
-          player.lastAnimationChange = Date.now()
+          // Only respawn if player has lives left
+          if (player.lives > 0) {
+            // Respawn player
+            player.health = 100
+            player.animationState = "idle"
+            player.lastAnimationChange = Date.now()
 
-          // Respawn at random position
-          player.position = {
-            x: Math.random() * (newState.arenaSize.width - 100) + 50,
-            y: Math.random() * (newState.arenaSize.height - 100) + 50,
+            // Respawn at random position
+            player.position = {
+              x: Math.random() * (newState.arenaSize.width - 100) + 50,
+              y: Math.random() * (newState.arenaSize.height - 100) + 50,
+            }
           }
         }
       }
@@ -595,8 +614,8 @@ export const updateGameState = (state: GameState, deltaTime: number): GameState 
       for (const playerId in newState.players) {
         const player = newState.players[playerId]
 
-        // Don't hit the player who fired the arrow
-        if (arrow.ownerId === player.id) continue
+        // Don't hit the player who fired the arrow or players with no lives
+        if (arrow.ownerId === player.id || player.lives <= 0) continue
 
         const dx = arrow.position.x - player.position.x
         const dy = arrow.position.y - player.position.y
@@ -607,6 +626,9 @@ export const updateGameState = (state: GameState, deltaTime: number): GameState 
           const damage = arrow.damage || 10
           player.health -= damage
 
+          // Track who hit this player
+          player.lastDamageFrom = arrow.ownerId
+
           // Set hit animation
           if (player.animationState !== "death") {
             player.animationState = "hit"
@@ -616,15 +638,34 @@ export const updateGameState = (state: GameState, deltaTime: number): GameState 
 
           // Check if player is dead
           if (player.health <= 0) {
-            player.deaths++
+            // Reduce lives
+            player.lives -= 1
+
+            // Set death animation
             player.animationState = "death"
             player.lastAnimationChange = Date.now()
-            player.respawnTimer = 1.0 // 1 second
 
-            // Award kill to shooter
-            if (arrow.ownerId && newState.players[arrow.ownerId]) {
-              newState.players[arrow.ownerId].kills++
-              newState.players[arrow.ownerId].score += 100
+            // Call the onPlayerDeath callback if provided
+            if (onPlayerDeath) {
+              onPlayerDeath(playerId)
+            }
+
+            // Handle duel mode - one life only
+            if (newState.gameMode === "duel") {
+              // In duel mode, game ends immediately when a player dies
+              newState.isGameOver = true
+              newState.winner = arrow.ownerId
+            } else {
+              // For other modes, set respawn timer if player has lives left
+              if (player.lives > 0) {
+                player.respawnTimer = 3.0 // 3 seconds for respawn
+              }
+
+              // Award kill to shooter
+              if (arrow.ownerId && newState.players[arrow.ownerId]) {
+                newState.players[arrow.ownerId].kills++
+                newState.players[arrow.ownerId].score += 100
+              }
             }
           }
 
@@ -636,11 +677,29 @@ export const updateGameState = (state: GameState, deltaTime: number): GameState 
     })
 
     // Check for game over conditions
-    const activePlayers = Object.values(newState.players).filter((p) => p.health > 0)
-    if (activePlayers.length <= 1 && Object.keys(newState.players).length > 1) {
-      newState.isGameOver = true
-      if (activePlayers.length === 1) {
-        newState.winner = activePlayers[0].id
+    if (!newState.isGameOver) {
+      if (newState.gameMode === "duel") {
+        // For duel mode, check if only one player has lives left
+        const playersWithLives = Object.values(newState.players).filter((p) => p.lives > 0)
+        if (playersWithLives.length <= 1 && Object.keys(newState.players).length > 1) {
+          newState.isGameOver = true
+          newState.winner = playersWithLives.length === 1 ? playersWithLives[0].id : null
+        }
+      } else {
+        // For FFA mode, check if only one player is active or if someone reached 10 kills
+        const activePlayers = Object.values(newState.players).filter((p) => p.lives > 0)
+        const topKiller = Object.values(newState.players).reduce(
+          (top, p) => (p.kills > (top?.kills || 0) ? p : top),
+          null,
+        )
+
+        if (activePlayers.length <= 1 && Object.keys(newState.players).length > 1) {
+          newState.isGameOver = true
+          newState.winner = activePlayers.length === 1 ? activePlayers[0].id : null
+        } else if (topKiller && topKiller.kills >= 10) {
+          newState.isGameOver = true
+          newState.winner = topKiller.id
+        }
       }
     }
 
@@ -650,6 +709,64 @@ export const updateGameState = (state: GameState, deltaTime: number): GameState 
     // Return the original state if there's an error
     return state
   }
+}
+
+// Handle player input
+export function handlePlayerInput(state: GameState, playerId: string, input: any): GameState {
+  const player = state.players[playerId]
+  if (!player || !player.isActive) return state
+
+  // Clone the state to avoid mutations
+  const newState = { ...state }
+  const updatedPlayer = { ...player }
+
+  // Update player position based on input
+  if (input.movement) {
+    updatedPlayer.position = {
+      x: updatedPlayer.position.x + input.movement.x,
+      y: updatedPlayer.position.y + input.movement.y,
+    }
+  }
+
+  // Add projectile if player is shooting
+  if (input.shooting) {
+    // In a real implementation, this would create a projectile
+  }
+
+  // Update the player in the state
+  newState.players = {
+    ...newState.players,
+    [playerId]: updatedPlayer,
+  }
+
+  return newState
+}
+
+// Handle player death
+export function handlePlayerDeath(state: GameState, playerId: string): GameState {
+  const newState = { ...state }
+  const player = { ...newState.players[playerId] }
+
+  // Reduce lives
+  player.lives -= 1
+
+  // Check if player is out of lives
+  if (player.lives <= 0) {
+    player.isActive = false
+
+    // In duel mode, end the game immediately
+    if (newState.gameMode === "duel") {
+      newState.isGameOver = true
+      // Find the other player and set them as winner
+      const winner = Object.values(newState.players).find((p) => p.id !== playerId)
+      newState.winner = winner ? winner.id : null
+    }
+  }
+
+  // Update player in state
+  newState.players[playerId] = player
+
+  return newState
 }
 
 // Helper function to play hit sound

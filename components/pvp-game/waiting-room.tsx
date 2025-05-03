@@ -10,6 +10,7 @@ import SoundButton from "../sound-button"
 import CountdownTimer from "./countdown-timer"
 import { debugManager } from "@/utils/debug-utils"
 import transitionDebugger from "@/utils/transition-debug"
+import Instructions from "@/games/top-down-shooter/instructions"
 
 interface Player {
   id: string
@@ -217,9 +218,12 @@ export default function WaitingRoom({
             <Gamepad2 className="h-5 w-5" />
             <CardTitle className="font-mono">WAITING ROOM</CardTitle>
           </div>
-          <Badge variant="outline" className="bg-[#FFD54F] text-black border-2 border-black font-mono">
-            {gameMode}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="bg-[#FFD54F] text-black border-2 border-black font-mono">
+              {gameMode}
+            </Badge>
+            <Instructions variant="icon" />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -307,14 +311,17 @@ export default function WaitingRoom({
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
-        <SoundButton
-          variant="outline"
-          className="border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
-          onClick={handleExit}
-          disabled={isCountingDown}
-        >
-          Leave Lobby
-        </SoundButton>
+        <div className="flex gap-2">
+          <SoundButton
+            variant="outline"
+            className="border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+            onClick={handleExit}
+            disabled={isCountingDown}
+          >
+            Leave Lobby
+          </SoundButton>
+          <Instructions variant="full" />
+        </div>
 
         {isHost ? (
           <SoundButton
