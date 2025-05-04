@@ -406,13 +406,14 @@ export default function MultiWalletConnector({ onConnectionChange }: MultiWallet
   return (
     <div className="space-y-6">
       {!connected && (
-        <div className="flex justify-center mb-2 sm:mb-6">
+        <div className="logo-container mb-2 sm:mb-6">
+          <div className="logo-pulse"></div>
           <Image
             src="/images/mutable-logo-transparent.png"
             alt="Mutable Logo"
             width={200}
-            height={200}
-            className="w-32 h-32 sm:w-48 sm:h-48 md:w-[200px] md:h-[200px]"
+            height={120}
+            className="w-auto h-auto max-w-[200px] animated-logo z-10"
           />
         </div>
       )}

@@ -14,6 +14,12 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     if (isIOS()) {
       document.documentElement.classList.add("ios-device")
     }
+
+    // Ensure light mode is set by default
+    if (typeof window !== "undefined" && !localStorage.getItem("theme")) {
+      localStorage.setItem("theme", "light")
+      document.documentElement.classList.remove("dark")
+    }
   }, [])
 
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>

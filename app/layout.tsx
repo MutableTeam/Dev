@@ -29,7 +29,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <IOSDarkModeScript />
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <IOSDarkModeFix />
           <GameProvider>{children}</GameProvider>
         </ThemeProvider>
