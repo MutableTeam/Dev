@@ -8,7 +8,7 @@ export default function DemoWatermark() {
 
   return (
     <div
-      className="fixed top-2 right-2 z-50 flex items-center gap-1.5 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm transition-all duration-200 cursor-pointer max-w-[120px] sm:max-w-[150px]"
+      className="fixed bottom-2 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-1.5 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm transition-all duration-200 cursor-pointer max-w-[120px] sm:max-w-[150px]"
       style={{ maxWidth: expanded ? "300px" : undefined }}
       onClick={() => setExpanded(!expanded)}
       onMouseEnter={() => setExpanded(true)}

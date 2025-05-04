@@ -22,7 +22,7 @@ export default function GamePopOutContainer({
   title = "MUTABLE GAME",
   children,
 }: GamePopOutContainerProps) {
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Handle escape key to close
@@ -108,6 +108,24 @@ export default function GamePopOutContainer({
 
     // Cleanup
     return () => window.removeEventListener("resize", resizeGameToFit)
+  }, [isOpen])
+
+  // Add a new useEffect to automatically enter fullscreen mode when the container opens
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      // Small delay to ensure the component is fully rendered
+      const timer = setTimeout(() => {
+        if (containerRef.current && document.fullscreenEnabled) {
+          containerRef.current.requestFullscreen().catch((err) => {
+            debugManager.logWarning("Fullscreen", "Could not enter fullscreen mode automatically:", err)
+            // If fullscreen fails, we still want to show the container in a large size
+            setIsFullscreen(false)
+          })
+        }
+      }, 100)
+
+      return () => clearTimeout(timer)
+    }
   }, [isOpen])
 
   return (
