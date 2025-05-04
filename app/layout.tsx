@@ -1,9 +1,13 @@
 import type React from "react"
 import "./globals.css"
+import "../styles/ios-dark-mode.css"
+import "../styles/ios-dark-mode-overrides.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { GameProvider } from "@/contexts/game-context"
+import { IOSDarkModeFix } from "@/components/ios-dark-mode-fix"
+import IOSDarkModeScript from "./ios-dark-mode-script"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -20,8 +24,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="color-scheme" content="light dark" />
+      </head>
       <body className={inter.className}>
+        <IOSDarkModeScript />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <IOSDarkModeFix />
           <GameProvider>{children}</GameProvider>
         </ThemeProvider>
       </body>

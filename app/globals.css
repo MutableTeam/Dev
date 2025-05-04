@@ -108,9 +108,9 @@
 }
 
 .dark .arcade-card {
-  background-color: #2a2a2a;
-  border: 2px solid #555555;
-  box-shadow: 4px 4px 0px 0px rgba(80, 80, 80, 0.8);
+  background-color: #2a2a2a !important;
+  border: 2px solid #555555 !important;
+  box-shadow: 4px 4px 0px 0px rgba(80, 80, 80, 0.8) !important;
 }
 
 /* Arcade-themed buttons */
@@ -130,13 +130,13 @@
 }
 
 .dark .arcade-button {
-  background-color: #d4af37;
-  border: 2px solid #555555;
-  box-shadow: 2px 2px 0px 0px rgba(80, 80, 80, 0.8);
+  background-color: #d4af37 !important;
+  border: 2px solid #555555 !important;
+  box-shadow: 2px 2px 0px 0px rgba(80, 80, 80, 0.8) !important;
 }
 
 .dark .arcade-button:hover {
-  background-color: #c4a137;
+  background-color: #c4a137 !important;
 }
 
 /* Arcade-themed badges */
@@ -148,8 +148,8 @@
 }
 
 .dark .arcade-badge {
-  background-color: #d4af37;
-  border: 2px solid #555555;
+  background-color: #d4af37 !important;
+  border: 2px solid #555555 !important;
 }
 
 /* Game cards */
@@ -159,8 +159,8 @@
 }
 
 .dark .game-card {
-  border: 2px solid #555555;
-  background-color: #2a2a2a;
+  border: 2px solid #555555 !important;
+  background-color: #2a2a2a !important;
 }
 
 /* Game images */
@@ -170,35 +170,129 @@
 
 /* Text styles */
 .dark .text-primary {
-  color: #ffffff;
+  color: #ffffff !important;
 }
 
 .dark .text-secondary {
-  color: #d1d5db;
+  color: #d1d5db !important;
 }
 
 .dark .text-muted {
-  color: #9ca3af;
+  color: #9ca3af !important;
 }
 
 /* Form elements */
 .dark input,
 .dark select,
 .dark textarea {
-  background-color: #1f2937;
-  border-color: #4b5563;
-  color: #ffffff;
+  background-color: #1f2937 !important;
+  border-color: #4b5563 !important;
+  color: #ffffff !important;
+}
+
+/* iOS-specific dark mode fixes */
+@supports (-webkit-touch-callout: none) {
+  /* iOS-specific styles */
+  .dark {
+    color-scheme: dark;
+  }
+
+  .dark body {
+    background-color: #121212 !important;
+    color: #ffffff !important;
+  }
+
+  /* Force background colors for iOS */
+  .dark .bg-\[\#fbf3de\] {
+    background-color: #2a2a2a !important;
+  }
+
+  .dark .bg-\[\#f5efdc\] {
+    background-color: #333333 !important;
+  }
+
+  .dark .bg-\[\#FFD54F\] {
+    background-color: #d4af37 !important;
+  }
+
+  .dark .border-black {
+    border-color: #555555 !important;
+  }
+
+  /* Force text colors for iOS */
+  .dark .text-black {
+    color: #ffffff !important;
+  }
+
+  .dark .text-muted-foreground {
+    color: #a0aec0 !important;
+  }
+
+  /* Force card backgrounds */
+  .dark .card,
+  .dark [class*="Card"] {
+    background-color: #2a2a2a !important;
+    border-color: #555555 !important;
+  }
+
+  /* Force button styles */
+  .dark button,
+  .dark [class*="Button"] {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+  }
+
+  .dark button:hover,
+  .dark [class*="Button"]:hover {
+    background-color: #444444 !important;
+  }
+
+  /* Force badge styles */
+  .dark [class*="Badge"] {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+  }
+
+  /* Force tab styles */
+  .dark [class*="Tab"] {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+  }
+
+  /* Force all text to be white */
+  .dark h1,
+  .dark h2,
+  .dark h3,
+  .dark h4,
+  .dark h5,
+  .dark h6,
+  .dark p,
+  .dark span,
+  .dark div,
+  .dark a {
+    color: #ffffff !important;
+  }
+
+  /* Special case for yellow buttons */
+  .dark .bg-\[\#FFD54F\],
+  .dark .hover\:bg-\[\#FFD54F\]:hover,
+  .dark .hover\:bg-\[\#FFCA28\]:hover {
+    background-color: #d4af37 !important;
+    color: #000000 !important;
+  }
 }
 
 /* Mobile-specific dark mode improvements */
 @media (max-width: 768px) {
   .dark .arcade-card {
-    background-color: #1a1a1a;
-    border-color: #444444;
+    background-color: #1a1a1a !important;
+    border-color: #444444 !important;
   }
 
   .dark .small-text {
-    color: #e5e7eb;
+    color: #e5e7eb !important;
     font-weight: 500;
   }
 
@@ -249,5 +343,29 @@
     border-color: #555555 !important;
     background-color: #333333 !important;
     color: #ffffff !important;
+  }
+}
+
+/* iOS-specific mobile dark mode fixes */
+@supports (-webkit-touch-callout: none) and (max-width: 768px) {
+  .dark .arcade-card,
+  .dark .card,
+  .dark [class*="Card"] {
+    background-color: #1a1a1a !important;
+    border-color: #444444 !important;
+  }
+
+  .dark button,
+  .dark [class*="Button"] {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+  }
+
+  /* Special case for yellow buttons on iOS mobile */
+  .dark .bg-\[\#FFD54F\],
+  .dark .hover\:bg-\[\#FFD54F\]:hover,
+  .dark .hover\:bg-\[\#FFCA28\]:hover {
+    background-color: #d4af37 !important;
+    color: #000000 !important;
   }
 }
