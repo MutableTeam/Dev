@@ -59,10 +59,12 @@
     "vaul": "latest",
     "zod": "^3.24.1",
     "@solana/web3.js": "latest",
+    "@emotion/is-prop-valid": "latest",
     "buffer": "latest",
     "@solana/spl-token": "latest",
     "uuid": "latest",
-    "howler": "latest"
+    "howler": "latest",
+    "framer-motion": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

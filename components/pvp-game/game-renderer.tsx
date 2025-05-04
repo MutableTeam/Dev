@@ -519,6 +519,39 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
     return () => clearInterval(animationInterval)
   }, [])
 
+  // Handle container resizing
+  useEffect(() => {
+    const handleResize = () => {
+      const canvas = canvasRef.current
+      if (!canvas) return
+
+      // Maintain the game's aspect ratio while fitting in container
+      const container = canvas.parentElement
+      if (!container) return
+
+      // Get the container dimensions
+      const containerWidth = container.clientWidth
+      const containerHeight = container.clientHeight
+
+      // Set canvas style dimensions for display scaling
+      // (while keeping the internal canvas dimensions for game logic)
+      canvas.style.width = "100%"
+      canvas.style.height = "100%"
+      canvas.style.maxWidth = `${gameState.arenaSize.width}px`
+      canvas.style.maxHeight = `${gameState.arenaSize.height}px`
+      canvas.style.objectFit = "contain"
+    }
+
+    // Initial sizing
+    handleResize()
+
+    // Add resize listener
+    window.addEventListener("resize", handleResize)
+
+    // Cleanup
+    return () => window.removeEventListener("resize", handleResize)
+  }, [gameState.arenaSize.width, gameState.arenaSize.height])
+
   // Add particle effect
   const addParticle = (x: number, y: number, type: string, color: string, count = 1, size = 5) => {
     const newParticles: Particle[] = []
@@ -725,10 +758,10 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
   }
 
   return (
-    <div className="relative">
+    <div className="relative w-full h-full flex items-center justify-center">
       <canvas
         ref={canvasRef}
-        className="border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+        className="border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] game-canvas"
         width={gameState.arenaSize.width}
         height={gameState.arenaSize.height}
         onClick={handleCanvasClick}
