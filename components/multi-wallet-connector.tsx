@@ -368,7 +368,7 @@ export default function MultiWalletConnector({ onConnectionChange }: MultiWallet
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {isTestMode ? (
-            <TestTube className="h-5 w-5 text-purple-500" />
+            <TestTube className="h-5 w-5 text-purple-500 dark:text-purple-400" />
           ) : (
             <Image
               src={activeWallet === "phantom" ? "/images/phantom-wallet.png" : "/images/solflare-icon.png"}
@@ -379,13 +379,13 @@ export default function MultiWalletConnector({ onConnectionChange }: MultiWallet
             />
           )}
           <div className="flex items-center gap-1">
-            <span className="text-sm font-mono">{shortenAddress(publicKey)}</span>
+            <span className="text-sm font-mono dark:text-white">{shortenAddress(publicKey)}</span>
             <Badge
               variant="outline"
               className={`${
                 isTestMode
-                  ? "bg-purple-100 text-purple-800 border-purple-300"
-                  : "bg-green-50 text-green-700 border-green-200"
+                  ? "bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/30 dark:text-purple-200 dark:border-purple-700"
+                  : "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-200 dark:border-green-700"
               } font-mono text-xs`}
             >
               {isTestMode ? "TEST" : balance !== null ? `${balance} SOL` : "..."}
@@ -413,11 +413,11 @@ export default function MultiWalletConnector({ onConnectionChange }: MultiWallet
         </div>
       )}
 
-      <Card className="w-full max-w-md mx-auto bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <Card className="w-full max-w-md mx-auto arcade-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div className="flex items-center gap-2">
-            <Wallet className="h-5 w-5" />
-            <CardTitle className="font-mono">SOLANA WALLET</CardTitle>
+            <Wallet className="h-5 w-5 dark:text-gray-300" />
+            <CardTitle className="font-mono dark:text-white">SOLANA WALLET</CardTitle>
           </div>
           <div className="flex items-center gap-2">
             {connected && !isCollapsed && (
@@ -433,20 +433,22 @@ export default function MultiWalletConnector({ onConnectionChange }: MultiWallet
         ) : (
           <>
             {!connected && (
-              <CardDescription className="px-6">Connect your Solana wallet to use Mutable</CardDescription>
+              <CardDescription className="px-6 dark:text-gray-300">
+                Connect your Solana wallet to use Mutable
+              </CardDescription>
             )}
             <CardContent className="space-y-4">
               {connected ? (
                 <>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Wallet:</span>
+                    <span className="text-sm font-medium dark:text-gray-300">Wallet:</span>
                     <div className="flex items-center gap-2">
                       {isTestMode ? (
                         <>
-                          <TestTube className="h-5 w-5 text-purple-500" />
+                          <TestTube className="h-5 w-5 text-purple-500 dark:text-purple-400" />
                           <Badge
                             variant="outline"
-                            className="bg-purple-100 text-purple-800 border-2 border-purple-300 font-mono"
+                            className="bg-purple-100 text-purple-800 border-2 border-purple-300 font-mono dark:bg-purple-900/30 dark:text-purple-200 dark:border-purple-700"
                           >
                             TEST MODE
                           </Badge>
@@ -462,7 +464,10 @@ export default function MultiWalletConnector({ onConnectionChange }: MultiWallet
                             height={20}
                             className="rounded-full"
                           />
-                          <Badge variant="outline" className="bg-[#FFD54F] text-black border-2 border-black font-mono">
+                          <Badge
+                            variant="outline"
+                            className="bg-[#FFD54F] text-black border-2 border-black font-mono dark:bg-[#D4AF37] dark:border-gray-700 dark:text-black"
+                          >
                             {activeWallet?.toUpperCase()}
                           </Badge>
                         </>
@@ -470,30 +475,33 @@ export default function MultiWalletConnector({ onConnectionChange }: MultiWallet
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Address:</span>
+                    <span className="text-sm font-medium dark:text-gray-300">Address:</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-mono">{shortenAddress(publicKey)}</span>
+                      <span className="text-sm font-mono dark:text-white">{shortenAddress(publicKey)}</span>
                       <SoundButton variant="ghost" size="icon" className="h-8 w-8" onClick={copyAddress}>
                         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                       </SoundButton>
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Status:</span>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 font-mono">
+                    <span className="text-sm font-medium dark:text-gray-300">Status:</span>
+                    <Badge
+                      variant="outline"
+                      className="bg-green-50 text-green-700 border-green-200 font-mono dark:bg-green-900/30 dark:text-green-200 dark:border-green-700"
+                    >
                       CONNECTED
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Balance:</span>
+                    <span className="text-sm font-medium dark:text-gray-300">Balance:</span>
                     {balance !== null ? (
-                      <span className="font-mono">{balance} SOL</span>
+                      <span className="font-mono dark:text-white">{balance} SOL</span>
                     ) : (
-                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-20 dark:bg-gray-700" />
                     )}
                   </div>
                   {isTestMode && (
-                    <div className="bg-purple-50 p-3 rounded-md border border-purple-200 text-sm text-purple-800">
+                    <div className="bg-purple-50 p-3 rounded-md border border-purple-200 text-sm text-purple-800 dark:bg-purple-900/30 dark:border-purple-800 dark:text-purple-200">
                       <p className="font-medium mb-1">Test Mode Active</p>
                       <p>You're using a simulated wallet for testing. No real transactions will be made.</p>
                     </div>
@@ -502,104 +510,50 @@ export default function MultiWalletConnector({ onConnectionChange }: MultiWallet
               ) : (
                 <div className="py-2">
                   <div className="grid grid-cols-1 gap-3">
-                    <SoundButton
-                      key={wallets[0].type}
-                      onClick={() => connectWallet(wallets[0].type)}
-                      disabled={loading || (wallets[0].type !== "test" && !wallets[0].available)}
-                      className={`w-full border-2 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono justify-start h-12 ${
-                        wallets[0].type === "test"
-                          ? "bg-purple-100 hover:bg-purple-200 border-purple-300"
-                          : "bg-[#FFD54F] hover:bg-[#FFCA28] border-black"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {wallets[0].type === "test" ? (
-                          <TestTube className="h-5 w-5" />
-                        ) : (
-                          <Image
-                            src={wallets[0].icon || "/placeholder.svg"}
-                            alt={wallets[0].name}
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        )}
-                        <span>{wallets[0].name}</span>
-                        {wallets[0].type !== "test" && !wallets[0].available && (
-                          <span className="text-xs ml-auto">(Not Detected)</span>
-                        )}
-                      </div>
-                    </SoundButton>
-                    <SoundButton
-                      key={wallets[1].type}
-                      onClick={() => connectWallet(wallets[1].type)}
-                      disabled={loading || (wallets[1].type !== "test" && !wallets[1].available)}
-                      className={`w-full border-2 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono justify-start h-12 ${
-                        wallets[1].type === "test"
-                          ? "bg-purple-100 hover:bg-purple-200 border-purple-300"
-                          : "bg-[#FFD54F] hover:bg-[#FFCA28] border-black"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {wallets[1].type === "test" ? (
-                          <TestTube className="h-5 w-5" />
-                        ) : (
-                          <Image
-                            src={wallets[1].icon || "/placeholder.svg"}
-                            alt={wallets[1].name}
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        )}
-                        <span>{wallets[1].name}</span>
-                        {wallets[1].type !== "test" && !wallets[1].available && (
-                          <span className="text-xs ml-auto">(Not Detected)</span>
-                        )}
-                      </div>
-                    </SoundButton>
-                    <SoundButton
-                      key={wallets[2].type}
-                      onClick={() => connectWallet(wallets[2].type)}
-                      disabled={loading || (wallets[2].type !== "test" && !wallets[2].available)}
-                      className={`w-full border-2 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono justify-start h-12 ${
-                        wallets[2].type === "test"
-                          ? "bg-purple-100 hover:bg-purple-200 border-purple-300"
-                          : "bg-[#FFD54F] hover:bg-[#FFCA28] border-black"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {wallets[2].type === "test" ? (
-                          <TestTube className="h-5 w-5" />
-                        ) : (
-                          <Image
-                            src={wallets[2].icon || "/placeholder.svg"}
-                            alt={wallets[2].name}
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        )}
-                        <span>{wallets[2].name}</span>
-                        {wallets[2].type !== "test" && !wallets[2].available && (
-                          <span className="text-xs ml-auto">(Not Detected)</span>
-                        )}
-                      </div>
-                    </SoundButton>
+                    {wallets.map((wallet) => (
+                      <SoundButton
+                        key={wallet.type}
+                        onClick={() => connectWallet(wallet.type)}
+                        disabled={loading || (wallet.type !== "test" && !wallet.available)}
+                        className={`w-full border-2 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.5)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono justify-start h-12 ${
+                          wallet.type === "test"
+                            ? "bg-purple-100 hover:bg-purple-200 border-purple-300 dark:bg-purple-900/50 dark:text-purple-100 dark:border-purple-700 dark:hover:bg-purple-800/50"
+                            : "bg-[#FFD54F] hover:bg-[#FFCA28] border-black dark:bg-[#D4AF37] dark:border-gray-700 dark:hover:bg-[#C4A137] dark:text-black"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {wallet.type === "test" ? (
+                            <TestTube className="h-5 w-5" />
+                          ) : (
+                            <Image
+                              src={wallet.icon || "/placeholder.svg"}
+                              alt={wallet.name}
+                              width={24}
+                              height={24}
+                              className="rounded-full"
+                            />
+                          )}
+                          <span>{wallet.name}</span>
+                          {wallet.type !== "test" && !wallet.available && (
+                            <span className="text-xs ml-auto dark:text-gray-300">(Not Detected)</span>
+                          )}
+                        </div>
+                      </SoundButton>
+                    ))}
                   </div>
                 </div>
               )}
             </CardContent>
             <CardFooter>
               {!connected ? (
-                <div className="text-center w-full text-sm text-muted-foreground">
+                <div className="text-center w-full text-sm text-muted-foreground dark:text-gray-400">
                   <p>Don't have a Solana wallet?</p>
                   <div className="flex justify-center gap-4 mt-2">
                     <a
                       href="https://phantom.app/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
+                      className="text-blue-600 hover:underline dark:text-blue-400"
                     >
                       Get Phantom
                     </a>
@@ -607,7 +561,7 @@ export default function MultiWalletConnector({ onConnectionChange }: MultiWallet
                       href="https://solflare.com/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
+                      className="text-blue-600 hover:underline dark:text-blue-400"
                     >
                       Get Solflare
                     </a>
@@ -616,8 +570,10 @@ export default function MultiWalletConnector({ onConnectionChange }: MultiWallet
               ) : (
                 <SoundButton
                   variant="outline"
-                  className={`w-full border-2 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono ${
-                    isTestMode ? "border-purple-300 hover:bg-purple-100" : "border-black hover:bg-[#FFD54F]"
+                  className={`w-full border-2 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.5)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono ${
+                    isTestMode
+                      ? "border-purple-300 hover:bg-purple-100 dark:border-purple-700 dark:hover:bg-purple-900/50 dark:text-purple-100"
+                      : "border-black hover:bg-[#FFD54F] dark:border-gray-700 dark:hover:bg-[#D4AF37] dark:text-white"
                   }`}
                   onClick={disconnectWallet}
                 >

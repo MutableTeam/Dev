@@ -27,7 +27,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
   }))
 
   return (
-    <Card className="bg-[#fbf3de] dark:bg-[#2a2a2a] border-2 border-black dark:border-[#555] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(80,80,80,1)]">
+    <Card className="bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -42,16 +42,14 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
             {mutbBalance.toFixed(2)} MUTB
           </Badge>
         </div>
-        <CardDescription className="dark:text-gray-300">Select a game to play and wager MUTB tokens</CardDescription>
+        <CardDescription>Select a game to play and wager MUTB tokens</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {games.map((game) => (
             <Card
               key={game.id}
-              className={`border-2 ${
-                game.status === "live" ? "border-black dark:border-[#555]" : "border-gray-300 dark:border-gray-600"
-              } overflow-hidden dark:bg-[#1a1a1a]`}
+              className={`border-2 ${game.status === "live" ? "border-black" : "border-gray-300"} overflow-hidden`}
             >
               <div className="relative">
                 <Image
@@ -59,7 +57,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                   alt={game.name}
                   width={200}
                   height={120}
-                  className="w-full h-32 object-cover dark:brightness-110 dark:contrast-110"
+                  className="w-full h-32 object-cover"
                 />
                 {game.status === "coming-soon" && (
                   <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -72,12 +70,12 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
               <CardHeader className="p-3">
                 <div className="flex items-center gap-2">
                   <div className="bg-[#FFD54F] p-1 rounded-md border border-black">{game.icon}</div>
-                  <CardTitle className="text-base font-mono dark:text-white">{game.name}</CardTitle>
+                  <CardTitle className="text-base font-mono">{game.name}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="p-3 pt-0">
-                <p className="text-sm text-muted-foreground dark:text-gray-300">{game.description}</p>
-                <div className="mt-2 text-xs flex items-center gap-1 dark:text-gray-300">
+                <p className="text-sm text-muted-foreground">{game.description}</p>
+                <div className="mt-2 text-xs flex items-center gap-1">
                   <span className="font-medium">Min Wager:</span>
                   <div className="flex items-center">
                     <Image src="/images/mutable-token.png" alt="MUTB" width={12} height={12} />
@@ -87,7 +85,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
               </CardContent>
               <CardFooter className="p-3">
                 <SoundButton
-                  className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono dark:border-[#555] dark:shadow-[2px_2px_0px_0px_rgba(80,80,80,1)]"
+                  className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
                   disabled={game.status !== "live"}
                   onClick={() => onSelectGame(game.id)}
                 >

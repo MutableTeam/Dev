@@ -199,7 +199,7 @@ export default function WaitingRoom({
   // Memoize the countdown timer to prevent re-renders
   const countdownTimer = isCountingDown ? (
     <div className="text-center space-y-2">
-      <div className="font-mono text-lg">GAME STARTING IN</div>
+      <div className="font-mono text-lg dark:text-white">GAME STARTING IN</div>
       <CountdownTimer
         key={`countdown-${countdownStartedAtRef.current}`}
         duration={5}
@@ -211,15 +211,18 @@ export default function WaitingRoom({
   ) : null
 
   return (
-    <Card className="bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+    <Card className="arcade-card">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Gamepad2 className="h-5 w-5" />
-            <CardTitle className="font-mono">WAITING ROOM</CardTitle>
+            <Gamepad2 className="h-5 w-5 dark:text-gray-300" />
+            <CardTitle className="font-mono dark:text-white">WAITING ROOM</CardTitle>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-[#FFD54F] text-black border-2 border-black font-mono">
+            <Badge
+              variant="outline"
+              className="bg-[#FFD54F] text-black border-2 border-black font-mono dark:bg-[#D4AF37] dark:border-gray-700 dark:text-black"
+            >
               {gameMode}
             </Badge>
             <Instructions variant="icon" />
@@ -229,7 +232,7 @@ export default function WaitingRoom({
       <CardContent className="space-y-6">
         <div className="flex items-center justify-center gap-2">
           <Image src="/images/mutable-token.png" alt="MUTB" width={24} height={24} />
-          <span className="font-mono text-xl">{wager} MUTB WAGER</span>
+          <span className="font-mono text-xl dark:text-white">{wager} MUTB WAGER</span>
         </div>
 
         {isCountingDown ? (
@@ -237,12 +240,14 @@ export default function WaitingRoom({
         ) : (
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Users className="h-5 w-5" />
-              <span className="font-mono">
+              <Users className="h-5 w-5 dark:text-gray-300" />
+              <span className="font-mono dark:text-white">
                 PLAYERS ({players.length}/{maxPlayers})
               </span>
             </div>
-            <div className={`text-sm ${allPlayersReady ? "text-green-600 font-bold" : "text-muted-foreground"}`}>
+            <div
+              className={`text-sm ${allPlayersReady ? "text-green-600 font-bold dark:text-green-500" : "text-muted-foreground dark:text-gray-400"}`}
+            >
               {allPlayersReady
                 ? "All players ready! Game will start soon..."
                 : "Waiting for all players to be ready..."}
@@ -259,39 +264,47 @@ export default function WaitingRoom({
                 className={`flex items-center gap-3 p-3 rounded-md border-2 ${
                   player
                     ? player.isReady
-                      ? "border-green-500 bg-green-50"
-                      : "border-black bg-[#f5efdc]"
-                    : "border-dashed border-gray-400 bg-gray-100"
+                      ? "border-green-500 bg-green-50 dark:bg-green-900/30 dark:border-green-700"
+                      : "border-black bg-[#f5efdc] dark:bg-gray-700 dark:border-gray-600"
+                    : "border-dashed border-gray-400 bg-gray-100 dark:bg-gray-800 dark:border-gray-600"
                 }`}
               >
                 {player ? (
                   <>
-                    <Avatar className="border border-black">
+                    <Avatar className="border border-black dark:border-gray-600">
                       <AvatarImage src={`/diverse-group-avatars.png?height=40&width=40&query=avatar ${index + 1}`} />
-                      <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
+                      <AvatarFallback className="dark:bg-gray-700 dark:text-white">
+                        {player.name.charAt(0)}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <div className="font-bold font-mono flex items-center gap-2">
+                      <div className="font-bold font-mono flex items-center gap-2 dark:text-white">
                         {player.name}
                         {player.id === hostId && (
-                          <Badge variant="outline" className="ml-2 bg-[#FFD54F] text-black text-xs">
+                          <Badge
+                            variant="outline"
+                            className="ml-2 bg-[#FFD54F] text-black text-xs dark:bg-[#D4AF37] dark:border-gray-700"
+                          >
                             HOST
                           </Badge>
                         )}
                         {player.id === publicKey && (
-                          <Badge variant="outline" className="ml-2 bg-gray-200 text-gray-700 text-xs">
+                          <Badge
+                            variant="outline"
+                            className="ml-2 bg-gray-200 text-gray-700 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                          >
                             YOU
                           </Badge>
                         )}
                       </div>
                       <div className="flex items-center text-xs mt-1">
                         {player.isReady ? (
-                          <div className="flex items-center text-green-600">
+                          <div className="flex items-center text-green-600 dark:text-green-500">
                             <CheckCircle2 className="h-3 w-3 mr-1" />
                             Ready
                           </div>
                         ) : (
-                          <div className="flex items-center text-amber-600">
+                          <div className="flex items-center text-amber-600 dark:text-amber-500">
                             <XCircle className="h-3 w-3 mr-1" />
                             Not Ready
                           </div>
@@ -300,8 +313,10 @@ export default function WaitingRoom({
                     </div>
                   </>
                 ) : (
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">?</div>
+                  <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
+                    <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                      ?
+                    </div>
                     <div className="font-mono">Waiting...</div>
                   </div>
                 )}
@@ -314,7 +329,7 @@ export default function WaitingRoom({
         <div className="flex gap-2">
           <SoundButton
             variant="outline"
-            className="border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+            className="border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all dark:border-gray-700 dark:text-white dark:hover:bg-[#D4AF37] dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]"
             onClick={handleExit}
             disabled={isCountingDown}
           >
@@ -325,26 +340,22 @@ export default function WaitingRoom({
 
         {isHost ? (
           <SoundButton
-            className="bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
-            onClick={() => {
-              setIsCountingDown(true)
-              countdownStartedAtRef.current = Date.now()
-            }}
-            disabled={!allPlayersReady || isCountingDown || players.length < 2}
+            className="bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all dark:border-gray-700 dark:text-white dark:hover:bg-[#D4AF37] dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]"
+            onClick={handleGameStart}
+            disabled={!allPlayersReady || isCountingDown}
           >
-            START GAME
+            Start Game
           </SoundButton>
         ) : (
           <SoundButton
-            className={`${
-              players.find((p) => p.id === publicKey)?.isReady
-                ? "bg-green-500 hover:bg-green-600"
-                : "bg-[#FFD54F] hover:bg-[#FFCA28]"
-            } text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono`}
+            variant="outline"
+            className={`border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all dark:border-gray-700 dark:text-white dark:hover:bg-[#D4AF37] dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] ${
+              isCountingDown ? "cursor-not-allowed opacity-50" : ""
+            }`}
             onClick={toggleReady}
             disabled={isCountingDown}
           >
-            {players.find((p) => p.id === publicKey)?.isReady ? "READY ✓" : "MARK AS READY"}
+            {players.find((p) => p.id === publicKey)?.isReady ? "Not Ready" : "Ready!"}
           </SoundButton>
         )}
       </CardFooter>
