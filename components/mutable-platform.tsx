@@ -12,7 +12,6 @@ import MatchmakingLobby from "./pvp-game/matchmaking-lobby"
 import type { Connection } from "@solana/web3.js"
 import SoundButton from "./sound-button"
 import { withClickSound } from "@/utils/sound-utils"
-import { ThemeToggle } from "@/components/theme-toggle"
 
 interface MutablePlatformProps {
   publicKey: string
@@ -140,7 +139,6 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ThemeToggle />
                   <Wallet className="h-5 w-5 dark:text-gray-300" />
                   <CardTitle className="font-mono dark:text-white">WALLET</CardTitle>
                 </div>

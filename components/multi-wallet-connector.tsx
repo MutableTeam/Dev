@@ -9,7 +9,6 @@ import { Connection, clusterApiUrl, PublicKey } from "@solana/web3.js"
 import Image from "next/image"
 import SoundButton from "./sound-button"
 import { audioManager, playIntroSound, initializeAudio, loadAudioFiles } from "@/utils/audio-manager"
-import { ThemeToggle } from "./theme-toggle"
 
 // Define types for Phantom wallet
 type PhantomEvent = "connect" | "disconnect" | "accountChanged"
@@ -393,12 +392,9 @@ export default function MultiWalletConnector({ onConnectionChange }: MultiWallet
             </Badge>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle size="sm" />
-          <SoundButton variant="ghost" size="icon" className="h-8 w-8" onClick={toggleCollapse}>
-            <ChevronDown className="h-4 w-4" />
-          </SoundButton>
-        </div>
+        <SoundButton variant="ghost" size="icon" className="h-8 w-8" onClick={toggleCollapse}>
+          <ChevronDown className="h-4 w-4" />
+        </SoundButton>
       </div>
     )
   }
