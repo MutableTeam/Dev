@@ -39,7 +39,7 @@
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 222.2 84% 9.9%;
     --card-foreground: 210 40% 98%;
 
     --popover: 222.2 84% 4.9%;
@@ -52,16 +52,16 @@
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 215 20.2% 75.1%;
 
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 40.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 217.2 32.6% 27.5%;
+    --input: 217.2 32.6% 27.5%;
     --ring: 212.7 26.8% 83.9%;
   }
 }
@@ -76,5 +76,48 @@
   .font-mono {
     font-family: "Press Start 2P", "Courier New", monospace;
     letter-spacing: -0.05em;
+  }
+}
+
+/* Dark mode improvements */
+@media (prefers-color-scheme: dark) {
+  img {
+    filter: brightness(1.1) contrast(1.1);
+  }
+
+  .dark-mode-card {
+    background-color: #2a2a2a !important;
+    border-color: #555 !important;
+  }
+
+  .dark-mode-text {
+    color: #e0e0e0 !important;
+  }
+
+  .dark-mode-muted-text {
+    color: #b0b0b0 !important;
+  }
+
+  /* Ensure game images are visible */
+  .game-image {
+    filter: brightness(1.2) contrast(1.2) saturate(1.1);
+  }
+
+  /* Improve text readability on dark backgrounds */
+  .text-on-dark {
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* Mobile-specific dark mode improvements */
+@media (prefers-color-scheme: dark) and (max-width: 768px) {
+  .card-container {
+    background-color: #1a1a1a !important;
+  }
+
+  /* Increase contrast for small text on mobile */
+  .small-text {
+    color: #f0f0f0 !important;
+    font-weight: 500;
   }
 }
