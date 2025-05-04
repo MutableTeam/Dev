@@ -369,3 +369,33 @@
     color: #000000 !important;
   }
 }
+
+/* Add these styles at the end of the file */
+
+/* Mobile-friendly tab styles */
+@media (max-width: 640px) {
+  .tabs-container {
+    overflow-x: hidden;
+  }
+
+  [role="tablist"] {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    width: 100%;
+  }
+
+  [role="tab"] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.75rem;
+    text-align: center;
+    height: auto;
+  }
+
+  [role="tab"] svg {
+    margin-bottom: 0.25rem;
+  }
+}

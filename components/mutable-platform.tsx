@@ -14,6 +14,14 @@ import SoundButton from "./sound-button"
 import { withClickSound } from "@/utils/sound-utils"
 import { ThemeToggle } from "@/components/theme-toggle"
 
+// Add responsive styles for tabs
+const tabStyles = {
+  container: "sticky top-0 z-30 bg-opacity-100 w-full",
+  list: "mb-4 border-2 border-black bg-[#FFD54F] dark:bg-[#D4AF37] dark:border-gray-700 w-full grid grid-cols-4 p-0 h-auto",
+  trigger:
+    "data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-gray-800 dark:data-[state=active]:text-white font-mono py-2 px-1 h-auto flex flex-col items-center justify-center",
+}
+
 interface MutablePlatformProps {
   publicKey: string
   balance: number | null
@@ -43,47 +51,23 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
   return (
     <div className="space-y-4">
       <Tabs defaultValue="desktop-games" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="sticky top-0 z-30 bg-opacity-100">
-          <TabsList className="mb-4 border-2 border-black bg-[#FFD54F] dark:bg-[#D4AF37] dark:border-gray-700 w-full">
-            <TabsTrigger
-              value="exchange"
-              className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-gray-800 dark:data-[state=active]:text-white font-mono flex-1"
-              onClick={withClickSound()}
-            >
-              <div className="flex items-center gap-2 justify-center">
-                <ArrowLeftRight className="h-4 w-4" />
-                <span>EXCHANGE</span>
-              </div>
+        <div className={tabStyles.container}>
+          <TabsList className={tabStyles.list}>
+            <TabsTrigger value="exchange" className={tabStyles.trigger} onClick={withClickSound()}>
+              <ArrowLeftRight className="h-4 w-4 mb-1" />
+              <span className="text-xs sm:text-sm whitespace-normal text-center">EXCHANGE</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="desktop-games"
-              className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-gray-800 dark:data-[state=active]:text-white font-mono flex-1"
-              onClick={withClickSound()}
-            >
-              <div className="flex items-center gap-2 justify-center">
-                <Gamepad2 className="h-4 w-4" />
-                <span>DESKTOP GAMES</span>
-              </div>
+            <TabsTrigger value="desktop-games" className={tabStyles.trigger} onClick={withClickSound()}>
+              <Gamepad2 className="h-4 w-4 mb-1" />
+              <span className="text-xs sm:text-sm whitespace-normal text-center">DESKTOP</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="mobile-games"
-              className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-gray-800 dark:data-[state=active]:text-white font-mono flex-1"
-              onClick={withClickSound()}
-            >
-              <div className="flex items-center gap-2 justify-center">
-                <Smartphone className="h-4 w-4" />
-                <span>MOBILE GAMES</span>
-              </div>
+            <TabsTrigger value="mobile-games" className={tabStyles.trigger} onClick={withClickSound()}>
+              <Smartphone className="h-4 w-4 mb-1" />
+              <span className="text-xs sm:text-sm whitespace-normal text-center">MOBILE</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="wallet"
-              className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-gray-800 dark:data-[state=active]:text-white font-mono flex-1"
-              onClick={withClickSound()}
-            >
-              <div className="flex items-center gap-2 justify-center">
-                <Wallet className="h-4 w-4" />
-                <span>WALLET</span>
-              </div>
+            <TabsTrigger value="wallet" className={tabStyles.trigger} onClick={withClickSound()}>
+              <Wallet className="h-4 w-4 mb-1" />
+              <span className="text-xs sm:text-sm whitespace-normal text-center">WALLET</span>
             </TabsTrigger>
           </TabsList>
         </div>
