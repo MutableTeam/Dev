@@ -433,5 +433,3 @@
 .font-press-start-2p {
   font-family: var(--font-press-start-2p), monospace;
 }
-
-@import "../styles/touch-controls.css";
