@@ -1,38 +1,37 @@
 import type React from "react"
-import "./globals.css"
-import "../styles/ios-dark-mode.css"
-import "../styles/ios-dark-mode-overrides.css"
-import "@/styles/game-container.css"
-import "@/styles/promo-watermark.css"
-import "@/styles/wallet-connector.css"
 import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import "../styles/game-container.css"
+import "../styles/wallet-connector.css"
+import "../styles/promo-watermark.css"
+import "../styles/touch-controls.css"
+import "../styles/retro-arcade.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { GameProvider } from "@/contexts/game-context"
-import { IOSDarkModeFix } from "@/components/ios-dark-mode-fix"
 import IOSDarkModeScript from "./ios-dark-mode-script"
-import { inter, pressStart2P } from "./fonts"
+
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "MutableDev Game Platform",
-  description: "A modular game platform for web3 games",
+  title: "Mutable Dev",
+  description: "Mutable Development Platform",
     generator: 'v0.dev'
 }
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
-    <html lang="en" className={`${inter.variable} ${pressStart2P.variable}`}>
+    <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="color-scheme" content="light dark" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <IOSDarkModeScript />
       </head>
       <body className={inter.className}>
-        <IOSDarkModeScript />
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-          <IOSDarkModeFix />
-          <GameProvider>{children}</GameProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          {children}
         </ThemeProvider>
       </body>
     </html>

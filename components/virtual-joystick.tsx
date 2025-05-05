@@ -21,13 +21,23 @@ export default function VirtualJoystick({
 }: VirtualJoystickProps) {
   const joystickRef = useRef<HTMLDivElement>(null)
   const managerRef = useRef<JoystickManager | null>(null)
-  const { isMobile, isTablet } = useMobile()
+  const { isMobile, isTablet, isTouchDevice } = useMobile()
   const [isVisible, setIsVisible] = useState(false)
 
+  // Force visibility for debugging
   useEffect(() => {
-    // Only show joystick on mobile or tablet
-    setIsVisible(isMobile || isTablet)
-  }, [isMobile, isTablet])
+    console.log("Joystick visibility check:", { isMobile, isTablet, isTouchDevice })
+
+    // Show joystick on touch devices
+    setIsVisible(isTouchDevice || isMobile || isTablet)
+
+    // Add a class to the body when touch controls are active
+    if (isTouchDevice || isMobile || isTablet) {
+      document.body.classList.add("touch-controls-active")
+    } else {
+      document.body.classList.remove("touch-controls-active")
+    }
+  }, [isMobile, isTablet, isTouchDevice])
 
   useEffect(() => {
     if (!joystickRef.current || !isVisible) return
@@ -71,12 +81,16 @@ export default function VirtualJoystick({
     }
   }, [onMove, onEnd, position, size, color, isVisible])
 
-  if (!isVisible) return null
+  // For debugging, always show a message if not visible
+  if (!isVisible) {
+    console.log("Joystick not visible", { isMobile, isTablet, isTouchDevice })
+    return null
+  }
 
   return (
     <div
       ref={joystickRef}
-      className="fixed bottom-20 z-50 h-32 w-32 rounded-full bg-black/10 backdrop-blur-sm"
+      className="fixed bottom-20 z-50 h-32 w-32 rounded-full bg-black/30 backdrop-blur-sm virtual-joystick"
       style={{ touchAction: "none" }}
     />
   )

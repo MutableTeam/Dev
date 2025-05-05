@@ -3,6 +3,8 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  position: fixed;
+  z-index: 9999;
 }
 
 .touch-button {
@@ -18,4 +20,36 @@
   position: fixed;
   width: 100%;
   height: 100%;
+}
+
+/* Ensure buttons are visible with higher contrast */
+@media (max-width: 768px) {
+  .virtual-joystick {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+  }
+
+  button.touch-button {
+    opacity: 0.9 !important;
+  }
+}
+
+/* Prevent text selection on touch devices */
+* {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection in inputs and textareas */
+input,
+textarea {
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  -khtml-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }

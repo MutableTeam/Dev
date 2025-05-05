@@ -18,21 +18,27 @@ export default function TouchActionButtons({
   onSpecialEnd,
   onDash,
 }: TouchActionButtonsProps) {
-  const { isMobile, isTablet } = useMobile()
+  const { isMobile, isTablet, isTouchDevice } = useMobile()
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    // Only show buttons on mobile or tablet
-    setIsVisible(isMobile || isTablet)
-  }, [isMobile, isTablet])
+    console.log("Touch buttons visibility check:", { isMobile, isTablet, isTouchDevice })
 
-  if (!isVisible) return null
+    // Show buttons on touch devices
+    setIsVisible(isTouchDevice || isMobile || isTablet)
+  }, [isMobile, isTablet, isTouchDevice])
+
+  // For debugging, always show a message if not visible
+  if (!isVisible) {
+    console.log("Touch buttons not visible", { isMobile, isTablet, isTouchDevice })
+    return null
+  }
 
   return (
     <div className="fixed bottom-20 right-6 z-50 flex flex-col gap-4">
       {/* Shoot button */}
       <button
-        className="h-16 w-16 rounded-full bg-red-500/70 text-white shadow-lg backdrop-blur-sm active:bg-red-600/90"
+        className="h-16 w-16 rounded-full bg-red-500/70 text-white shadow-lg backdrop-blur-sm active:bg-red-600/90 touch-button"
         onTouchStart={(e) => {
           e.preventDefault()
           if (onShoot) onShoot()
@@ -60,7 +66,7 @@ export default function TouchActionButtons({
 
       {/* Special attack button */}
       <button
-        className="h-16 w-16 rounded-full bg-blue-500/70 text-white shadow-lg backdrop-blur-sm active:bg-blue-600/90"
+        className="h-16 w-16 rounded-full bg-blue-500/70 text-white shadow-lg backdrop-blur-sm active:bg-blue-600/90 touch-button"
         onTouchStart={(e) => {
           e.preventDefault()
           if (onSpecial) onSpecial()
@@ -88,7 +94,7 @@ export default function TouchActionButtons({
 
       {/* Dash button */}
       <button
-        className="h-16 w-16 rounded-full bg-yellow-500/70 text-white shadow-lg backdrop-blur-sm active:bg-yellow-600/90"
+        className="h-16 w-16 rounded-full bg-yellow-500/70 text-white shadow-lg backdrop-blur-sm active:bg-yellow-600/90 touch-button"
         onTouchStart={(e) => {
           e.preventDefault()
           if (onDash) onDash()

@@ -58,8 +58,49 @@ export default function GameController({
   const [showDebug, setShowDebug] = useState<boolean>(false)
   const [showResourceMonitor, setShowResourceMonitor] = useState<boolean>(false)
   const componentIdRef = useRef<string>(`game-controller-${Date.now()}`)
-  const { isMobile, isTablet } = useMobile()
-  const isTouchDevice = isMobile || isTablet
+  const { isMobile, isTablet, isTouchDevice } = useMobile()
+  const [forceTouchControls, setForceTouchControls] = useState(false)
+
+  // Debug mobile detection
+  useEffect(() => {
+    console.log("Game controller mobile detection:", { isMobile, isTablet, isTouchDevice })
+
+    // Check if we're on a mobile device using user agent as a fallback
+    const userAgent = navigator.userAgent.toLowerCase()
+    const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(userAgent)
+
+    console.log("User agent check:", {
+      userAgent,
+      isMobileUA,
+      touchPoints: navigator.maxTouchPoints,
+      hasTouch: "ontouchstart" in window,
+    })
+
+    // Add a debug button to force touch controls
+    const addDebugButton = () => {
+      const existingButton = document.getElementById("force-touch-controls")
+      if (!existingButton) {
+        const button = document.createElement("button")
+        button.id = "force-touch-controls"
+        button.innerText = "Force Touch Controls"
+        button.style.position = "fixed"
+        button.style.top = "10px"
+        button.style.left = "10px"
+        button.style.zIndex = "9999"
+        button.style.padding = "5px"
+        button.style.backgroundColor = "rgba(0,0,0,0.5)"
+        button.style.color = "white"
+        button.style.borderRadius = "5px"
+        button.onclick = () => setForceTouchControls((prev) => !prev)
+        document.body.appendChild(button)
+      }
+    }
+
+    // Only add in development
+    if (process.env.NODE_ENV === "development") {
+      addDebugButton()
+    }
+  }, [isMobile, isTablet, isTouchDevice])
 
   // Initialize debug system
   useEffect(() => {
@@ -89,6 +130,11 @@ export default function GameController({
       // F11 to toggle resource monitor
       if (e.key === "F11") {
         setShowResourceMonitor((prev) => !prev)
+      }
+
+      // T to toggle touch controls (for testing)
+      if (e.key.toLowerCase() === "t") {
+        setForceTouchControls((prev) => !prev)
       }
     }
 
@@ -660,7 +706,6 @@ export default function GameController({
                       if (gameStateRef.current.players[id]) {
                         gameStateRef.current.players[id].controls.shoot = false
                       }
-                      gameStateRef.current.players[id].controls.shoot = false
                     } catch (error) {
                       debugManager.logError("AI", "Error in AI arrow release", error)
                     }
@@ -796,6 +841,9 @@ export default function GameController({
     )
   }
 
+  // Determine if touch controls should be shown
+  const shouldShowTouchControls = isTouchDevice || isMobile || isTablet || forceTouchControls
+
   return (
     <div className="relative">
       <GameRenderer gameState={gameState} localPlayerId={playerId} />
@@ -805,7 +853,7 @@ export default function GameController({
       <ResourceMonitor visible={showResourceMonitor} position="bottom-right" />
 
       {/* Touch Controls for Mobile/Tablet */}
-      {isTouchDevice && (
+      {shouldShowTouchControls && (
         <>
           <VirtualJoystick position="left" onMove={handleJoystickMove} onEnd={handleJoystickEnd} />
           <TouchActionButtons
@@ -818,9 +866,17 @@ export default function GameController({
         </>
       )}
 
+      {/* Mobile detection debug info */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="absolute top-2 left-2 text-xs text-white/70 bg-black/50 backdrop-blur-sm px-2 py-1 rounded z-50">
+          Mobile: {isMobile ? "Yes" : "No"} | Tablet: {isTablet ? "Yes" : "No"} | Touch: {isTouchDevice ? "Yes" : "No"}{" "}
+          | Controls: {shouldShowTouchControls ? "Visible" : "Hidden"}
+        </div>
+      )}
+
       {/* Small hint text */}
       <div className="absolute bottom-2 right-2 text-xs text-white/70 bg-black/20 backdrop-blur-sm px-2 py-1 rounded">
-        {isTouchDevice
+        {shouldShowTouchControls
           ? "Use joystick to move | Buttons to shoot and dash"
           : "Press M to toggle sound | F3 for debug | F8 for game debug | F11 for resource monitor"}
       </div>
