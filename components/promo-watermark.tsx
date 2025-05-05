@@ -61,14 +61,14 @@ export default function PromoWatermark() {
   }
 
   return (
-    <div className="fixed top-2 left-2 z-[100]" ref={dropdownRef}>
+    <div className="fixed top-2 left-2 sm:top-3 sm:left-3 z-[99]" ref={dropdownRef}>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`flex items-center gap-1 sm:gap-2 px-2 py-1 sm:px-3 sm:py-1.5 rounded-md transition-all duration-300 ${
+        className={`flex items-center gap-1 sm:gap-2 px-1.5 py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-1.5 rounded-md transition-all duration-300 ${
           isHovered || isExpanded ? "bg-amber-500" : "bg-amber-400"
-        } border border-amber-600 shadow-md`}
+        } border border-amber-600 shadow-md text-xs sm:text-sm`}
         style={{
           background:
             isHovered || isExpanded
@@ -82,7 +82,7 @@ export default function PromoWatermark() {
             alt="MUTB Token"
             width={16}
             height={16}
-            className="rounded-full w-4 h-4 sm:w-6 sm:h-6"
+            className="rounded-full w-3 h-3 sm:w-4 sm:h-4 md:w-6 md:h-6"
           />
           {isHovered && !isExpanded && (
             <Sparkles
@@ -91,18 +91,19 @@ export default function PromoWatermark() {
             />
           )}
         </div>
-        <div className="font-bold text-[10px] sm:text-sm text-amber-900">
-          Sign up and earn <span className="text-amber-800">50 free MUTB</span>
+        <div className="font-bold text-[8px] sm:text-[10px] md:text-sm text-amber-900">
+          <span className="hidden xs:inline">Sign up and earn </span>
+          <span className="text-amber-800">50 free MUTB</span>
         </div>
         <Sparkles
-          className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-300 hidden sm:block"
+          className="h-2 w-2 sm:h-3 sm:w-3 md:h-4 md:w-4 text-yellow-300 hidden sm:block"
           style={{ filter: "drop-shadow(0 0 2px #fff)" }}
         />
       </button>
 
       {/* Dropdown Form */}
       {isExpanded && (
-        <div className="absolute top-full left-0 mt-2 w-80 sm:w-96 bg-[#000033] border-4 border-[#00ff00] rounded-lg shadow-lg overflow-hidden arcade-form-container">
+        <div className="absolute top-full left-0 mt-2 w-64 xs:w-72 sm:w-80 md:w-96 bg-[#000033] border-4 border-[#00ff00] rounded-lg shadow-lg overflow-hidden arcade-form-container">
           <div className="relative p-4">
             {/* Close button */}
             <button

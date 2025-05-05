@@ -261,6 +261,8 @@ export default function MultiWalletConnector({
       setBalance(5.0) // Set mock balance
       setIsCollapsed(true) // Minimize wallet by default after connection
 
+      // Play intro sound when wallet is connected (  // Minimize wallet by default after connection
+
       // Play intro sound when wallet is connected (if not muted)
       if (!audioManager.isSoundMuted()) {
         playIntroSound()
@@ -375,11 +377,11 @@ export default function MultiWalletConnector({
   // Render the collapsed wallet view when connected
   const renderCollapsedWallet = () => {
     return (
-      <div className="flex items-center justify-between bg-gradient-to-r from-amber-200 to-amber-300 dark:from-slate-700 dark:to-slate-600 rounded-full px-3 py-1.5 shadow-md border-2 border-amber-400 dark:border-slate-500">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between bg-gradient-to-r from-amber-200 to-amber-300 dark:from-slate-700 dark:to-slate-600 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 shadow-md border-2 border-amber-400 dark:border-slate-500 ml-auto">
+        <div className="flex items-center gap-1 sm:gap-2">
           {isTestMode ? (
             <div className="bg-purple-600 dark:bg-purple-500 p-1 rounded-full">
-              <TestTube className="h-3.5 w-3.5 text-white" />
+              <TestTube className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
             </div>
           ) : (
             <Image
@@ -387,17 +389,19 @@ export default function MultiWalletConnector({
               alt={activeWallet === "phantom" ? "Phantom" : "Solflare"}
               width={16}
               height={16}
-              className="rounded-full"
+              className="rounded-full w-3 h-3 sm:w-4 sm:h-4"
             />
           )}
-          <span className="text-xs font-mono font-bold dark:text-white">{shortenAddress(publicKey)}</span>
+          <span className="text-[10px] xs:text-xs font-mono font-bold dark:text-white">
+            {shortenAddress(publicKey)}
+          </span>
           <Badge
             variant="outline"
             className={`${
               isTestMode
                 ? "bg-purple-200 text-purple-800 border-purple-400 dark:bg-purple-900/50 dark:text-purple-100 dark:border-purple-600"
                 : "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/50 dark:text-green-100 dark:border-green-600"
-            } font-mono text-xs px-1.5 py-0 h-5 font-bold`}
+            } font-mono text-[8px] xs:text-xs px-1 py-0 h-4 sm:h-5 font-bold badge`}
           >
             {isTestMode ? "TEST" : balance !== null ? `${balance} SOL` : "..."}
           </Badge>
@@ -407,10 +411,10 @@ export default function MultiWalletConnector({
           <SoundButton
             variant="ghost"
             size="icon"
-            className="h-6 w-6 hover:bg-amber-400/70 dark:hover:bg-slate-500/70 rounded-full"
+            className="h-5 w-5 sm:h-6 sm:w-6 hover:bg-amber-400/70 dark:hover:bg-slate-500/70 rounded-full"
             onClick={toggleCollapse}
           >
-            <ChevronDown className="h-3 w-3" />
+            <ChevronDown className="h-2 w-2 sm:h-3 sm:w-3" />
           </SoundButton>
         </div>
       </div>
@@ -419,7 +423,7 @@ export default function MultiWalletConnector({
 
   // Update the return statement to conditionally render based on compact mode
   return (
-    <div className={`${compact && connected ? "" : "space-y-6"} ${className}`}>
+    <div className={`${compact && connected ? "flex justify-end w-full" : "space-y-6"} ${className}`}>
       {!connected && !compact && (
         <div className="logo-container mb-2 sm:mb-6">
           <div className="logo-pulse"></div>

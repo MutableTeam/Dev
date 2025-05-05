@@ -25,6 +25,20 @@
 .wallet-compact-header {
   position: relative;
   z-index: 101;
+  display: flex;
+  justify-content: flex-end; /* Align to the right */
+}
+
+/* Responsive styles for wallet connector */
+@media (max-width: 640px) {
+  .wallet-compact-header {
+    max-width: 180px; /* Limit width on small screens */
+  }
+
+  .wallet-compact-header .badge {
+    font-size: 0.65rem;
+    padding: 0 0.25rem;
+  }
 }
 
 /* Ensure the wallet connector is centered when not connected */

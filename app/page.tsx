@@ -37,12 +37,16 @@ export default function Home() {
 
   return (
     <main className="min-h-screen relative">
-      {/* PromoWatermark moved outside RetroArcadeBackground */}
+      {/* PromoWatermark positioned at top left */}
       <PromoWatermark />
 
-      {/* Wallet connector moved outside RetroArcadeBackground */}
+      {/* Wallet connector always positioned at top right when connected */}
       <div
-        className={`fixed ${walletConnected ? "top-2 right-2" : "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"} z-[100]`}
+        className={`fixed ${
+          walletConnected
+            ? "top-2 right-2 sm:right-4 md:right-6"
+            : "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+        } z-[100]`}
       >
         <MultiWalletConnector
           onConnectionChange={handleWalletConnection}
@@ -51,8 +55,8 @@ export default function Home() {
         />
       </div>
 
-      {/* Audio controls also moved outside for consistency */}
-      <div className="fixed top-4 right-4 md:top-8 md:right-8 z-[90]">
+      {/* Audio controls positioned at top right below wallet when connected */}
+      <div className={`fixed ${walletConnected ? "top-12 sm:top-14" : "top-4"} right-4 md:right-8 z-[90]`}>
         <GlobalAudioControls />
       </div>
 
