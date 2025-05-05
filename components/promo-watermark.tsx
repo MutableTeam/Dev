@@ -66,9 +66,9 @@ export default function PromoWatermark() {
         onClick={() => setIsExpanded(!isExpanded)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`flex items-center gap-1 sm:gap-2 px-1.5 py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-1.5 rounded-md transition-all duration-300 ${
+        className={`flex items-center gap-1 sm:gap-2 px-2 py-1 sm:px-2 sm:py-1 md:px-3 md:py-1.5 rounded-md transition-all duration-300 ${
           isHovered || isExpanded ? "bg-amber-500" : "bg-amber-400"
-        } border border-amber-600 shadow-md text-xs sm:text-sm`}
+        } border border-amber-600 shadow-md text-xs sm:text-sm cursor-pointer`}
         style={{
           background:
             isHovered || isExpanded
@@ -91,9 +91,9 @@ export default function PromoWatermark() {
             />
           )}
         </div>
-        <div className="font-bold text-[8px] sm:text-[10px] md:text-sm text-amber-900">
-          <span className="hidden xs:inline">Sign up and earn </span>
-          <span className="text-amber-800">50 free MUTB</span>
+        <div className="font-bold text-[10px] sm:text-[10px] md:text-sm text-amber-900 whitespace-nowrap">
+          <span className="inline xs:inline">Get </span>
+          <span className="text-amber-800">50 Free MUTB</span>
         </div>
         <Sparkles
           className="h-2 w-2 sm:h-3 sm:w-3 md:h-4 md:w-4 text-yellow-300 hidden sm:block"
