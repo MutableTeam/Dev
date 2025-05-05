@@ -64,7 +64,8 @@
     "@solana/spl-token": "latest",
     "uuid": "latest",
     "howler": "latest",
-    "framer-motion": "latest"
+    "framer-motion": "latest",
+    "nipplejs": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

@@ -22,6 +22,9 @@ import {
 import { debugManager, DebugLevel } from "@/utils/debug-utils"
 import transitionDebugger from "@/utils/transition-debug"
 import ResourceMonitor from "@/components/resource-monitor"
+import VirtualJoystick from "@/components/virtual-joystick"
+import TouchActionButtons from "@/components/touch-action-buttons"
+import { useMobile } from "@/hooks/use-mobile"
 
 interface GameControllerProps {
   playerId: string
@@ -55,6 +58,8 @@ export default function GameController({
   const [showDebug, setShowDebug] = useState<boolean>(false)
   const [showResourceMonitor, setShowResourceMonitor] = useState<boolean>(false)
   const componentIdRef = useRef<string>(`game-controller-${Date.now()}`)
+  const { isMobile, isTablet } = useMobile()
+  const isTouchDevice = isMobile || isTablet
 
   // Initialize debug system
   useEffect(() => {
@@ -655,6 +660,7 @@ export default function GameController({
                       if (gameStateRef.current.players[id]) {
                         gameStateRef.current.players[id].controls.shoot = false
                       }
+                      gameStateRef.current.players[id].controls.shoot = false
                     } catch (error) {
                       debugManager.logError("AI", "Error in AI arrow release", error)
                     }
@@ -706,6 +712,70 @@ export default function GameController({
     }
   }, [])
 
+  // Handle joystick movement for touch devices
+  const handleJoystickMove = (x: number, y: number) => {
+    if (!gameStateRef.current.players[playerId]) return
+
+    const player = gameStateRef.current.players[playerId]
+
+    // Set movement controls based on joystick direction
+    player.controls.up = y < -0.3
+    player.controls.down = y > 0.3
+    player.controls.left = x < -0.3
+    player.controls.right = x > 0.3
+
+    // Update player rotation to face movement direction
+    if (Math.abs(x) > 0.1 || Math.abs(y) > 0.1) {
+      player.rotation = Math.atan2(y, x)
+    }
+  }
+
+  // Handle joystick end
+  const handleJoystickEnd = () => {
+    if (!gameStateRef.current.players[playerId]) return
+
+    const player = gameStateRef.current.players[playerId]
+
+    // Reset movement controls
+    player.controls.up = false
+    player.controls.down = false
+    player.controls.left = false
+    player.controls.right = false
+  }
+
+  // Handle touch action buttons
+  const handleShootStart = () => {
+    if (!gameStateRef.current.players[playerId]) return
+    gameStateRef.current.players[playerId].controls.shoot = true
+  }
+
+  const handleShootEnd = () => {
+    if (!gameStateRef.current.players[playerId]) return
+    gameStateRef.current.players[playerId].controls.shoot = false
+  }
+
+  const handleSpecialStart = () => {
+    if (!gameStateRef.current.players[playerId]) return
+    gameStateRef.current.players[playerId].controls.special = true
+  }
+
+  const handleSpecialEnd = () => {
+    if (!gameStateRef.current.players[playerId]) return
+    gameStateRef.current.players[playerId].controls.special = false
+  }
+
+  const handleDash = () => {
+    if (!gameStateRef.current.players[playerId]) return
+    gameStateRef.current.players[playerId].controls.dash = true
+
+    // Auto-release dash after a short delay
+    setTimeout(() => {
+      if (gameStateRef.current.players[playerId]) {
+        gameStateRef.current.players[playerId].controls.dash = false
+      }
+    }, 100)
+  }
+
   // Track renders
   useEffect(() => {
     debugManager.trackComponentRender("GameController")
@@ -734,9 +804,25 @@ export default function GameController({
       {/* Resource Monitor */}
       <ResourceMonitor visible={showResourceMonitor} position="bottom-right" />
 
+      {/* Touch Controls for Mobile/Tablet */}
+      {isTouchDevice && (
+        <>
+          <VirtualJoystick position="left" onMove={handleJoystickMove} onEnd={handleJoystickEnd} />
+          <TouchActionButtons
+            onShoot={handleShootStart}
+            onShootEnd={handleShootEnd}
+            onSpecial={handleSpecialStart}
+            onSpecialEnd={handleSpecialEnd}
+            onDash={handleDash}
+          />
+        </>
+      )}
+
       {/* Small hint text */}
       <div className="absolute bottom-2 right-2 text-xs text-white/70 bg-black/20 backdrop-blur-sm px-2 py-1 rounded">
-        Press M to toggle sound | F3 for debug | F8 for game debug | F11 for resource monitor
+        {isTouchDevice
+          ? "Use joystick to move | Buttons to shoot and dash"
+          : "Press M to toggle sound | F3 for debug | F8 for game debug | F11 for resource monitor"}
       </div>
     </div>
   )
