@@ -90,7 +90,7 @@
     @apply bg-background text-foreground;
   }
   .font-mono {
-    font-family: "Press Start 2P", "Courier New", monospace;
+    font-family: var(--font-press-start-2p), "Courier New", monospace;
     letter-spacing: -0.05em;
   }
 }
@@ -137,7 +137,7 @@
   color: #000000;
   border: 2px solid #000000;
   box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
-  font-family: "Press Start 2P", "Courier New", monospace;
+  font-family: var(--font-press-start-2p), "Courier New", monospace;
   transition: all 0.2s ease;
 }
 
@@ -162,7 +162,7 @@
   background-color: #ffd54f;
   color: #000000;
   border: 2px solid #000000;
-  font-family: "Press Start 2P", "Courier New", monospace;
+  font-family: var(--font-press-start-2p), "Courier New", monospace;
 }
 
 .dark .arcade-badge {
@@ -416,4 +416,20 @@
   [role="tab"] svg {
     margin-bottom: 0.25rem;
   }
+}
+
+/* Arcade form styles */
+.arcade-form-container {
+  position: relative;
+}
+
+.bg-scanline {
+  background: linear-gradient(to bottom, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 4px;
+  opacity: 0.3;
+}
+
+/* Font classes for Press Start 2P */
+.font-press-start-2p {
+  font-family: var(--font-press-start-2p), monospace;
 }

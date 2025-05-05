@@ -4,13 +4,11 @@ import "../styles/ios-dark-mode.css"
 import "../styles/ios-dark-mode-overrides.css"
 import "@/styles/game-container.css"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { GameProvider } from "@/contexts/game-context"
 import { IOSDarkModeFix } from "@/components/ios-dark-mode-fix"
 import IOSDarkModeScript from "./ios-dark-mode-script"
-
-const inter = Inter({ subsets: ["latin"] })
+import { inter, pressStart2P } from "./fonts"
 
 export const metadata: Metadata = {
   title: "MutableDev Game Platform",
@@ -24,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${pressStart2P.variable}`}>
       <head>
         <meta name="color-scheme" content="light dark" />
       </head>
