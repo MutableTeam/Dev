@@ -61,7 +61,7 @@ export default function PromoWatermark() {
   }
 
   return (
-    <div className="fixed top-2 left-2 z-50" ref={dropdownRef}>
+    <div className="fixed top-2 left-2 z-[100]" ref={dropdownRef}>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         onMouseEnter={() => setIsHovered(true)}
@@ -231,9 +231,6 @@ export default function PromoWatermark() {
               </>
             )}
           </div>
-
-          {/* CRT scanline effect */}
-          <div className="absolute inset-0 pointer-events-none bg-scanline"></div>
         </div>
       )}
     </div>

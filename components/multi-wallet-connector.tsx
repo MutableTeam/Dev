@@ -436,10 +436,10 @@ export default function MultiWalletConnector({
 
       {connected && isCollapsed && compact ? (
         // Compact collapsed view for header
-        <div className="wallet-compact-header">{renderCollapsedWallet()}</div>
+        <div className="wallet-compact-header wallet-foreground-element">{renderCollapsedWallet()}</div>
       ) : (
         // Regular card view
-        <Card className={`${compact ? "w-full" : "w-full max-w-md mx-auto"} arcade-card`}>
+        <Card className={`${compact ? "w-full" : "w-full max-w-md mx-auto"} arcade-card wallet-card-foreground`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-2">
               <Wallet className="h-5 w-5 dark:text-gray-300" />

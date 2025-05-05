@@ -1,0 +1,36 @@
+/* Wallet connector foreground styles */
+.wallet-foreground {
+  isolation: isolate;
+  position: relative;
+}
+
+/* Ensure the wallet connector is not affected by CRT effects */
+.wallet-foreground .arcade-card {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+/* Ensure text is readable */
+.wallet-foreground .arcade-card * {
+  text-shadow: none !important;
+}
+
+/* Ensure buttons are clearly visible */
+.wallet-foreground button {
+  position: relative;
+  z-index: 2;
+}
+
+/* Ensure dropdown content is above everything */
+.wallet-compact-header {
+  position: relative;
+  z-index: 101;
+}
+
+/* Ensure the wallet connector is centered when not connected */
+@media (max-width: 768px) {
+  .wallet-foreground:not(.wallet-compact-header) {
+    width: 90vw;
+    max-width: 400px;
+  }
+}

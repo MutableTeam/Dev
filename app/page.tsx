@@ -36,25 +36,29 @@ export default function Home() {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed")
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen relative">
+      {/* PromoWatermark moved outside RetroArcadeBackground */}
+      <PromoWatermark />
+
+      {/* Wallet connector moved outside RetroArcadeBackground */}
+      <div
+        className={`fixed ${walletConnected ? "top-2 right-2" : "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"} z-[100]`}
+      >
+        <MultiWalletConnector
+          onConnectionChange={handleWalletConnection}
+          compact={walletConnected}
+          className={`${!walletConnected ? "logo-glow" : ""} wallet-foreground`}
+        />
+      </div>
+
+      {/* Audio controls also moved outside for consistency */}
+      <div className="fixed top-4 right-4 md:top-8 md:right-8 z-[90]">
+        <GlobalAudioControls />
+      </div>
+
       <RetroArcadeBackground>
         <div className="max-w-6xl mx-auto p-4 md:p-8 z-10 relative">
-          {/* Audio controls in the top right */}
-          <div className="absolute top-4 right-4 md:top-8 md:right-8 z-20">
-            <GlobalAudioControls />
-          </div>
-
-          {/* Wallet connector - centered when not connected, compact at top when connected */}
-          <div className={walletConnected ? "fixed top-2 right-2 z-50 max-w-[300px]" : "flex justify-center"}>
-            <MultiWalletConnector
-              onConnectionChange={handleWalletConnection}
-              compact={walletConnected}
-              className={!walletConnected ? "logo-glow" : ""}
-            />
-          </div>
-
           <DemoWatermark />
-          <PromoWatermark />
 
           {walletConnected && publicKey && (
             <div className="mt-16">
