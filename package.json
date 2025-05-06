@@ -64,10 +64,7 @@
     "@solana/spl-token": "latest",
     "uuid": "latest",
     "howler": "latest",
-    "framer-motion": "latest",
-    "bn.js": "latest",
-    "@solana/wallet-adapter-react": "latest",
-    "@solana/wallet-adapter-react-ui": "latest"
+    "framer-motion": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
