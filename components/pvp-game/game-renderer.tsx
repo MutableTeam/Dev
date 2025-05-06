@@ -7,7 +7,6 @@ import type { GameObject, GameState, Player } from "./game-engine"
 import { createArcherAnimationSet, SpriteAnimator } from "@/utils/sprite-animation"
 import {
   generateArcherSprite,
-  generateArrowSprite,
   generatePickupSprite,
   generateWallSprite,
   generateBackgroundTile,
@@ -83,9 +82,76 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
     generateWallSprite(ctx, wall.position.x, wall.position.y, wall.size)
   }
 
-  const drawArrow = (ctx: CanvasRenderingContext2D, arrow: GameObject) => {
-    // Use our enhanced arrow sprite
-    generateArrowSprite(ctx, arrow.position.x, arrow.position.y, arrow.size, arrow.rotation)
+  const drawArrow = (ctx: CanvasRenderingContext2D, arrow: any) => {
+    ctx.save()
+
+    // Translate to arrow position
+    ctx.translate(arrow.position.x, arrow.position.y)
+
+    // Rotate to arrow direction
+    ctx.rotate(arrow.rotation)
+
+    // Draw arrow body
+    ctx.fillStyle = arrow.isWeakShot ? "#996633" : "#D3A973" // Darker color for weak shots
+
+    // Add a more distinct visual for weak shots
+    if (arrow.isWeakShot) {
+      // Add a pulsing effect to make weak shots more noticeable
+      const pulseIntensity = Math.sin(frameCountRef.current * 0.2) * 0.3 + 0.7
+      ctx.globalAlpha = pulseIntensity
+
+      // Add a small text indicator
+      ctx.save()
+      ctx.translate(0, -10)
+      ctx.rotate(-arrow.rotation)
+      ctx.fillStyle = "#ff3333"
+      ctx.font = "8px Arial"
+      ctx.textAlign = "center"
+      ctx.fillText("1", 0, 0)
+      ctx.restore()
+
+      ctx.globalAlpha = 1.0
+    }
+
+    // Draw arrow shaft
+    ctx.fillRect(-arrow.size * 1.5, -arrow.size / 4, arrow.size * 3, arrow.size / 2)
+
+    // Draw arrow head
+    ctx.beginPath()
+    ctx.moveTo(arrow.size * 1.5, 0)
+    ctx.lineTo(arrow.size * 1, -arrow.size)
+    ctx.lineTo(arrow.size * 2, 0)
+    ctx.lineTo(arrow.size * 1, arrow.size)
+    ctx.closePath()
+    ctx.fill()
+
+    // Draw feathers
+    ctx.fillStyle = arrow.isWeakShot ? "#664422" : "#AA8866"
+    ctx.beginPath()
+    ctx.moveTo(-arrow.size * 1.5, 0)
+    ctx.lineTo(-arrow.size * 2, -arrow.size)
+    ctx.lineTo(-arrow.size * 1.2, 0)
+    ctx.closePath()
+    ctx.fill()
+
+    ctx.beginPath()
+    ctx.moveTo(-arrow.size * 1.5, 0)
+    ctx.lineTo(-arrow.size * 2, arrow.size)
+    ctx.lineTo(-arrow.size * 1.2, 0)
+    ctx.closePath()
+    ctx.fill()
+
+    // For weak shots, add a downward trajectory visualization
+    if (arrow.isWeakShot) {
+      ctx.strokeStyle = "rgba(255, 100, 100, 0.3)"
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(0, 0)
+      ctx.quadraticCurveTo(arrow.size * 5, 0, arrow.size * 10, arrow.size * 5)
+      ctx.stroke()
+    }
+
+    ctx.restore()
   }
 
   const drawPlayer = (ctx: CanvasRenderingContext2D, player: Player, isLocal: boolean) => {
@@ -187,6 +253,47 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
       ctx.stroke()
     }
 
+    // Draw bow draw indicator when player is drawing bow
+    if (player.isDrawingBow && player.drawStartTime !== null) {
+      const currentTime = gameState.gameTime
+      const drawTime = currentTime - player.drawStartTime
+      const drawPercentage = Math.min(drawTime / player.maxDrawTime, 1)
+      const minDrawPercentage = player.minDrawTime / player.maxDrawTime
+
+      // Draw indicator below player
+      const indicatorWidth = 30
+      const indicatorHeight = 4
+      const indicatorY = player.size + 10
+
+      // Background
+      ctx.fillStyle = "#333333"
+      ctx.fillRect(-indicatorWidth / 2, indicatorY, indicatorWidth, indicatorHeight)
+
+      // Fill based on draw percentage
+      ctx.fillStyle = drawPercentage < minDrawPercentage ? "#ff3333" : drawPercentage < 0.7 ? "#ffcc33" : "#33ff33"
+
+      ctx.fillRect(-indicatorWidth / 2, indicatorY, indicatorWidth * drawPercentage, indicatorHeight)
+
+      // Draw minimum threshold marker
+      ctx.fillStyle = "#ffffff"
+      ctx.fillRect(-indicatorWidth / 2 + indicatorWidth * minDrawPercentage - 1, indicatorY - 1, 2, indicatorHeight + 2)
+    }
+
+    // Add a special indicator for weak shot hits
+    if (player.lastHitByWeakShot) {
+      const indicatorY = player.position.y - player.size - 20
+
+      ctx.fillStyle = "#ff3333"
+      ctx.font = "12px Arial"
+      ctx.textAlign = "center"
+      ctx.fillText("-1", player.position.x, indicatorY)
+
+      // Reset the flag after a short time
+      setTimeout(() => {
+        player.lastHitByWeakShot = false
+      }, 500)
+    }
+
     ctx.restore()
   }
 
@@ -220,6 +327,35 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
     ctx.fillText(`HP: ${player.health}`, statsX + 10, statsY + 25)
     ctx.fillText(`Score: ${player.score}`, statsX + 10, statsY + 45)
     ctx.fillText(`Kills: ${player.kills}`, statsX + 10, statsY + 65)
+
+    // Draw bow mechanics hint (only for a short time at the beginning of the game)
+    if (gameState.gameTime < 15) {
+      // Show for the first 15 seconds
+      const hintWidth = 300
+      const hintHeight = 80
+      const hintX = (gameState.arenaSize.width - hintWidth) / 2
+      const hintY = 50
+
+      // Draw semi-transparent background
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
+      ctx.beginPath()
+      ctx.roundRect(hintX, hintY, hintWidth, hintHeight, 8)
+      ctx.fill()
+
+      // Draw hint text
+      ctx.fillStyle = "#FFFFFF"
+      ctx.font = "14px Arial"
+      ctx.textAlign = "center"
+      ctx.fillText("NEW BOW MECHANICS", gameState.arenaSize.width / 2, hintY + 20)
+      ctx.font = "12px Arial"
+      ctx.fillText("Movement reduced by 60% while drawing bow", gameState.arenaSize.width / 2, hintY + 40)
+      ctx.fillText("Draw past the white marker for effective shots", gameState.arenaSize.width / 2, hintY + 60)
+
+      // Fade out as time approaches 15 seconds
+      if (gameState.gameTime > 10) {
+        ctx.globalAlpha = 1 - (gameState.gameTime - 10) / 5
+      }
+    }
 
     // Draw ability indicators (bottom-left)
     const abilitiesWidth = 220

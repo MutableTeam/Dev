@@ -12,19 +12,28 @@ import {
 import { Button } from "@/components/ui/button"
 import { HelpCircle } from "lucide-react"
 
-export default function GameInstructions() {
+export default function GameInstructions({ variant = "default" }: { variant?: "default" | "icon" }) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
-        >
-          <HelpCircle className="h-4 w-4" />
-        </Button>
+        {variant === "icon" ? (
+          <Button
+            variant="outline"
+            size="icon"
+            className="border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+          >
+            <HelpCircle className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            className="border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+          >
+            Game Instructions
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md border-2 border-black bg-[#fbf3de] z-50 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <DialogHeader>
@@ -48,7 +57,14 @@ export default function GameInstructions() {
             <h3 className="font-bold mb-1">Bow Mechanics</h3>
             <ul className="list-disc pl-5 space-y-1 text-sm">
               <li>
-                <span className="font-medium">Quick Shot:</span> Tap left-click for a fast but weak arrow (5 damage)
+                <span className="font-medium">Movement Penalty:</span> Moving at 40% speed while drawing your bow
+              </li>
+              <li>
+                <span className="font-medium">Minimum Draw:</span> Must draw bow to at least 30% for effective shots
+              </li>
+              <li>
+                <span className="font-medium">Weak Shots:</span> Arrows fired too quickly travel shorter distances and
+                only do 1 damage
               </li>
               <li>
                 <span className="font-medium">Full Draw:</span> Hold left-click for 1.5 seconds for maximum damage (25

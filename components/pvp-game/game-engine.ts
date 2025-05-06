@@ -254,9 +254,14 @@ export const generateWalls = (): GameObject[] => {
   return walls
 }
 
-// Calculate damage based on draw time
-const calculateArrowDamage = (drawTime: number, maxDrawTime: number): number => {
-  // Minimum damage is 5, max is 25 based on draw time
+// Update the calculateArrowDamage function to handle weak shots
+const calculateArrowDamage = (drawTime: number, maxDrawTime: number, isWeakShot: boolean): number => {
+  // Weak shots always do 1 damage
+  if (isWeakShot) {
+    return 1
+  }
+
+  // Normal damage calculation for regular shots
   const minDamage = 5
   const maxDamage = 25
   const drawPercentage = Math.min(drawTime / maxDrawTime, 1)
@@ -448,12 +453,15 @@ export const updateGameState = (
         // Normal movement
         const speed = 200 // pixels per second
 
-        if (player.controls.up) player.velocity.y = -speed
-        else if (player.controls.down) player.velocity.y = speed
+        // Apply movement penalty when drawing bow
+        const movementMultiplier = player.isDrawingBow ? 0.4 : 1.0 // 40% speed when drawing bow
+
+        if (player.controls.up) player.velocity.y = -speed * movementMultiplier
+        else if (player.controls.down) player.velocity.y = speed * movementMultiplier
         else player.velocity.y = 0
 
-        if (player.controls.left) player.velocity.x = -speed
-        else if (player.controls.right) player.velocity.x = speed
+        if (player.controls.left) player.velocity.x = -speed * movementMultiplier
+        else if (player.controls.right) player.velocity.x = speed * movementMultiplier
         else player.velocity.x = 0
 
         // Apply velocity
@@ -476,13 +484,27 @@ export const updateGameState = (
         const currentTime = Date.now() / 1000
         const drawTime = currentTime - player.drawStartTime
 
+        // Check if this is a weak shot (less than 30% draw)
+        const minDrawTime = player.maxDrawTime * 0.3
+        const isWeakShot = drawTime < minDrawTime
+
         // Calculate damage and speed based on draw time
-        const damage = calculateArrowDamage(drawTime, player.maxDrawTime)
+        const damage = calculateArrowDamage(drawTime, player.maxDrawTime, isWeakShot)
         const arrowSpeed = calculateArrowSpeed(drawTime, player.maxDrawTime)
 
+        // Adjust arrow properties based on draw strength
+        let finalArrowSpeed = arrowSpeed
+        let arrowRange = 800 // Default range
+
+        if (isWeakShot) {
+          // Weak shots move slower and fall to ground quickly
+          finalArrowSpeed = arrowSpeed * 0.3
+          arrowRange = 200 // Much shorter range
+        }
+
         const arrowVelocity = {
-          x: Math.cos(player.rotation) * arrowSpeed,
-          y: Math.sin(player.rotation) * arrowSpeed,
+          x: Math.cos(player.rotation) * finalArrowSpeed,
+          y: Math.sin(player.rotation) * finalArrowSpeed,
         }
 
         const arrowPosition = {
@@ -490,7 +512,19 @@ export const updateGameState = (
           y: player.position.y + Math.sin(player.rotation) * (player.size + 5),
         }
 
-        newState.arrows.push(createArrow(arrowPosition, arrowVelocity, player.rotation, player.id, damage))
+        // Create the arrow with additional properties
+        const arrow = createArrow(arrowPosition, arrowVelocity, player.rotation, player.id, damage)
+
+        // Add custom properties for weak shots
+        if (isWeakShot) {
+          arrow.color = "#5D4037" // Darker brown for weak shots
+          // @ts-ignore - Adding custom property
+          arrow.isWeakShot = true
+          // @ts-ignore - Adding custom property
+          arrow.range = arrowRange
+        }
+
+        newState.arrows.push(arrow)
 
         // Reset bow state
         player.isDrawingBow = false
@@ -599,6 +633,22 @@ export const updateGameState = (
         return false
       }
 
+      // Check for weak shot range limit
+      // @ts-ignore - Custom property
+      if (arrow.isWeakShot) {
+        // @ts-ignore - Custom property
+        const range = arrow.range || 200
+        // @ts-ignore - Custom property
+        arrow.distanceTraveled =
+          (arrow.distanceTraveled || 0) +
+          Math.sqrt(Math.pow(arrow.velocity.x * deltaTime, 2) + Math.pow(arrow.velocity.y * deltaTime, 2))
+
+        // @ts-ignore - Custom property
+        if (arrow.distanceTraveled > range) {
+          return false
+        }
+      }
+
       // Check collision with walls
       for (const wall of newState.walls) {
         const dx = arrow.position.x - wall.position.x
@@ -638,34 +688,9 @@ export const updateGameState = (
 
           // Check if player is dead
           if (player.health <= 0) {
-            // Reduce lives
-            player.lives -= 1
-
-            // Set death animation
-            player.animationState = "death"
-            player.lastAnimationChange = Date.now()
-
             // Call the onPlayerDeath callback if provided
             if (onPlayerDeath) {
               onPlayerDeath(playerId)
-            }
-
-            // Handle duel mode - one life only
-            if (newState.gameMode === "duel") {
-              // In duel mode, game ends immediately when a player dies
-              newState.isGameOver = true
-              newState.winner = arrow.ownerId
-            } else {
-              // For other modes, set respawn timer if player has lives left
-              if (player.lives > 0) {
-                player.respawnTimer = 3.0 // 3 seconds for respawn
-              }
-
-              // Award kill to shooter
-              if (arrow.ownerId && newState.players[arrow.ownerId]) {
-                newState.players[arrow.ownerId].kills++
-                newState.players[arrow.ownerId].score += 100
-              }
             }
           }
 

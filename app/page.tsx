@@ -11,6 +11,7 @@ import MutablePlatform from "@/components/mutable-platform"
 import RetroArcadeBackground from "@/components/retro-arcade-background"
 import { Connection, clusterApiUrl } from "@solana/web3.js"
 import "@/styles/retro-arcade.css"
+import Link from "next/link"
 
 export default function Home() {
   // Wallet connection state
@@ -71,6 +72,9 @@ export default function Home() {
           )}
 
           <DebugOverlay initiallyVisible={false} position="bottom-right" />
+          <Link href="/token-exchange" className="text-blue-500 hover:underline">
+            SOL/MUTB Token Exchange
+          </Link>
         </div>
       </RetroArcadeBackground>
     </main>

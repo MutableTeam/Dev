@@ -10,7 +10,7 @@ import SoundButton from "../sound-button"
 import CountdownTimer from "./countdown-timer"
 import { debugManager } from "@/utils/debug-utils"
 import transitionDebugger from "@/utils/transition-debug"
-import Instructions from "@/games/top-down-shooter/instructions"
+import GameInstructions from "./game-instructions"
 
 interface Player {
   id: string
@@ -225,7 +225,7 @@ export default function WaitingRoom({
             >
               {gameMode}
             </Badge>
-            <Instructions variant="icon" />
+            <GameInstructions variant="icon" />
           </div>
         </div>
       </CardHeader>

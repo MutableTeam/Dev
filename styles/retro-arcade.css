@@ -79,9 +79,10 @@
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 30;
   pointer-events: none;
-  overflow: hidden;
+  z-index: 10;
+  /* Add this filter to adjust overall brightness */
+  filter: brightness(1.2); /* Values > 1.0 increase brightness, < 1.0 decrease it */
 }
 
 /* Scanlines effect */
@@ -91,9 +92,17 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 50%, rgba(0, 0, 0, 0.1) 50%);
-  background-size: 100% 4px;
-  opacity: 0.3;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.05),
+    rgba(0, 0, 0, 0.05) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 4;
+  /* Adjust this opacity value to change scanline intensity */
+  opacity: 0.4;
 }
 
 /* Screen flicker effect */
@@ -162,7 +171,11 @@
   left: 0;
   width: 100%;
   height: 100%;
-  box-shadow: inset 0 0 50px rgba(0, 204, 255, 0.4), inset 0 0 100px rgba(0, 0, 51, 0.6);
+  background: radial-gradient(circle, rgba(43, 150, 255, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+  pointer-events: none;
+  z-index: 3;
+  /* Adjust this opacity value to change brightness (0.0 - 1.0) */
+  opacity: 0.7;
 }
 
 /* Screen vignette */
@@ -172,7 +185,11 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at center, transparent 70%, rgba(0, 0, 0, 0.15) 100%);
+  box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  z-index: 2;
+  /* Reduce the rgba alpha value to make corners less dark */
+  /* box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.5); would be brighter */
 }
 
 /* Screen curvature */
@@ -451,7 +468,7 @@
 .logo-pulse {
   position: absolute;
   width: 180px;
-  height: 600px;
+  height: 120px;
   background: radial-gradient(circle, rgba(0, 204, 255, 0.6) 0%, rgba(0, 204, 255, 0) 70%);
   border-radius: 50%;
   z-index: 1;

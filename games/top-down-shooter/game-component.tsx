@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useBaseGameController } from "@/utils/base-game-controller"
 import { setupGameInputHandlers } from "@/utils/game-input-handler"
 import { debugManager } from "@/utils/debug-utils"
@@ -41,6 +41,8 @@ export default function GameComponent({ playerId, playerName, isHost, gameMode, 
   const bowSoundPlayedRef = useRef(false)
   const fullDrawSoundPlayedRef = useRef(false)
   const specialSoundPlayedRef = useRef(false)
+  const minDrawSoundPlayedRef = useRef(false)
+  const [showTutorial, setShowTutorial] = useState(true)
 
   // Initialize game
   useEffect(() => {
@@ -104,6 +106,11 @@ export default function GameComponent({ playerId, playerName, isHost, gameMode, 
       1000,
       `${componentIdRef.current}-crash-detection`,
     )
+
+    // Hide tutorial after 10 seconds
+    const tutorialTimer = setTimeout(() => {
+      setShowTutorial(false)
+    }, 10000)
 
     // Start game loop
     const gameLoop = (timestamp) => {
@@ -195,13 +202,38 @@ export default function GameComponent({ playerId, playerName, isHost, gameMode, 
                   audioManager.playSound("bow-full-draw")
                   fullDrawSoundPlayedRef.current = true
                 }
+
+                // Play sound when minimum draw is reached
+                const minDrawTime = localPlayer.maxDrawTime * 0.3 // 30% of max draw time
+                if (drawTime >= minDrawTime && !minDrawSoundPlayedRef.current) {
+                  audioManager.playSound("bow-min-draw")
+                  minDrawSoundPlayedRef.current = true
+                }
               }
 
               // Bow release sound
               if (!localPlayer.isDrawingBow && gameStateRef.current.players[playerId]?.isDrawingBow) {
-                audioManager.playSound("bow-release")
+                // Check if it was a weak shot
+                const prevPlayer = gameStateRef.current.players[playerId]
+                if (prevPlayer.drawStartTime) {
+                  const currentTime = Date.now() / 1000
+                  const drawTime = currentTime - prevPlayer.drawStartTime
+                  const minDrawTime = prevPlayer.maxDrawTime * 0.3 // 30% of max draw time
+
+                  if (drawTime < minDrawTime) {
+                    // Play weak shot sound
+                    audioManager.playSound("bow-weak-release")
+                  } else {
+                    // Play normal release sound
+                    audioManager.playSound("bow-release")
+                  }
+                } else {
+                  audioManager.playSound("bow-release")
+                }
+
                 bowSoundPlayedRef.current = false
                 fullDrawSoundPlayedRef.current = false
+                minDrawSoundPlayedRef.current = false
               }
 
               // Special attack sound
@@ -411,6 +443,7 @@ export default function GameComponent({ playerId, playerName, isHost, gameMode, 
 
       // Clear intervals
       transitionDebugger.safeClearInterval(`${componentIdRef.current}-crash-detection`)
+      clearTimeout(tutorialTimer)
 
       // Stop background music
       try {
@@ -531,6 +564,17 @@ export default function GameComponent({ playerId, playerName, isHost, gameMode, 
 
       {/* Resource Monitor */}
       <ResourceMonitor visible={showResourceMonitor} position="bottom-right" />
+
+      {/* Tutorial overlay */}
+      {showTutorial && (
+        <div className="absolute top-0 left-0 right-0 bg-black/70 text-white p-3 text-center">
+          <h3 className="font-bold mb-1">New Bow Mechanics:</h3>
+          <p className="text-sm">
+            Movement is slowed while drawing your bow. Hold for at least 30% charge for effective shots. Quick shots
+            will fall to the ground quickly.
+          </p>
+        </div>
+      )}
 
       {/* Small hint text */}
       <div className="absolute bottom-2 right-2 text-xs text-white/70 bg-black/20 backdrop-blur-sm px-2 py-1 rounded">
