@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { ArrowLeftRight, TrendingUp, ArrowDownUp, Info, Loader2, AlertCircle } from "lucide-react"
 import Image from "next/image"
-import { type Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js"
+import { type Connection, PublicKey, Transaction } from "@solana/web3.js"
 import {
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -17,6 +17,13 @@ import {
 import SoundButton from "./sound-button"
 import { withClickSound } from "@/utils/sound-utils"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { mockSwapSolForMutb, mockSwapMutbForSol, mockGetExchangeRate } from "@/utils/token-swap-mock"
+
+// Flag to use mock implementation for testing
+const USE_MOCK = true
+
+// MUTB token mint address on devnet - using a valid base58 string
+const MUTB_MINT_ADDRESS = "5R3KsVN6fucM7Mxyob4oro5Xp3qMxAb7Vi4L4Di57jCY"
 
 interface MutableMarketplaceProps {
   publicKey: string
@@ -33,15 +40,12 @@ export default function MutableMarketplace({ publicKey, balance, provider, conne
 
   // Replace the static exchange rate with state variables
   const [solPrice, setSolPrice] = useState<number | null>(null)
-  const [mutbPrice, setMutbPrice] = useState<number>(1.0) // Fixed at $1.00
-  const [exchangeRate, setExchangeRate] = useState<number>(20)
+  const [mutbPrice, setMutbPrice] = useState<number>(0.01) // Fixed at $0.01
+  const [exchangeRate, setExchangeRate] = useState<number>(10000)
   const [isLoadingPrice, setIsLoadingPrice] = useState<boolean>(false)
   const [isSwapping, setIsSwapping] = useState<boolean>(false)
   const [swapError, setSwapError] = useState<string | null>(null)
-  const [mutbTokenAccount, setMutbTokenAccount] = useState<PublicKey | null>(null)
-
-  // MUTB token mint address on devnet
-  const MUTB_MINT = new PublicKey("5R3KsVN6fucM7Mxyob4oro5Xp3qMxAb7Vi4L4Di57jCY")
+  const [mutbTokenAccount, setMutbTokenAccount] = useState<string | null>(null)
 
   // Fetch MUTB token account and balance
   useEffect(() => {
@@ -49,31 +53,98 @@ export default function MutableMarketplace({ publicKey, balance, provider, conne
       if (!publicKey) return
 
       try {
-        const userPublicKey = new PublicKey(publicKey)
-        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(userPublicKey, {
-          programId: TOKEN_PROGRAM_ID,
-        })
+        // Create PublicKey instance safely
+        let userPublicKey: PublicKey
+        try {
+          userPublicKey = new PublicKey(publicKey)
+        } catch (error) {
+          console.error("Invalid public key:", error)
+          return
+        }
 
-        // Find MUTB token account
-        const mutbAccount = tokenAccounts.value.find(
-          (account) => account.account.data.parsed.info.mint === MUTB_MINT.toString(),
-        )
+        // Create MUTB mint PublicKey safely
+        let mutbMint: PublicKey
+        try {
+          mutbMint = new PublicKey(MUTB_MINT_ADDRESS)
+        } catch (error) {
+          console.error("Invalid MUTB mint address:", error)
+          return
+        }
 
-        if (mutbAccount) {
-          setMutbTokenAccount(new PublicKey(mutbAccount.pubkey))
-          const balance = mutbAccount.account.data.parsed.info.tokenAmount.uiAmount
-          setMutbBalance(balance)
-        } else {
-          // No existing token account found
-          setMutbTokenAccount(null)
-          setMutbBalance(0)
+        // In test mode, just use mock data
+        if (USE_MOCK) {
+          setMutbTokenAccount("mock-token-account")
+          setMutbBalance(100) // Mock balance
+          return
+        }
+
+        // Only fetch real token accounts if not in mock mode
+        try {
+          const tokenAccounts = await connection.getParsedTokenAccountsByOwner(userPublicKey, {
+            programId: TOKEN_PROGRAM_ID,
+          })
+
+          // Find MUTB token account
+          const mutbAccount = tokenAccounts.value.find(
+            (account) => account.account.data.parsed.info.mint === MUTB_MINT_ADDRESS,
+          )
+
+          if (mutbAccount) {
+            setMutbTokenAccount(mutbAccount.pubkey.toString())
+            const balance = mutbAccount.account.data.parsed.info.tokenAmount.uiAmount
+            setMutbBalance(balance)
+          } else {
+            // No existing token account found
+            setMutbTokenAccount(null)
+            setMutbBalance(0)
+          }
+        } catch (error) {
+          console.error("Error fetching token accounts:", error)
+          // Use mock data as fallback
+          setMutbTokenAccount("mock-token-account")
+          setMutbBalance(100) // Mock balance
         }
       } catch (error) {
-        console.error("Error fetching token accounts:", error)
+        console.error("Error in fetchTokenAccount:", error)
       }
     }
 
-    fetchTokenAccount()
+    const fetchExchangeRate = async () => {
+      setIsLoadingPrice(true)
+      try {
+        // Get the exchange rate
+        const rate = mockGetExchangeRate()
+        setExchangeRate(rate)
+
+        // Calculate SOL price based on MUTB price and exchange rate
+        // MUTB is fixed at $0.01
+        const mutbPriceValue = 0.01
+        setMutbPrice(mutbPriceValue)
+
+        // SOL price = MUTB price * MUTB per SOL
+        const solPriceValue = mutbPriceValue * rate
+        setSolPrice(solPriceValue)
+      } catch (error) {
+        console.error("Failed to fetch exchange rate:", error)
+        // Fallback to default values
+        setExchangeRate(10000) // 10,000 MUTB per SOL
+        setSolPrice(100) // $100 per SOL
+        setMutbPrice(0.01) // $0.01 per MUTB
+      } finally {
+        setIsLoadingPrice(false)
+      }
+    }
+
+    fetchExchangeRate()
+
+    // Refresh rate every 60 seconds
+    const intervalId = setInterval(fetchExchangeRate, 60000)
+
+    if (publicKey) {
+      fetchTokenAccount()
+    }
+
+    return () => clearInterval(intervalId)
   }, [publicKey, connection])
 
   // Function to find or create associated token account
@@ -133,61 +204,36 @@ export default function MutableMarketplace({ publicKey, balance, provider, conne
       const amount = Number.parseFloat(swapAmount)
       if (isNaN(amount) || amount <= 0) {
         setSwapError("Please enter a valid amount")
+        setIsSwapping(false)
         return
       }
 
-      if (!provider) {
+      if (!provider && !USE_MOCK) {
         setSwapError("Wallet not connected")
+        setIsSwapping(false)
         return
       }
-
-      const userPublicKey = new PublicKey(publicKey)
 
       if (swapDirection === "sol-to-mutb") {
         // Check if user has enough SOL
         if (balance !== null && amount > balance) {
           setSwapError("Insufficient SOL balance")
+          setIsSwapping(false)
           return
         }
 
-        // Create or find MUTB token account
-        let tokenAccount
-        try {
-          tokenAccount = await findOrCreateAssociatedTokenAccount(connection, userPublicKey, MUTB_MINT, userPublicKey)
-          setMutbTokenAccount(tokenAccount)
-        } catch (error) {
-          console.error("Error creating token account:", error)
-          setSwapError("Failed to create token account")
-          return
-        }
-
-        // For demo purposes, we're using a simple transfer to simulate token swap
-        // In a real implementation, this would call a swap program
-        const lamports = Math.floor(amount * LAMPORTS_PER_SOL)
-        const transaction = new Transaction().add(
-          SystemProgram.transfer({
-            fromPubkey: userPublicKey,
-            toPubkey: new PublicKey("11111111111111111111111111111111"), // Burn address for demo
-            lamports: lamports,
-          }),
-        )
-
-        transaction.feePayer = userPublicKey
-        transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+        // Calculate minimum amount out with 1% slippage
+        const minimumAmountOut = amount * exchangeRate * 0.99
 
         try {
-          const signedTransaction = await provider.signTransaction(transaction)
-          const signature = await connection.sendRawTransaction(signedTransaction.serialize())
-          await connection.confirmTransaction(signature)
-
-          // Update MUTB balance (simulated for demo)
-          setMutbBalance(mutbBalance + amount * exchangeRate)
-
-          // In a real implementation, the swap program would handle token transfers
-          console.log("Swap completed:", signature)
+          // Use mock implementation
+          const result = await mockSwapSolForMutb(amount)
+          console.log("Mock swap completed:", result)
+          setMutbBalance(mutbBalance + result.amount)
         } catch (error) {
           console.error("Error executing swap:", error)
           setSwapError("Transaction failed. Please try again.")
+          setIsSwapping(false)
           return
         }
       } else {
@@ -195,20 +241,24 @@ export default function MutableMarketplace({ publicKey, balance, provider, conne
         // Check if user has enough MUTB
         if (amount > mutbBalance) {
           setSwapError("Insufficient MUTB balance")
+          setIsSwapping(false)
           return
         }
 
-        if (!mutbTokenAccount) {
-          setSwapError("MUTB token account not found")
+        // Calculate minimum amount out with 1% slippage
+        const minimumAmountOut = (amount / exchangeRate) * 0.99
+
+        try {
+          // Use mock implementation
+          const result = await mockSwapMutbForSol(amount)
+          console.log("Mock swap completed:", result)
+          setMutbBalance(mutbBalance - amount)
+        } catch (error) {
+          console.error("Error executing swap:", error)
+          setSwapError("Transaction failed. Please try again.")
+          setIsSwapping(false)
           return
         }
-
-        // In a real implementation, this would call a swap program
-        // For demo, we're just updating the UI state
-        setMutbBalance(mutbBalance - amount)
-
-        // Simulate a successful transaction
-        console.log("MUTB to SOL swap simulated")
       }
     } catch (error) {
       console.error("Swap error:", error)
@@ -534,7 +584,7 @@ export default function MutableMarketplace({ publicKey, balance, provider, conne
           <SoundButton
             className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
             onClick={handleSwap}
-            disabled={isSwapping || !publicKey}
+            disabled={isSwapping || (!publicKey && !USE_MOCK)}
           >
             {isSwapping ? (
               <span className="flex items-center justify-center gap-2">
