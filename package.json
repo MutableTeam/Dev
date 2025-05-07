@@ -58,16 +58,16 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "latest",
     "zod": "^3.24.1",
-    "@solana/web3.js": "latest",
     "@emotion/is-prop-valid": "latest",
-    "buffer": "latest",
-    "@solana/spl-token": "latest",
-    "uuid": "latest",
+    "@solana/web3.js": "latest",
     "framer-motion": "latest",
+    "@solana/spl-token": "latest",
+    "buffer": "latest",
     "fs": "latest",
     "path": "latest",
-    "borsh": "latest",
-    "howler": "latest"
+    "howler": "latest",
+    "uuid": "latest",
+    "borsh": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

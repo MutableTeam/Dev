@@ -84,8 +84,8 @@ export function calculateExchangeRate(fromCoinPrice: number, toCoinPrice: number
 }
 
 /**
- * Gets the MUTB price in USD (currently fixed at $0.01)
+ * Gets the MUTB price in USD (currently fixed at $0.10)
  */
 export function getMUTBPrice(): number {
-  return 1.0 // Fixed price of $1.00 per MUTB
+  return 0.1 // Fixed price of $0.10 per MUTB
 }

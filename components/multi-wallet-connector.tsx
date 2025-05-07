@@ -166,6 +166,14 @@ export default function MultiWalletConnector({
         setPublicKey(solWindow.solana!.publicKey.toString())
         setActiveWallet("phantom")
         setIsCollapsed(true) // Minimize wallet by default for already connected wallets
+
+        // Track already connected wallet
+        if (typeof window !== "undefined" && (window as any).gtag) {
+          ;(window as any).gtag("event", "phantom", {
+            event_category: "Wallet",
+            event_label: "Already Connected",
+          })
+        }
       }
 
       // Check if already connected to Solflare
@@ -175,6 +183,14 @@ export default function MultiWalletConnector({
         setPublicKey(solWindow.solflare!.publicKey.toString())
         setActiveWallet("solflare")
         setIsCollapsed(true) // Minimize wallet by default for already connected wallets
+
+        // Track already connected wallet
+        if (typeof window !== "undefined" && (window as any).gtag) {
+          ;(window as any).gtag("event", "solflare", {
+            event_category: "Wallet",
+            event_label: "Already Connected",
+          })
+        }
       }
     }
 
@@ -261,12 +277,19 @@ export default function MultiWalletConnector({
       setBalance(5.0) // Set mock balance
       setIsCollapsed(true) // Minimize wallet by default after connection
 
-      // Play intro sound when wallet is connected (  // Minimize wallet by default after connection
-
       // Play intro sound when wallet is connected (if not muted)
       if (!audioManager.isSoundMuted()) {
         playIntroSound()
       }
+
+      // Track test wallet connection in Google Analytics
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        ;(window as any).gtag("event", "testwallet", {
+          event_category: "Wallet",
+          event_label: "Connected",
+        })
+      }
+
       return
     }
 
@@ -304,6 +327,14 @@ export default function MultiWalletConnector({
           playIntroSound()
         }
         setIsCollapsed(true) // Minimize wallet by default after connection
+
+        // Track wallet connection in Google Analytics
+        if (typeof window !== "undefined" && (window as any).gtag) {
+          ;(window as any).gtag("event", walletType, {
+            event_category: "Wallet",
+            event_label: "Connected",
+          })
+        }
       } else {
         console.log(`Already connected to ${walletType} Wallet`)
         // Make sure we have the publicKey even if already connected
@@ -319,6 +350,14 @@ export default function MultiWalletConnector({
             playIntroSound()
           }
           setIsCollapsed(true) // Minimize wallet by default after connection
+
+          // Track wallet connection in Google Analytics
+          if (typeof window !== "undefined" && (window as any).gtag) {
+            ;(window as any).gtag("event", walletType, {
+              event_category: "Wallet",
+              event_label: "Already Connected",
+            })
+          }
         }
       }
     } catch (error) {
@@ -328,6 +367,15 @@ export default function MultiWalletConnector({
           `Connection failed: ${error.message}. Please ensure you have ${walletType} wallet extension installed and signed in.`,
         )
       }
+
+      // Track failed wallet connection
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        ;(window as any).gtag("event", `${walletType}_failed`, {
+          event_category: "Wallet",
+          event_label: "Connection Failed",
+          error_message: error instanceof Error ? error.message : "Unknown error",
+        })
+      }
     } finally {
       setLoading(false)
     }
@@ -335,6 +383,14 @@ export default function MultiWalletConnector({
 
   // Disconnect from wallet
   const disconnectWallet = async () => {
+    // Track wallet disconnection
+    if (typeof window !== "undefined" && (window as any).gtag && activeWallet) {
+      ;(window as any).gtag("event", `${activeWallet}_disconnected`, {
+        event_category: "Wallet",
+        event_label: "Disconnected",
+      })
+    }
+
     if (isTestMode) {
       // Just reset state for test mode
       setConnected(false)

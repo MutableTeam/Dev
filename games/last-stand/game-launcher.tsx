@@ -7,10 +7,11 @@ import { Skull, Clock, Trophy, Coins } from "lucide-react"
 import Image from "next/image"
 import SoundButton from "@/components/sound-button"
 import { lastStandConfig } from "./config"
-import LastStandGame from "./game-component"
 import LastStandInstructions from "./instructions"
 import { withClickSound } from "@/utils/sound-utils"
 import { useToast } from "@/hooks/use-toast"
+import { GameContainer } from "@/components/game-container"
+import GamePopOutContainer from "@/components/game-pop-out-container"
 
 interface LastStandGameLauncherProps {
   publicKey: string
@@ -27,6 +28,7 @@ export default function LastStandGameLauncher({
 }: LastStandGameLauncherProps) {
   const [selectedMode, setSelectedMode] = useState<string | null>(null)
   const [gameStarted, setGameStarted] = useState(false)
+  const [isGamePopOutOpen, setIsGamePopOutOpen] = useState(false)
   const { toast } = useToast()
 
   const handleModeSelect = (modeId: string) => {
@@ -52,20 +54,71 @@ export default function LastStandGameLauncher({
       description: `Your final score: ${stats.score}`,
     })
 
+    // Close the pop-out
+    setIsGamePopOutOpen(false)
+
     // Reset game state
     setGameStarted(false)
     setSelectedMode(null)
   }
 
+  const handleStartGame = () => {
+    setGameStarted(true)
+    setIsGamePopOutOpen(true)
+  }
+
+  const handleClosePopOut = () => {
+    // Show a confirmation dialog before closing the game
+    if (window.confirm("Are you sure you want to exit the game? Your progress will be lost.")) {
+      setIsGamePopOutOpen(false)
+      setGameStarted(false)
+    }
+  }
+
+  // Game content to be rendered in the pop-out
+  const renderGameContent = () => {
+    if (!selectedMode) return null
+
+    return (
+      <div className="w-full h-full">
+        <GameContainer
+          gameId="archer-arena"
+          playerId={publicKey}
+          playerName={playerName}
+          isHost={true}
+          gameMode={selectedMode}
+          onGameEnd={handleGameOver}
+        />
+      </div>
+    )
+  }
+
   if (gameStarted && selectedMode) {
     return (
-      <LastStandGame
-        playerId={publicKey}
-        playerName={playerName}
-        gameMode={selectedMode}
-        onGameEnd={handleGameOver}
-        onCancel={onExit}
-      />
+      <>
+        <GamePopOutContainer isOpen={isGamePopOutOpen} onClose={handleClosePopOut} title="ARCHER ARENA: LAST STAND">
+          {renderGameContent()}
+        </GamePopOutContainer>
+
+        {!isGamePopOutOpen && (
+          <Card className="bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <CardHeader>
+              <CardTitle className="text-center font-mono">GAME PAUSED</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <div className="text-xl font-bold font-mono">Your game is currently paused</div>
+            </CardContent>
+            <CardFooter>
+              <SoundButton
+                className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
+                onClick={() => setIsGamePopOutOpen(true)}
+              >
+                RESUME GAME
+              </SoundButton>
+            </CardFooter>
+          </Card>
+        )}
+      </>
     )
   }
 
@@ -139,7 +192,7 @@ export default function LastStandGameLauncher({
 
           <SoundButton
             className="bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
-            onClick={() => setGameStarted(true)}
+            onClick={handleStartGame}
           >
             {mode.entryFee > 0 ? `PAY ${mode.entryFee} MUTB & START` : "START GAME"}
           </SoundButton>
@@ -172,7 +225,7 @@ export default function LastStandGameLauncher({
           {lastStandConfig.modes.map((mode) => (
             <Card
               key={mode.id}
-              className="border-2 border-black overflow-hidden cursor-pointer hover:bg-[#f5efdc] transition-colors"
+              className="border-2 border-black overflow-hidden cursor-pointer hover:bg-[#f5efdc] transition-colors flex flex-col"
               onClick={withClickSound(() => handleModeSelect(mode.id))}
             >
               <CardHeader className="p-3">
@@ -188,7 +241,7 @@ export default function LastStandGameLauncher({
                 </div>
               </CardHeader>
 
-              <CardContent className="p-3 pt-0">
+              <CardContent className="p-3 pt-0 flex-grow">
                 <p className="text-sm text-muted-foreground">{mode.description}</p>
 
                 <div className="mt-2 text-xs flex items-center gap-1">
@@ -218,7 +271,7 @@ export default function LastStandGameLauncher({
                 )}
               </CardContent>
 
-              <CardFooter className="p-3">
+              <CardFooter className="p-3 mt-auto">
                 <SoundButton
                   className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
                   onClick={() => handleModeSelect(mode.id)}

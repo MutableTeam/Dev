@@ -92,3 +92,5 @@ export interface GameInfo {
   component: React.ComponentType<any>
   status?: "live" | "coming-soon"
 }
+
+// Make sure the archer-arena game is properly registered

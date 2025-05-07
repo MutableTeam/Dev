@@ -11,6 +11,10 @@ import MutablePlatform from "@/components/mutable-platform"
 import RetroArcadeBackground from "@/components/retro-arcade-background"
 import { Connection, clusterApiUrl } from "@solana/web3.js"
 import "@/styles/retro-arcade.css"
+import { initializeGoogleAnalytics } from "@/utils/analytics"
+
+// Google Analytics Measurement ID
+const GA_MEASUREMENT_ID = "G-41DL97N287"
 
 export default function Home() {
   // Wallet connection state
@@ -18,6 +22,11 @@ export default function Home() {
   const [publicKey, setPublicKey] = useState("")
   const [balance, setBalance] = useState<number | null>(null)
   const [provider, setProvider] = useState<any>(null)
+
+  // Initialize Google Analytics
+  useEffect(() => {
+    initializeGoogleAnalytics(GA_MEASUREMENT_ID)
+  }, [])
 
   // Initialize games registry
   useEffect(() => {

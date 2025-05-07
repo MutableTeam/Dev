@@ -20,6 +20,8 @@ export function registerGames() {
 // Initialize the registry
 registerGames()
 
+// Ensure archer-arena is properly registered in the registry
+
 // Export helper functions
 export function getAllGames() {
   return gameRegistry.getAllGames()

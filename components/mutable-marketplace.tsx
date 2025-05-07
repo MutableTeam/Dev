@@ -17,7 +17,9 @@ import {
 import SoundButton from "./sound-button"
 import { withClickSound } from "@/utils/sound-utils"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { mockSwapSolForMutb, mockSwapMutbForSol, mockGetExchangeRate } from "@/utils/token-swap-mock"
+import { mockSwapSolForMutb, mockSwapMutbForSol } from "@/utils/token-swap-mock"
+import { useToast } from "@/components/ui/use-toast"
+import { ToastAction } from "@/components/ui/toast"
 
 // Flag to use mock implementation for testing
 const USE_MOCK = true
@@ -30,9 +32,33 @@ interface MutableMarketplaceProps {
   balance: number | null
   provider: any
   connection: Connection
+  onBalanceChange?: (currency: "sol" | "mutb", newBalance: number) => void
 }
 
-export default function MutableMarketplace({ publicKey, balance, provider, connection }: MutableMarketplaceProps) {
+// Function to fetch real-time crypto price from CoinGecko API
+const getCryptoPrice = async (coinId: string): Promise<number> => {
+  try {
+    const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`)
+    const data = await response.json()
+    if (data && data[coinId] && data[coinId].usd) {
+      return data[coinId].usd
+    } else {
+      throw new Error(`Could not fetch price for ${coinId}`)
+    }
+  } catch (error) {
+    console.error("Error fetching crypto price:", error)
+    throw error
+  }
+}
+
+export default function MutableMarketplace({
+  publicKey,
+  balance,
+  provider,
+  connection,
+  onBalanceChange,
+}: MutableMarketplaceProps) {
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("swap")
   const [mutbBalance, setMutbBalance] = useState<number>(100) // Mock MUTB balance
   const [swapAmount, setSwapAmount] = useState<string>("1")
@@ -40,7 +66,7 @@ export default function MutableMarketplace({ publicKey, balance, provider, conne
 
   // Replace the static exchange rate with state variables
   const [solPrice, setSolPrice] = useState<number | null>(null)
-  const [mutbPrice, setMutbPrice] = useState<number>(0.01) // Fixed at $0.01
+  const [mutbPrice, setMutbPrice] = useState<number>(0.1) // Fixed at $0.10
   const [exchangeRate, setExchangeRate] = useState<number>(10000)
   const [isLoadingPrice, setIsLoadingPrice] = useState<boolean>(false)
   const [isSwapping, setIsSwapping] = useState<boolean>(false)
@@ -56,6 +82,11 @@ export default function MutableMarketplace({ publicKey, balance, provider, conne
         // Create PublicKey instance safely
         let userPublicKey: PublicKey
         try {
+          // Check if publicKey is a valid string before creating PublicKey
+          if (typeof publicKey !== "string" || !publicKey.trim()) {
+            console.log("Invalid or empty public key string")
+            return
+          }
           userPublicKey = new PublicKey(publicKey)
         } catch (error) {
           console.error("Invalid public key:", error)
@@ -112,24 +143,24 @@ export default function MutableMarketplace({ publicKey, balance, provider, conne
     const fetchExchangeRate = async () => {
       setIsLoadingPrice(true)
       try {
-        // Get the exchange rate
-        const rate = mockGetExchangeRate()
-        setExchangeRate(rate)
+        // Fetch real-time SOL price from CoinGecko API
+        const solPriceValue = await getCryptoPrice("solana")
+        setSolPrice(solPriceValue)
 
-        // Calculate SOL price based on MUTB price and exchange rate
         // MUTB is fixed at $0.01
-        const mutbPriceValue = 0.01
+        const mutbPriceValue = 0.1
         setMutbPrice(mutbPriceValue)
 
-        // SOL price = MUTB price * MUTB per SOL
-        const solPriceValue = mutbPriceValue * rate
-        setSolPrice(solPriceValue)
+        // Calculate exchange rate based on real prices
+        // Exchange rate = SOL price / MUTB price
+        const rate = solPriceValue / mutbPriceValue
+        setExchangeRate(rate)
       } catch (error) {
         console.error("Failed to fetch exchange rate:", error)
         // Fallback to default values
         setExchangeRate(10000) // 10,000 MUTB per SOL
         setSolPrice(100) // $100 per SOL
-        setMutbPrice(0.01) // $0.01 per MUTB
+        setMutbPrice(0.1) // $0.01 per MUTB
       } finally {
         setIsLoadingPrice(false)
       }
@@ -229,7 +260,27 @@ export default function MutableMarketplace({ publicKey, balance, provider, conne
           // Use mock implementation
           const result = await mockSwapSolForMutb(amount)
           console.log("Mock swap completed:", result)
+
+          // Update MUTB balance
           setMutbBalance(mutbBalance + result.amount)
+
+          // ADDED: Notify parent component about SOL balance change
+          if (onBalanceChange && balance !== null) {
+            onBalanceChange("sol", balance - amount)
+          }
+
+          // Show success toast
+          toast({
+            title: "Swap Successful!",
+            description: `You swapped ${amount} SOL for ${result.amount.toFixed(2)} MUTB`,
+            variant: "default",
+            className: "border-2 border-black bg-[#FFD54F] text-black font-mono",
+            action: (
+              <ToastAction altText="OK" className="border border-black">
+                OK
+              </ToastAction>
+            ),
+          })
         } catch (error) {
           console.error("Error executing swap:", error)
           setSwapError("Transaction failed. Please try again.")
@@ -252,7 +303,27 @@ export default function MutableMarketplace({ publicKey, balance, provider, conne
           // Use mock implementation
           const result = await mockSwapMutbForSol(amount)
           console.log("Mock swap completed:", result)
+
+          // Update MUTB balance
           setMutbBalance(mutbBalance - amount)
+
+          // ADDED: Notify parent component about SOL balance change
+          if (onBalanceChange && balance !== null) {
+            onBalanceChange("mutb", balance + result.amount)
+          }
+
+          // Show success toast
+          toast({
+            title: "Swap Successful!",
+            description: `You swapped ${amount} MUTB for ${result.amount.toFixed(4)} SOL`,
+            variant: "default",
+            className: "border-2 border-black bg-[#FFD54F] text-black font-mono",
+            action: (
+              <ToastAction altText="OK" className="border border-black">
+                OK
+              </ToastAction>
+            ),
+          })
         } catch (error) {
           console.error("Error executing swap:", error)
           setSwapError("Transaction failed. Please try again.")

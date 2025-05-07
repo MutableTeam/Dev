@@ -48,6 +48,28 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
     return game.image || "/placeholder.svg"
   }
 
+  // Handle game selection with Google Analytics tracking
+  const handleGameSelect = (gameId: string) => {
+    // Get the game name for tracking
+    const game = games.find((g) => g.id === gameId)
+
+    if (game) {
+      // Convert game name to kebab case for analytics
+      const eventName = game.name.toLowerCase().replace(/\s+/g, "-")
+
+      // Track the game selection in Google Analytics
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        ;(window as any).gtag("event", eventName, {
+          event_category: "Games",
+          event_label: game.name,
+        })
+      }
+    }
+
+    // Call the original onSelectGame handler
+    onSelectGame(gameId)
+  }
+
   return (
     <Card className="bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
       <CardHeader>
@@ -109,7 +131,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                 <SoundButton
                   className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
                   disabled={game.status !== "live"}
-                  onClick={() => onSelectGame(game.id)}
+                  onClick={() => handleGameSelect(game.id)}
                 >
                   {game.status === "live" ? "PLAY NOW" : "COMING SOON"}
                 </SoundButton>

@@ -15,7 +15,7 @@ import { inter, pressStart2P } from "./fonts"
 export const metadata: Metadata = {
   title: "MutableDev Game Platform",
   description: "A modular game platform for web3 games",
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export default function RootLayout({

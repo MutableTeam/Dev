@@ -338,7 +338,7 @@ export const updateGameState = (
       arrows: [...state.arrows],
       walls: [...state.walls],
       pickups: [...state.pickups],
-      explosions: [...state.explosions],
+      explosions: Array.isArray(state.explosions) ? [...state.explosions] : [],
     }
 
     // Make deep copies of each player to avoid reference issues
@@ -396,6 +396,11 @@ export const updateGameState = (
       // Skip players with no lives left
       if (player.lives <= 0) {
         return
+      }
+
+      // Handle invulnerability timer - add this line to fix the issue
+      if (player.invulnerableTime > 0) {
+        player.invulnerableTime -= deltaTime
       }
 
       // Handle cooldowns
@@ -691,9 +696,9 @@ export const updateGameState = (
         // Add custom properties for explosive arrow
         // @ts-ignore - Adding custom property
         explosiveArrow.isExplosive = true
-        // @ts-ignore - Adding custom property
+        // @ts-ignore - Custom property
         explosiveArrow.explosionRadius = 100
-        // @ts-ignore - Adding custom property
+        // @ts-ignore - Custom property
         explosiveArrow.explosionDamage = 40
         // Change color to indicate explosive arrow
         explosiveArrow.color = "#FF5722" // Orange-red color
@@ -776,8 +781,18 @@ export const updateGameState = (
       for (const playerId in newState.players) {
         const player = newState.players[playerId]
 
-        // Don't hit the player who fired the arrow or players with no lives or during invulnerability frames
-        if (arrow.ownerId === player.id || player.lives <= 0 || player.invulnerableTime > 0) continue
+        // Don't hit the player who fired the arrow or players with no lives
+        // Add a debug log to help diagnose the issue
+        if (arrow.ownerId === player.id || player.lives <= 0) {
+          continue
+        }
+
+        // Add separate check for invulnerability with debug logging
+        if (player.invulnerableTime > 0) {
+          // Debug log to see invulnerability values
+          // console.log(`Player ${playerId} is invulnerable for ${player.invulnerableTime.toFixed(3)} more seconds`);
+          continue
+        }
 
         const dx = arrow.position.x - player.position.x
         const dy = arrow.position.y - player.position.y
@@ -801,11 +816,8 @@ export const updateGameState = (
           // Add invulnerability frames to prevent multiple hits from same arrow
           player.invulnerableTime = 0.1 // 100ms of invulnerability
 
-          // Flag for weak shot hits
-          // @ts-ignore - Custom property
-          if (arrow.isWeakShot) {
-            player.lastHitByWeakShot = true
-          }
+          // Debug log to confirm hit registered
+          // console.log(`Player ${playerId} hit! Health: ${player.health}, Invulnerable for: ${player.invulnerableTime}s`);
 
           // Check if player is dead
           if (player.health <= 0) {
@@ -954,6 +966,11 @@ export const playDashSound = () => {
 
 // Helper function to create an explosion and damage nearby players
 function createExplosion(state: GameState, arrow: GameObject): void {
+  // Ensure explosions array exists
+  if (!state.explosions) {
+    state.explosions = []
+  }
+
   // @ts-ignore - Custom property
   const explosionRadius = arrow.explosionRadius || 100
   // @ts-ignore - Custom property
@@ -1009,9 +1026,6 @@ function createExplosion(state: GameState, arrow: GameObject): void {
 
   // Add explosion particles
   // This would be handled by the renderer, but we can add a flag to the game state
-  // @ts-ignore - Custom property
-  state.explosions = state.explosions || []
-  // @ts-ignore - Custom property
   state.explosions.push({
     position: { x: arrow.position.x, y: arrow.position.y },
     radius: explosionRadius,
