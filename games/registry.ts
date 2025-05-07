@@ -1,6 +1,7 @@
 import { gameRegistry } from "@/types/game-registry"
 import TopDownShooterGame from "./top-down-shooter"
 import PixelPoolGame from "./pixel-pool"
+import LastStandGame from "./last-stand"
 
 // Register all games
 export function registerGames() {
@@ -9,6 +10,9 @@ export function registerGames() {
 
   // Register the pixel pool game
   gameRegistry.registerGame(PixelPoolGame)
+
+  // Register the Last Stand game
+  gameRegistry.registerGame(LastStandGame)
 
   // Register more games here as they are developed
 }

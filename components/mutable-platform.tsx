@@ -13,6 +13,7 @@ import type { Connection } from "@solana/web3.js"
 import SoundButton from "./sound-button"
 import { withClickSound } from "@/utils/sound-utils"
 import { ThemeToggle } from "@/components/theme-toggle"
+import LastStandGameLauncher from "../games/last-stand/game-launcher"
 
 // Add responsive styles for tabs
 const tabStyles = {
@@ -103,6 +104,13 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
                     mutbBalance={mutbBalance}
                     onExit={handleBackToSelection}
                     selectedGame={selectedGame}
+                  />
+                ) : selectedGame === "archer-arena" ? (
+                  <LastStandGameLauncher
+                    publicKey={publicKey}
+                    playerName={getPlayerName()}
+                    mutbBalance={mutbBalance}
+                    onExit={handleBackToSelection}
                   />
                 ) : (
                   <Card className="arcade-card">

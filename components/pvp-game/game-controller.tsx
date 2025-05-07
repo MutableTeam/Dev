@@ -17,6 +17,7 @@ import {
   startBackgroundMusic,
   stopBackgroundMusic,
   audioManager,
+  playExplosionSound, // Add this import
 } from "@/utils/audio-manager"
 import { debugManager, DebugLevel } from "@/utils/debug-utils"
 import transitionDebugger from "@/utils/transition-debug"
@@ -350,6 +351,11 @@ export default function GameController({
               ) {
                 playDeathSound()
               }
+
+              // Explosive arrow sound
+              if (localPlayer.controls.explosiveArrow && localPlayer.explosiveArrowCooldown <= 0) {
+                playExplosionSound()
+              }
             } catch (error) {
               debugManager.logError("AUDIO", "Error playing game sounds", error)
               // Continue game even if sound playback fails
@@ -472,6 +478,11 @@ export default function GameController({
         case "f11":
           setShowResourceMonitor((prev) => !prev)
           break
+        case "e":
+          if (gameStateRef.current.players[playerId]) {
+            gameStateRef.current.players[playerId].controls.explosiveArrow = true
+          }
+          break
       }
     }
 
@@ -499,6 +510,11 @@ export default function GameController({
           break
         case "shift":
           player.controls.dash = false
+          break
+        case "e":
+          if (gameStateRef.current.players[playerId]) {
+            gameStateRef.current.players[playerId].controls.explosiveArrow = false
+          }
           break
       }
     }

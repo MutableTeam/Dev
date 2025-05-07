@@ -18,6 +18,7 @@ type SoundType =
   | "connect"
   | "disconnect"
   | "error"
+  | "explosion"
 
 class AudioManager {
   private static instance: AudioManager
@@ -171,6 +172,9 @@ class AudioManager {
           break
         case "error":
           this.playErrorSound()
+          break
+        case "explosion":
+          this.playExplosionSound()
           break
         default:
           this.playDefaultSound()
@@ -709,6 +713,90 @@ class AudioManager {
     }
   }
 
+  private playExplosionSound(): void {
+    if (!this.audioContext) return
+
+    // Create noise for explosion
+    const bufferSize = 4096
+    const noiseBuffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate)
+    const output = noiseBuffer.getChannelData(0)
+
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1
+    }
+
+    const noise = this.audioContext.createBufferSource()
+    noise.buffer = noiseBuffer
+
+    // Create oscillator for the boom sound
+    const oscillator = this.audioContext.createOscillator()
+    oscillator.type = "sine"
+    oscillator.frequency.setValueAtTime(100, this.audioContext.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(30, this.audioContext.currentTime + 0.5)
+
+    // Create filters
+    const noiseFilter = this.audioContext.createBiquadFilter()
+    const oscillatorFilter = this.audioContext.createBiquadFilter()
+    const masterFilter = this.audioContext.createBiquadFilter()
+
+    noiseFilter.type = "lowpass"
+    noiseFilter.frequency.setValueAtTime(1000, this.audioContext.currentTime)
+    noiseFilter.frequency.exponentialRampToValueAtTime(100, this.audioContext.currentTime + 0.5)
+
+    oscillatorFilter.type = "lowpass"
+    oscillatorFilter.frequency.setValueAtTime(100, this.audioContext.currentTime)
+
+    masterFilter.type = "lowpass"
+    masterFilter.frequency.setValueAtTime(1000, this.audioContext.currentTime)
+    masterFilter.frequency.exponentialRampToValueAtTime(100, this.audioContext.currentTime + 0.8)
+
+    // Create gain nodes
+    const noiseGain = this.audioContext.createGain()
+    const oscillatorGain = this.audioContext.createGain()
+    const masterGain = this.audioContext.createGain()
+
+    // Set gain values
+    noiseGain.gain.setValueAtTime(0, this.audioContext.currentTime)
+    noiseGain.gain.linearRampToValueAtTime(this.volume * 1.0, this.audioContext.currentTime + 0.05)
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.5)
+
+    oscillatorGain.gain.setValueAtTime(0, this.audioContext.currentTime)
+    oscillatorGain.gain.linearRampToValueAtTime(this.volume * 0.8, this.audioContext.currentTime + 0.05)
+    oscillatorGain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.8)
+
+    masterGain.gain.setValueAtTime(this.volume * 0.8, this.audioContext.currentTime)
+
+    // Connect everything
+    noise.connect(noiseFilter)
+    noiseFilter.connect(noiseGain)
+    noiseGain.connect(masterFilter)
+
+    oscillator.connect(oscillatorFilter)
+    oscillatorFilter.connect(oscillatorGain)
+    oscillatorGain.connect(masterFilter)
+
+    masterFilter.connect(masterGain)
+    masterGain.connect(this.audioContext.destination)
+
+    // Start and stop
+    noise.start()
+    oscillator.start()
+    noise.stop(this.audioContext.currentTime + 0.5)
+    oscillator.stop(this.audioContext.currentTime + 0.8)
+
+    // Clean up
+    noise.onended = () => {
+      noise.disconnect()
+      oscillator.disconnect()
+      noiseFilter.disconnect()
+      oscillatorFilter.disconnect()
+      masterFilter.disconnect()
+      noiseGain.disconnect()
+      oscillatorGain.disconnect()
+      masterGain.disconnect()
+    }
+  }
+
   public startBackgroundMusic(): void {
     if (this.muted || !this.initialized || !this.audioContext || this.backgroundMusicPlaying) return
 
@@ -968,7 +1056,12 @@ class AudioManager {
   }
 }
 
+// Export functions outside the class
 export const audioManager = AudioManager.getInstance()
+
+export const playExplosionSound = (): void => {
+  audioManager.playSound("explosion")
+}
 
 export const playRandomCoinSound = (): void => {
   audioManager.playSound("coin")

@@ -609,6 +609,52 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
     ctx.fill()
   }
 
+  // Draw explosions
+  const drawExplosions = (ctx: CanvasRenderingContext2D) => {
+    if (!gameState.explosions) return
+
+    gameState.explosions.forEach((explosion) => {
+      const progress = explosion.time / explosion.maxTime
+      const radius = explosion.radius * (1 - Math.pow(progress - 1, 2)) // Easing function for size
+
+      // Create gradient for explosion
+      const gradient = ctx.createRadialGradient(
+        explosion.position.x,
+        explosion.position.y,
+        0,
+        explosion.position.x,
+        explosion.position.y,
+        radius,
+      )
+
+      // Colors based on progress
+      const alpha = 1 - progress
+      gradient.addColorStop(0, `rgba(255, 200, 50, ${alpha})`) // Yellow core
+      gradient.addColorStop(0.4, `rgba(255, 100, 50, ${alpha * 0.8})`) // Orange mid
+      gradient.addColorStop(1, `rgba(100, 0, 0, ${alpha * 0.1})`) // Dark red edge
+
+      // Draw explosion circle
+      ctx.fillStyle = gradient
+      ctx.beginPath()
+      ctx.arc(explosion.position.x, explosion.position.y, radius, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Add some particles for more effect
+      if (frameCountRef.current % 2 === 0) {
+        const particleCount = Math.floor(10 * (1 - progress)) // Fewer particles as explosion fades
+        for (let i = 0; i < particleCount; i++) {
+          const angle = Math.random() * Math.PI * 2
+          const distance = Math.random() * radius * 0.8
+          const particleX = explosion.position.x + Math.cos(angle) * distance
+          const particleY = explosion.position.y + Math.sin(angle) * distance
+
+          // Add particle to the system
+          addParticle(particleX, particleY, "explosion", "#FF5722", 1, 3 + Math.random() * 3)
+        }
+      }
+    })
+  }
+
   // Enhanced ability indicators
   const drawEnhancedAbilityIndicators = (ctx: CanvasRenderingContext2D, player: Player, canvasHeight: number) => {
     const abilitySize = 60
@@ -632,6 +678,19 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
       specialCooldownPercentage,
       "SPECIAL",
       drawSpecialIcon,
+    )
+
+    // Draw explosive arrow ability
+    const explosiveArrowCooldownPercentage =
+      player.explosiveArrowCooldown <= 0 ? 1 : Math.max(0, 1 - player.explosiveArrowCooldown / 30)
+    drawAbilityIcon(
+      ctx,
+      startX + (abilitySize + spacing) * 2,
+      startY,
+      abilitySize,
+      explosiveArrowCooldownPercentage,
+      "EXPLOSIVE",
+      drawExplosiveArrowIcon,
     )
   }
 
@@ -740,6 +799,47 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
     ctx.moveTo(x - size / 3, y + size / 5)
     ctx.lineTo(x, y + size / 5)
     ctx.stroke()
+  }
+
+  // Draw explosive arrow icon
+  const drawExplosiveArrowIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+    // Draw arrow
+    ctx.strokeStyle = "#FF5722"
+    ctx.lineWidth = 3
+
+    // Arrow shaft
+    ctx.beginPath()
+    ctx.moveTo(x - size / 3, y)
+    ctx.lineTo(x + size / 4, y)
+    ctx.stroke()
+
+    // Arrow head
+    ctx.beginPath()
+    ctx.moveTo(x + size / 4, y - size / 6)
+    ctx.lineTo(x + size / 2, y)
+    ctx.lineTo(x + size / 4, y + size / 6)
+    ctx.stroke()
+
+    // Explosion burst
+    ctx.strokeStyle = "#FFCC00"
+
+    // Burst rays
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 * i) / 8
+      const startRadius = size / 4
+      const endRadius = size / 2
+
+      ctx.beginPath()
+      ctx.moveTo(x + Math.cos(angle) * startRadius, y + Math.sin(angle) * startRadius)
+      ctx.lineTo(x + Math.cos(angle) * endRadius, y + Math.sin(angle) * endRadius)
+      ctx.stroke()
+    }
+
+    // Center circle
+    ctx.fillStyle = "#FF5722"
+    ctx.beginPath()
+    ctx.arc(x, y, size / 6, 0, Math.PI * 2)
+    ctx.fill()
   }
 
   // Draw special attack icon
@@ -1219,11 +1319,23 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
         drawArrow(ctx, arrow)
       })
 
+      // Draw explosions
+      drawExplosions(ctx)
+
       // Draw particles
       particles.forEach((particle) => {
         try {
-          // Wrap particle generation in try/catch to prevent errors from crashing the game
-          generateParticle(ctx, particle.x, particle.y, particle.size, particle.color, particle.type, particle.frame)
+          if (particle.type === "explosion") {
+            // Draw explosion particle
+            ctx.fillStyle = particle.color
+            const size = particle.size * (1 - particle.frame / particle.maxFrames)
+            ctx.beginPath()
+            ctx.arc(particle.x, particle.y, size, 0, Math.PI * 2)
+            ctx.fill()
+          } else {
+            // Wrap particle generation in try/catch to prevent errors from crashing the game
+            generateParticle(ctx, particle.x, particle.y, particle.size, particle.color, particle.type, particle.frame)
+          }
         } catch (error) {
           console.error("Error generating particle:", error)
           // Remove problematic particle

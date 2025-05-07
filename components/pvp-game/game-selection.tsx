@@ -16,7 +16,7 @@ interface GameSelectionProps {
 
 export default function GameSelection({ publicKey, balance, mutbBalance, onSelectGame }: GameSelectionProps) {
   // Get all games from registry
-  const games = gameRegistry.getAllGames().map((game) => ({
+  const allGames = gameRegistry.getAllGames().map((game) => ({
     id: game.config.id,
     name: game.config.name,
     description: game.config.description,
@@ -25,6 +25,28 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
     status: game.config.status,
     minWager: game.config.minWager,
   }))
+
+  // Sort games: available games first, then put "Archer Arena: Last Stand" next to "Archer Arena"
+  const games = allGames.sort((a, b) => {
+    // First, sort by status (live games first)
+    if (a.status === "live" && b.status !== "live") return -1
+    if (a.status !== "live" && b.status === "live") return 1
+
+    // Then, ensure "Archer Arena: Last Stand" is next to "Archer Arena"
+    if (a.name === "Archer Arena" && b.name === "Archer Arena: Last Stand") return -1
+    if (a.name === "Archer Arena: Last Stand" && b.name === "Archer Arena") return 1
+
+    // Default sort by name
+    return a.name.localeCompare(b.name)
+  })
+
+  // Custom image override for Last Stand
+  const getGameImage = (game) => {
+    if (game.name === "Archer Arena: Last Stand") {
+      return "/images/last-stand.jpg"
+    }
+    return game.image || "/placeholder.svg"
+  }
 
   return (
     <Card className="bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -49,14 +71,14 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
           {games.map((game) => (
             <Card
               key={game.id}
-              className={`border-2 ${game.status === "live" ? "border-black" : "border-gray-300"} overflow-hidden`}
+              className={`border-2 ${game.status === "live" ? "border-black" : "border-gray-300"} overflow-hidden flex flex-col h-full`}
             >
               <div className="relative">
                 <Image
-                  src={game.image || "/placeholder.svg"}
+                  src={getGameImage(game) || "/placeholder.svg"}
                   alt={game.name}
-                  width={200}
-                  height={120}
+                  width={400}
+                  height={240}
                   className="w-full h-32 object-cover"
                 />
                 {game.status === "coming-soon" && (
@@ -73,7 +95,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                   <CardTitle className="text-base font-mono">{game.name}</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="p-3 pt-0">
+              <CardContent className="p-3 pt-0 flex-grow">
                 <p className="text-sm text-muted-foreground">{game.description}</p>
                 <div className="mt-2 text-xs flex items-center gap-1">
                   <span className="font-medium">Min Wager:</span>
@@ -83,7 +105,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="p-3">
+              <CardFooter className="p-3 mt-auto">
                 <SoundButton
                   className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
                   disabled={game.status !== "live"}

@@ -58,7 +58,11 @@ export interface Player extends GameObject {
     shoot: boolean
     dash: boolean
     special: boolean
+    explosiveArrow: boolean
   }
+  invulnerableTime: number // Time in seconds of invulnerability after being hit
+  explosiveArrowCooldown: number
+  isUsingExplosiveArrow: boolean
 }
 
 // Update the GameState interface to include maxGameTime and gameMode
@@ -73,6 +77,12 @@ export interface GameState {
   isGameOver: boolean
   winner: string | null
   gameMode: string // Added gameMode property
+  explosions: Array<{
+    position: Vector2D
+    radius: number
+    time: number
+    maxTime: number
+  }>
 }
 
 // Available colors for players
@@ -91,6 +101,7 @@ export const createInitialGameState = (): GameState => {
     isGameOver: false,
     winner: null,
     gameMode: "ffa", // Default game mode
+    explosions: [],
   }
 }
 
@@ -140,7 +151,11 @@ export const createPlayer = (id: string, name: string, position: Vector2D, color
       shoot: false,
       dash: false,
       special: false,
+      explosiveArrow: false,
     },
+    invulnerableTime: 0,
+    explosiveArrowCooldown: 0,
+    isUsingExplosiveArrow: false,
   }
 }
 
@@ -323,6 +338,7 @@ export const updateGameState = (
       arrows: [...state.arrows],
       walls: [...state.walls],
       pickups: [...state.pickups],
+      explosions: [...state.explosions],
     }
 
     // Make deep copies of each player to avoid reference issues
@@ -650,6 +666,45 @@ export const updateGameState = (
         player.specialChargeStartTime = null
       }
 
+      // Handle explosive arrow cooldown
+      if (player.explosiveArrowCooldown > 0) {
+        player.explosiveArrowCooldown -= deltaTime
+      }
+
+      // Handle explosive arrow firing (using 'e' key or right-click + shift)
+      if (player.controls.explosiveArrow && player.explosiveArrowCooldown <= 0 && !player.isDrawingBow) {
+        // Fire explosive arrow
+        const arrowSpeed = 400 // Slightly slower than regular arrows
+        const arrowVelocity = {
+          x: Math.cos(player.rotation) * arrowSpeed,
+          y: Math.sin(player.rotation) * arrowSpeed,
+        }
+
+        const arrowPosition = {
+          x: player.position.x + Math.cos(player.rotation) * (player.size + 5),
+          y: player.position.y + Math.sin(player.rotation) * (player.size + 5),
+        }
+
+        // Create the explosive arrow
+        const explosiveArrow = createArrow(arrowPosition, arrowVelocity, player.rotation, player.id, 20)
+
+        // Add custom properties for explosive arrow
+        // @ts-ignore - Adding custom property
+        explosiveArrow.isExplosive = true
+        // @ts-ignore - Adding custom property
+        explosiveArrow.explosionRadius = 100
+        // @ts-ignore - Adding custom property
+        explosiveArrow.explosionDamage = 40
+        // Change color to indicate explosive arrow
+        explosiveArrow.color = "#FF5722" // Orange-red color
+
+        newState.arrows.push(explosiveArrow)
+
+        // Set cooldown
+        player.explosiveArrowCooldown = 30 // 30 seconds cooldown
+        player.isUsingExplosiveArrow = false
+      }
+
       // Collision with walls
       newState.walls.forEach((wall) => {
         const dx = player.position.x - wall.position.x
@@ -708,6 +763,11 @@ export const updateGameState = (
         const distance = Math.sqrt(dx * dx + dy * dy)
 
         if (distance < arrow.size + wall.size) {
+          // @ts-ignore - Custom property
+          if (arrow.isExplosive) {
+            // Create explosion
+            createExplosion(newState, arrow)
+          }
           return false
         }
       }
@@ -716,8 +776,8 @@ export const updateGameState = (
       for (const playerId in newState.players) {
         const player = newState.players[playerId]
 
-        // Don't hit the player who fired the arrow or players with no lives
-        if (arrow.ownerId === player.id || player.lives <= 0) continue
+        // Don't hit the player who fired the arrow or players with no lives or during invulnerability frames
+        if (arrow.ownerId === player.id || player.lives <= 0 || player.invulnerableTime > 0) continue
 
         const dx = arrow.position.x - player.position.x
         const dy = arrow.position.y - player.position.y
@@ -738,15 +798,41 @@ export const updateGameState = (
             player.hitAnimationTimer = 0.5 // 0.5 seconds
           }
 
+          // Add invulnerability frames to prevent multiple hits from same arrow
+          player.invulnerableTime = 0.1 // 100ms of invulnerability
+
+          // Flag for weak shot hits
+          // @ts-ignore - Custom property
+          if (arrow.isWeakShot) {
+            player.lastHitByWeakShot = true
+          }
+
           // Check if player is dead
           if (player.health <= 0) {
+            player.health = 0 // Ensure health doesn't go negative
+            player.animationState = "death"
+            player.lastAnimationChange = Date.now()
+            player.deaths += 1
+
+            // Award kill to the player who fired the arrow
+            if (arrow.ownerId && newState.players[arrow.ownerId]) {
+              newState.players[arrow.ownerId].kills += 1
+              newState.players[arrow.ownerId].score += 100
+            }
+
             // Call the onPlayerDeath callback if provided
             if (onPlayerDeath) {
               onPlayerDeath(playerId)
             }
           }
 
-          return false
+          // @ts-ignore - Custom property
+          if (arrow.isExplosive) {
+            // Create explosion
+            createExplosion(newState, arrow)
+          }
+
+          return false // Remove the arrow
         }
       }
 
@@ -778,6 +864,14 @@ export const updateGameState = (
           newState.winner = topKiller.id
         }
       }
+    }
+
+    // Update explosions
+    if (newState.explosions && newState.explosions.length > 0) {
+      newState.explosions = newState.explosions.filter((explosion) => {
+        explosion.time += deltaTime
+        return explosion.time < explosion.maxTime
+      })
     }
 
     return newState
@@ -856,4 +950,72 @@ export const playHitSound = () => {
 export const playDashSound = () => {
   // This would be implemented in the audio manager
   console.log("Dash sound played")
+}
+
+// Helper function to create an explosion and damage nearby players
+function createExplosion(state: GameState, arrow: GameObject): void {
+  // @ts-ignore - Custom property
+  const explosionRadius = arrow.explosionRadius || 100
+  // @ts-ignore - Custom property
+  const explosionDamage = arrow.explosionDamage || 40
+
+  // Check all players in explosion radius
+  Object.keys(state.players).forEach((playerId) => {
+    const player = state.players[playerId]
+
+    // Skip players with no lives
+    if (player.lives <= 0) return
+
+    const dx = player.position.x - arrow.position.x
+    const dy = player.position.y - arrow.position.y
+    const distance = Math.sqrt(dx * dx + dy * dy)
+
+    // If player is within explosion radius
+    if (distance <= explosionRadius) {
+      // Calculate damage based on distance (more damage closer to center)
+      const damageMultiplier = 1 - distance / explosionRadius
+      const damage = Math.round(explosionDamage * damageMultiplier)
+
+      // Apply damage
+      if (damage > 0) {
+        player.health -= damage
+
+        // Track who hit this player
+        player.lastDamageFrom = arrow.ownerId
+
+        // Set hit animation
+        if (player.animationState !== "death") {
+          player.animationState = "hit"
+          player.lastAnimationChange = Date.now()
+          player.hitAnimationTimer = 0.5 // 0.5 seconds
+        }
+
+        // Check if player is dead
+        if (player.health <= 0) {
+          player.health = 0
+          player.animationState = "death"
+          player.lastAnimationChange = Date.now()
+          player.deaths += 1
+
+          // Award kill to the player who fired the arrow
+          if (arrow.ownerId && state.players[arrow.ownerId]) {
+            state.players[arrow.ownerId].kills += 1
+            state.players[arrow.ownerId].score += 100
+          }
+        }
+      }
+    }
+  })
+
+  // Add explosion particles
+  // This would be handled by the renderer, but we can add a flag to the game state
+  // @ts-ignore - Custom property
+  state.explosions = state.explosions || []
+  // @ts-ignore - Custom property
+  state.explosions.push({
+    position: { x: arrow.position.x, y: arrow.position.y },
+    radius: explosionRadius,
+    time: 0,
+    maxTime: 0.5, // 0.5 seconds explosion animation
+  })
 }

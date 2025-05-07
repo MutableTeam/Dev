@@ -63,11 +63,11 @@
     "buffer": "latest",
     "@solana/spl-token": "latest",
     "uuid": "latest",
-    "howler": "latest",
     "framer-motion": "latest",
     "fs": "latest",
     "path": "latest",
-    "borsh": "latest"
+    "borsh": "latest",
+    "howler": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
