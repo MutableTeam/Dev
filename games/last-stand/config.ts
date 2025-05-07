@@ -1,37 +1,65 @@
-import type { GameConfig } from "@/types/game-registry"
-import { Skull } from "lucide-react"
-
-export const lastStandConfig: GameConfig = {
-  id: "archer-arena",
-  name: "Archer Arena: Last Stand",
-  description: "Fight waves of undead enemies in this survival archery game",
-  image: "/images/archer-game.png", // Using existing image for now
-  icon: <Skull className="h-4 w-4" />,
+// Game configuration for Last Stand
+export const gameConfig = {
+  id: "last-stand",
+  name: "Last Stand",
+  description: "Defend against waves of enemies with your bow and arrow",
+  version: "1.0.0",
+  thumbnail: "/images/last-stand.jpg",
   status: "live", // Make sure this is set to "live"
   minWager: 0, // Free to play in practice mode
   modes: [
     {
+      id: "solo",
+      name: "Solo",
+      description: "Single player mode",
+      minPlayers: 1,
+      maxPlayers: 1,
+    },
+    {
       id: "practice",
       name: "Practice",
-      description: "Practice mode - no entry fee",
-      entryFee: 0,
-      duration: 0, // No time limit
-    },
-    {
-      id: "hourly",
-      name: "Hourly Challenge",
-      description: "Compete for the highest score in 1 hour",
-      entryFee: 5,
-      duration: 60 * 60 * 1000, // 1 hour in milliseconds
-      leaderboardRefresh: "hourly",
-    },
-    {
-      id: "daily",
-      name: "Daily Challenge",
-      description: "Compete for the highest score in 24 hours",
-      entryFee: 10,
-      duration: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
-      leaderboardRefresh: "daily",
+      description: "Practice mode with no stakes",
+      minPlayers: 1,
+      maxPlayers: 1,
+      isPractice: true,
     },
   ],
+  defaultMode: "solo",
+  features: {
+    specialAttacks: true,
+    powerUps: true,
+    waveProgression: true,
+  },
+  difficulty: {
+    easy: {
+      enemySpeed: 0.8,
+      enemySpawnRate: 1.5,
+      playerDamage: 0.8,
+    },
+    normal: {
+      enemySpeed: 1.0,
+      enemySpawnRate: 1.0,
+      playerDamage: 1.0,
+    },
+    hard: {
+      enemySpeed: 1.2,
+      enemySpawnRate: 0.8,
+      playerDamage: 1.2,
+    },
+  },
+  defaultDifficulty: "normal",
+  controls: {
+    keyboard: {
+      movement: "WASD or Arrow Keys",
+      attack: "Space or Left Mouse Button",
+      specialAttack: "E Key",
+      dash: "Shift Key",
+    },
+    touch: {
+      movement: "Virtual Joystick (Left)",
+      attack: "Attack Button (Right)",
+      specialAttack: "Special Button (Right)",
+      dash: "Dash Button (Right)",
+    },
+  },
 }
