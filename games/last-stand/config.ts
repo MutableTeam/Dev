@@ -1,12 +1,14 @@
 import type { GameConfig } from "@/types/game-registry"
-import { Skull } from "lucide-react"
+// Remove the JSX import and use a string identifier instead
+// import { Skull } from 'lucide-react'
 
 export const lastStandConfig: GameConfig = {
   id: "archer-arena",
   name: "Archer Arena: Last Stand",
   description: "Fight waves of undead enemies in this survival archery game",
   image: "/images/archer-game.png", // Using existing image for now
-  icon: <Skull className="h-4 w-4" />,
+  // Replace JSX with a string identifier that can be used to render the icon elsewhere
+  iconName: "skull", // Instead of: icon: <Skull className="h-4 w-4" />,
   status: "live", // Make sure this is set to "live"
   minWager: 0, // Free to play in practice mode
   modes: [

@@ -93,7 +93,7 @@ export default function PromoWatermark() {
         </div>
         <div className="font-bold text-[10px] sm:text-[10px] md:text-sm text-amber-900 whitespace-nowrap">
           <span className="inline xs:inline">Get </span>
-          <span className="text-amber-800">50 Free MUTB</span>
+          <span className="text-amber-800">100 Free MUTB</span>
         </div>
         <Sparkles
           className="h-2 w-2 sm:h-3 sm:w-3 md:h-4 md:w-4 text-yellow-300 hidden sm:block"
