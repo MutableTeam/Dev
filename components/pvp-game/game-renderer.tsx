@@ -94,61 +94,108 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
     // Draw arrow body
     ctx.fillStyle = arrow.isWeakShot ? "#996633" : "#D3A973" // Darker color for weak shots
 
-    // Add a more distinct visual for weak shots
+    // Special visual for weak shots - arrow splitting in half
     if (arrow.isWeakShot) {
       // Add a pulsing effect to make weak shots more noticeable
       const pulseIntensity = Math.sin(frameCountRef.current * 0.2) * 0.3 + 0.7
       ctx.globalAlpha = pulseIntensity
 
-      // Add a small text indicator
+      // Calculate the frame of the breaking animation based on distance traveled
+      const breakProgress = Math.min(1, (arrow.distanceTraveled || 0) / 100)
+
+      // Draw the broken arrow (split in half)
+      const splitDistance = breakProgress * 5 // Maximum split distance
+      const rotationVariance = breakProgress * 0.4 // Maximum rotation variation
+
+      // Draw upper half of the arrow (rotated slightly upward)
       ctx.save()
-      ctx.translate(0, -10)
+      ctx.rotate(-rotationVariance)
+      ctx.translate(0, -splitDistance)
+
+      // Upper arrow half
+      ctx.fillStyle = "#996633"
+      ctx.fillRect(-arrow.size * 1.5, -arrow.size / 4, arrow.size * 1.5, arrow.size / 4)
+
+      // Upper arrow head (smaller)
+      ctx.beginPath()
+      ctx.moveTo(0, -arrow.size / 4)
+      ctx.lineTo(-arrow.size * 0.5, -arrow.size / 2)
+      ctx.lineTo(arrow.size * 0, -arrow.size / 8)
+      ctx.closePath()
+      ctx.fill()
+      ctx.restore()
+
+      // Draw lower half of the arrow (rotated slightly downward)
+      ctx.save()
+      ctx.rotate(rotationVariance)
+      ctx.translate(0, splitDistance)
+
+      // Lower arrow half
+      ctx.fillStyle = "#996633"
+      ctx.fillRect(-arrow.size * 1.5, 0, arrow.size * 1.5, arrow.size / 4)
+
+      // Lower arrow head (smaller)
+      ctx.beginPath()
+      ctx.moveTo(0, arrow.size / 4)
+      ctx.lineTo(-arrow.size * 0.5, arrow.size / 2)
+      ctx.lineTo(arrow.size * 0, arrow.size / 8)
+      ctx.closePath()
+      ctx.fill()
+      ctx.restore()
+
+      // Add small debris particles
+      if (frameCountRef.current % 3 === 0) {
+        for (let i = 0; i < 2; i++) {
+          const particleSize = 1 + Math.random() * 2
+          const particleX = -arrow.size + Math.random() * arrow.size * 3
+          const particleY = (Math.random() - 0.5) * arrow.size
+
+          ctx.fillStyle = "#AA8866"
+          ctx.beginPath()
+          ctx.arc(particleX, particleY, particleSize, 0, Math.PI * 2)
+          ctx.fill()
+        }
+      }
+
+      // Add small damage indicator
+      ctx.save()
       ctx.rotate(-arrow.rotation)
       ctx.fillStyle = "#ff3333"
       ctx.font = "8px Arial"
       ctx.textAlign = "center"
-      ctx.fillText("1", 0, 0)
+      ctx.fillText("1", 0, -10)
       ctx.restore()
 
       ctx.globalAlpha = 1.0
-    }
+    } else {
+      // Regular arrow drawing for normal shots
+      // Draw arrow shaft
+      ctx.fillRect(-arrow.size * 1.5, -arrow.size / 4, arrow.size * 3, arrow.size / 2)
 
-    // Draw arrow shaft
-    ctx.fillRect(-arrow.size * 1.5, -arrow.size / 4, arrow.size * 3, arrow.size / 2)
-
-    // Draw arrow head
-    ctx.beginPath()
-    ctx.moveTo(arrow.size * 1.5, 0)
-    ctx.lineTo(arrow.size * 1, -arrow.size)
-    ctx.lineTo(arrow.size * 2, 0)
-    ctx.lineTo(arrow.size * 1, arrow.size)
-    ctx.closePath()
-    ctx.fill()
-
-    // Draw feathers
-    ctx.fillStyle = arrow.isWeakShot ? "#664422" : "#AA8866"
-    ctx.beginPath()
-    ctx.moveTo(-arrow.size * 1.5, 0)
-    ctx.lineTo(-arrow.size * 2, -arrow.size)
-    ctx.lineTo(-arrow.size * 1.2, 0)
-    ctx.closePath()
-    ctx.fill()
-
-    ctx.beginPath()
-    ctx.moveTo(-arrow.size * 1.5, 0)
-    ctx.lineTo(-arrow.size * 2, arrow.size)
-    ctx.lineTo(-arrow.size * 1.2, 0)
-    ctx.closePath()
-    ctx.fill()
-
-    // For weak shots, add a downward trajectory visualization
-    if (arrow.isWeakShot) {
-      ctx.strokeStyle = "rgba(255, 100, 100, 0.3)"
-      ctx.lineWidth = 1
+      // Draw arrow head
       ctx.beginPath()
-      ctx.moveTo(0, 0)
-      ctx.quadraticCurveTo(arrow.size * 5, 0, arrow.size * 10, arrow.size * 5)
-      ctx.stroke()
+      ctx.moveTo(arrow.size * 1.5, 0)
+      ctx.lineTo(arrow.size * 1, -arrow.size)
+      ctx.lineTo(arrow.size * 2, 0)
+      ctx.lineTo(arrow.size * 1, arrow.size)
+      ctx.closePath()
+      ctx.fill()
+
+      // Draw feathers
+      ctx.fillStyle = "#AA8866"
+      ctx.beginPath()
+      ctx.moveTo(-arrow.size * 1.5, 0)
+      ctx.lineTo(-arrow.size * 2, -arrow.size)
+      ctx.lineTo(-arrow.size * 1.2, 0)
+      ctx.closePath()
+      ctx.fill()
+
+      ctx.beginPath()
+      ctx.moveTo(-arrow.size * 1.5, 0)
+      ctx.lineTo(-arrow.size * 2, arrow.size)
+      ctx.lineTo(-arrow.size * 1.2, 0)
+      ctx.closePath()
+      ctx.fill()
     }
 
     ctx.restore()
@@ -306,109 +353,82 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
     const player = gameState.players[localPlayerId]
     if (!player) return
 
-    // Draw minimalist UI elements with translucent backgrounds
-
-    // Player stats panel (top-left)
-    const statsWidth = 160
-    const statsHeight = 80
-    const statsX = 10
-    const statsY = 10
-
-    // Draw semi-transparent background with blur effect
-    ctx.fillStyle = "rgba(0, 0, 0, 0.4)"
-    ctx.beginPath()
-    ctx.roundRect(statsX, statsY, statsWidth, statsHeight, 8)
-    ctx.fill()
-
-    // Draw player stats
-    ctx.fillStyle = "#ffffff"
-    ctx.font = "14px Arial"
-    ctx.textAlign = "left"
-    ctx.fillText(`HP: ${player.health}`, statsX + 10, statsY + 25)
-    ctx.fillText(`Score: ${player.score}`, statsX + 10, statsY + 45)
-    ctx.fillText(`Kills: ${player.kills}`, statsX + 10, statsY + 65)
-
-    // Draw bow mechanics hint (only for a short time at the beginning of the game)
-    if (gameState.gameTime < 15) {
-      // Show for the first 15 seconds
-      const hintWidth = 300
-      const hintHeight = 80
-      const hintX = (gameState.arenaSize.width - hintWidth) / 2
-      const hintY = 50
-
-      // Draw semi-transparent background
-      ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
-      ctx.beginPath()
-      ctx.roundRect(hintX, hintY, hintWidth, hintHeight, 8)
-      ctx.fill()
-
-      // Draw hint text
-      ctx.fillStyle = "#FFFFFF"
-      ctx.font = "14px Arial"
-      ctx.textAlign = "center"
-      ctx.fillText("NEW BOW MECHANICS", gameState.arenaSize.width / 2, hintY + 20)
-      ctx.font = "12px Arial"
-      ctx.fillText("Movement reduced by 60% while drawing bow", gameState.arenaSize.width / 2, hintY + 40)
-      ctx.fillText("Draw past the white marker for effective shots", gameState.arenaSize.width / 2, hintY + 60)
-
-      // Fade out as time approaches 15 seconds
-      if (gameState.gameTime > 10) {
-        ctx.globalAlpha = 1 - (gameState.gameTime - 10) / 5
-      }
-    }
-
-    // Draw ability indicators (bottom-left)
-    const abilitiesWidth = 220
-    const abilitiesHeight = 60
-    const abilitiesX = 10
-    const abilitiesY = gameState.arenaSize.height - abilitiesHeight - 10
-
-    // Draw semi-transparent background with blur effect
-    ctx.fillStyle = "rgba(0, 0, 0, 0.4)"
-    ctx.beginPath()
-    ctx.roundRect(abilitiesX, abilitiesY, abilitiesWidth, abilitiesHeight, 8)
-    ctx.fill()
-
-    // Draw dash cooldown indicator
-    const dashCooldownPercentage = Math.max(0, 1 - player.dashCooldown / 2)
-    drawCooldownIndicator(ctx, abilitiesX + 10, abilitiesY + 20, 100, 10, dashCooldownPercentage, "DASH")
-
-    // Draw special attack cooldown indicator
-    const specialCooldownPercentage = Math.max(0, 1 - player.specialAttackCooldown / 5)
-    drawCooldownIndicator(ctx, abilitiesX + 10, abilitiesY + 40, 100, 10, specialCooldownPercentage, "SPECIAL")
+    // Draw enhanced ability indicators (bottom-left)
+    drawEnhancedAbilityIndicators(ctx, player, gameState.arenaSize.height)
 
     // Draw bow charge indicator when drawing bow
     if (player.isDrawingBow && player.drawStartTime !== null) {
       const currentTime = Date.now() / 1000
       const drawTime = currentTime - player.drawStartTime
       const drawPercentage = Math.min(drawTime / player.maxDrawTime, 1)
+      const minDrawPercentage = player.minDrawTime / player.maxDrawTime
 
       // Position in center-bottom of screen
-      const bowChargeWidth = 200
-      const bowChargeHeight = 10
+      const bowChargeWidth = 240
+      const bowChargeHeight = 12
       const bowChargeX = (gameState.arenaSize.width - bowChargeWidth) / 2
       const bowChargeY = gameState.arenaSize.height - 40
 
-      // Draw semi-transparent background
-      ctx.fillStyle = "rgba(0, 0, 0, 0.6)"
+      // Draw semi-transparent background with rounded corners
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
       ctx.beginPath()
-      ctx.roundRect(bowChargeX - 10, bowChargeY - 5, bowChargeWidth + 20, bowChargeHeight + 10, 8)
+      ctx.roundRect(bowChargeX - 15, bowChargeY - 8, bowChargeWidth + 30, bowChargeHeight + 16, 10)
       ctx.fill()
 
-      // Draw charge bar background
+      // Add subtle border
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)"
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.roundRect(bowChargeX - 15, bowChargeY - 8, bowChargeWidth + 30, bowChargeHeight + 16, 10)
+      ctx.stroke()
+
+      // Draw charge bar background with rounded corners
       ctx.fillStyle = "#333333"
-      ctx.fillRect(bowChargeX, bowChargeY, bowChargeWidth, bowChargeHeight)
+      ctx.beginPath()
+      ctx.roundRect(bowChargeX, bowChargeY, bowChargeWidth, bowChargeHeight, 6)
+      ctx.fill()
 
-      // Draw charge bar fill
-      const chargeColor = drawPercentage < 0.3 ? "#ff9900" : drawPercentage < 0.7 ? "#ffff00" : "#00ff00"
+      // Draw charge bar fill with rounded left corner
+      const chargeColor =
+        drawPercentage < minDrawPercentage
+          ? "rgba(255, 77, 77, 0.8)"
+          : drawPercentage < 0.7
+            ? "rgba(255, 204, 51, 0.8)"
+            : "rgba(51, 255, 51, 0.8)"
+
+      const fillWidth = bowChargeWidth * drawPercentage
       ctx.fillStyle = chargeColor
-      ctx.fillRect(bowChargeX, bowChargeY, bowChargeWidth * drawPercentage, bowChargeHeight)
+      ctx.beginPath()
+      if (fillWidth >= bowChargeWidth) {
+        // If completely filled, use rounded rect
+        ctx.roundRect(bowChargeX, bowChargeY, fillWidth, bowChargeHeight, 6)
+      } else {
+        // Otherwise, only round the left corners
+        const radius = 6
+        ctx.moveTo(bowChargeX + radius, bowChargeY)
+        ctx.lineTo(bowChargeX + fillWidth, bowChargeY)
+        ctx.lineTo(bowChargeX + fillWidth, bowChargeY + bowChargeHeight)
+        ctx.lineTo(bowChargeX + radius, bowChargeY + bowChargeHeight)
+        ctx.arcTo(bowChargeX, bowChargeY + bowChargeHeight, bowChargeX, bowChargeY + bowChargeHeight - radius, radius)
+        ctx.lineTo(bowChargeX, bowChargeY + radius)
+        ctx.arcTo(bowChargeX, bowChargeY, bowChargeX + radius, bowChargeY, radius)
+      }
+      ctx.fill()
 
-      // Draw label
+      // Draw minimum threshold marker
       ctx.fillStyle = "#ffffff"
-      ctx.font = "12px Arial"
+      ctx.beginPath()
+      ctx.roundRect(bowChargeX + bowChargeWidth * minDrawPercentage - 1, bowChargeY - 2, 2, bowChargeHeight + 4, 1)
+      ctx.fill()
+
+      // Draw label with shadow
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+      ctx.font = "bold 12px Arial"
       ctx.textAlign = "center"
-      ctx.fillText("BOW CHARGE", bowChargeX + bowChargeWidth / 2, bowChargeY - 5)
+      ctx.fillText("BOW CHARGE", bowChargeX + bowChargeWidth / 2 + 1, bowChargeY - 10 + 1)
+
+      ctx.fillStyle = "#ffffff"
+      ctx.fillText("BOW CHARGE", bowChargeX + bowChargeWidth / 2, bowChargeY - 10)
     }
 
     // Draw remaining time (top-center)
@@ -416,80 +436,491 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
     const minutes = Math.floor(remainingTime / 60)
     const seconds = Math.floor(remainingTime % 60)
 
-    // Draw time background
-    const timeWidth = 100
-    const timeHeight = 30
+    // Draw time background with enhanced styling
+    const timeWidth = 110
+    const timeHeight = 36
     const timeX = (gameState.arenaSize.width - timeWidth) / 2
     const timeY = 10
 
-    ctx.fillStyle = "rgba(0, 0, 0, 0.4)"
+    // Draw semi-transparent background with blur effect
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)"
     ctx.beginPath()
-    ctx.roundRect(timeX, timeY, timeWidth, timeHeight, 8)
+    ctx.roundRect(timeX, timeY, timeWidth, timeHeight, 10)
     ctx.fill()
 
-    // Draw time text
+    // Add subtle border
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)"
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.roundRect(timeX, timeY, timeWidth, timeHeight, 10)
+    ctx.stroke()
+
+    // Draw time text with shadow
     ctx.textAlign = "center"
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+    ctx.font = "bold 20px Arial"
+    ctx.fillText(
+      `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`,
+      gameState.arenaSize.width / 2 + 1,
+      timeY + 24 + 1,
+    )
+
     ctx.fillStyle = "#FFFFFF"
-    ctx.font = "18px Arial"
     ctx.fillText(
       `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`,
       gameState.arenaSize.width / 2,
-      timeY + 20,
+      timeY + 24,
     )
 
-    // Draw mini-scoreboard (top-right)
-    drawMiniScoreboard(ctx, gameState)
+    // Draw enhanced scoreboard (top-right)
+    drawEnhancedScoreboard(ctx, gameState, localPlayerId)
 
     // Draw game over message
     if (gameState.isGameOver) {
       // Semi-transparent overlay
-      ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+      ctx.fillStyle = "rgba(0, 0, 0, 0.6)"
       ctx.fillRect(0, 0, gameState.arenaSize.width, gameState.arenaSize.height)
 
       // Game over panel
-      const gameOverWidth = 300
-      const gameOverHeight = 180
+      const gameOverWidth = 360
+      const gameOverHeight = 220
       const gameOverX = (gameState.arenaSize.width - gameOverWidth) / 2
       const gameOverY = (gameState.arenaSize.height - gameOverHeight) / 2
 
-      ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
+      // Draw panel background with blur effect
+      ctx.fillStyle = "rgba(0, 0, 0, 0.85)"
       ctx.beginPath()
-      ctx.roundRect(gameOverX, gameOverY, gameOverWidth, gameOverHeight, 16)
+      ctx.roundRect(gameOverX, gameOverY, gameOverWidth, gameOverHeight, 20)
       ctx.fill()
 
-      ctx.strokeStyle = "#FFFFFF"
-      ctx.lineWidth = 2
+      // Add decorative border
+      const gradient = ctx.createLinearGradient(
+        gameOverX,
+        gameOverY,
+        gameOverX + gameOverWidth,
+        gameOverY + gameOverHeight,
+      )
+      gradient.addColorStop(0, "rgba(255, 215, 0, 0.7)")
+      gradient.addColorStop(0.5, "rgba(255, 255, 255, 0.7)")
+      gradient.addColorStop(1, "rgba(255, 215, 0, 0.7)")
+
+      ctx.strokeStyle = gradient
+      ctx.lineWidth = 3
       ctx.beginPath()
-      ctx.roundRect(gameOverX, gameOverY, gameOverWidth, gameOverHeight, 16)
+      ctx.roundRect(gameOverX, gameOverY, gameOverWidth, gameOverHeight, 20)
       ctx.stroke()
 
-      // Game over text
-      ctx.fillStyle = "#ffffff"
-      ctx.font = "24px Arial"
+      // Game over text with shadow
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+      ctx.font = "bold 32px Arial"
       ctx.textAlign = "center"
-      ctx.fillText("GAME OVER", gameState.arenaSize.width / 2, gameOverY + 40)
+      ctx.fillText("GAME OVER", gameState.arenaSize.width / 2 + 2, gameOverY + 50 + 2)
+
+      ctx.fillStyle = "#FFD700" // Gold color
+      ctx.fillText("GAME OVER", gameState.arenaSize.width / 2, gameOverY + 50)
 
       if (gameState.winner) {
         const winnerName = gameState.players[gameState.winner]?.name || "Unknown"
-        ctx.fillText(`${winnerName} WINS!`, gameState.arenaSize.width / 2, gameOverY + 80)
+
+        // Winner text with shadow
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+        ctx.font = "bold 24px Arial"
+        ctx.fillText(`${winnerName} WINS!`, gameState.arenaSize.width / 2 + 2, gameOverY + 100 + 2)
+
+        ctx.fillStyle = "#FFFFFF"
+        ctx.fillText(`${winnerName} WINS!`, gameState.arenaSize.width / 2, gameOverY + 100)
 
         // Add winner stats
         const winner = gameState.players[gameState.winner]
         if (winner) {
-          ctx.font = "16px Arial"
+          // Draw stats with shadow
+          ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+          ctx.font = "18px Arial"
+          ctx.fillText(
+            `Kills: ${winner.kills} | Score: ${winner.score}`,
+            gameState.arenaSize.width / 2 + 1,
+            gameOverY + 140 + 1,
+          )
+
+          ctx.fillStyle = "#CCCCCC"
           ctx.fillText(
             `Kills: ${winner.kills} | Score: ${winner.score}`,
             gameState.arenaSize.width / 2,
-            gameOverY + 120,
+            gameOverY + 140,
           )
+
+          // Draw a trophy icon
+          drawTrophy(ctx, gameState.arenaSize.width / 2 - 15, gameOverY + 180, 30)
         }
       } else {
-        ctx.fillText("DRAW!", gameState.arenaSize.width / 2, gameOverY + 80)
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+        ctx.font = "bold 24px Arial"
+        ctx.fillText("DRAW!", gameState.arenaSize.width / 2 + 2, gameOverY + 100 + 2)
+
+        ctx.fillStyle = "#FFFFFF"
+        ctx.fillText("DRAW!", gameState.arenaSize.width / 2, gameOverY + 100)
       }
     }
   }
 
-  // Helper function to draw cooldown indicators
+  // Add these new helper functions after the drawUI function:
+
+  // Helper function to draw a trophy icon
+  const drawTrophy = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+    // Trophy cup
+    ctx.fillStyle = "#FFD700" // Gold color
+
+    // Cup body
+    ctx.beginPath()
+    ctx.moveTo(x - size / 3, y - size / 2)
+    ctx.lineTo(x + size / 3, y - size / 2)
+    ctx.lineTo(x + size / 4, y)
+    ctx.lineTo(x - size / 4, y)
+    ctx.closePath()
+    ctx.fill()
+
+    // Cup handles
+    ctx.beginPath()
+    ctx.arc(x - size / 3, y - size / 3, size / 6, Math.PI / 2, (3 * Math.PI) / 2, false)
+    ctx.fill()
+
+    ctx.beginPath()
+    ctx.arc(x + size / 3, y - size / 3, size / 6, -Math.PI / 2, Math.PI / 2, false)
+    ctx.fill()
+
+    // Base
+    ctx.fillStyle = "#FFD700"
+    ctx.beginPath()
+    ctx.moveTo(x - size / 6, y)
+    ctx.lineTo(x + size / 6, y)
+    ctx.lineTo(x + size / 8, y + size / 3)
+    ctx.lineTo(x - size / 8, y + size / 3)
+    ctx.closePath()
+    ctx.fill()
+
+    // Stand
+    ctx.fillStyle = "#FFD700"
+    ctx.beginPath()
+    ctx.moveTo(x - size / 4, y + size / 3)
+    ctx.lineTo(x + size / 4, y + size / 3)
+    ctx.lineTo(x + size / 4, y + size / 2.5)
+    ctx.lineTo(x - size / 4, y + size / 2.5)
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  // Enhanced ability indicators
+  const drawEnhancedAbilityIndicators = (ctx: CanvasRenderingContext2D, player: Player, canvasHeight: number) => {
+    const abilitySize = 60
+    const padding = 15
+    const spacing = 20
+    const startX = padding
+    const startY = canvasHeight - padding - abilitySize
+
+    // Draw dash ability - ensure the percentage calculation is correct
+    const dashCooldownPercentage = player.dashCooldown <= 0 ? 1 : Math.max(0, 1 - player.dashCooldown / 2)
+    drawAbilityIcon(ctx, startX, startY, abilitySize, dashCooldownPercentage, "DASH", drawDashIcon)
+
+    // Draw special attack ability - ensure the percentage calculation is correct
+    const specialCooldownPercentage =
+      player.specialAttackCooldown <= 0 ? 1 : Math.max(0, 1 - player.specialAttackCooldown / 5)
+    drawAbilityIcon(
+      ctx,
+      startX + abilitySize + spacing,
+      startY,
+      abilitySize,
+      specialCooldownPercentage,
+      "SPECIAL",
+      drawSpecialIcon,
+    )
+  }
+
+  // Draw ability icon with cooldown
+  const drawAbilityIcon = (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    size: number,
+    percentage: number,
+    label: string,
+    iconDrawFunction: (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => void,
+  ) => {
+    // Draw background circle
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
+    ctx.beginPath()
+    ctx.arc(x + size / 2, y + size / 2, size / 2 + 5, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Add subtle border
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)"
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.arc(x + size / 2, y + size / 2, size / 2 + 5, 0, Math.PI * 2)
+    ctx.stroke()
+
+    // Draw ability background
+    ctx.fillStyle = "#333333"
+    ctx.beginPath()
+    ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Draw cooldown overlay (semi-transparent pie)
+    if (percentage < 1) {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.6)"
+      ctx.beginPath()
+      ctx.moveTo(x + size / 2, y + size / 2)
+      ctx.arc(x + size / 2, y + size / 2, size / 2, -Math.PI / 2, -Math.PI / 2 + (1 - percentage) * Math.PI * 2, false)
+      ctx.closePath()
+      ctx.fill()
+    }
+
+    // Draw ability icon
+    iconDrawFunction(ctx, x + size / 2, y + size / 2, size * 0.5)
+
+    // Draw ready indicator - now properly checking if exactly equal to 1 or very close to 1
+    if (percentage >= 0.999) {
+      // Changed from === 1 to >= 0.999 to handle floating point imprecision
+      // Pulsing glow effect
+      const pulseIntensity = Math.sin(frameCountRef.current * 0.1) * 0.3 + 0.7
+
+      ctx.strokeStyle = `rgba(51, 255, 51, ${pulseIntensity * 0.8})`
+      ctx.lineWidth = 3
+      ctx.beginPath()
+      ctx.arc(x + size / 2, y + size / 2, size / 2 + 2, 0, Math.PI * 2)
+      ctx.stroke()
+
+      // "READY" text
+      ctx.fillStyle = "#33FF33"
+      ctx.font = "bold 10px Arial"
+      ctx.textAlign = "center"
+      ctx.fillText("READY", x + size / 2, y + size + 15)
+    } else {
+      // Cooldown text
+      ctx.fillStyle = "#CCCCCC"
+      ctx.font = "bold 10px Arial"
+      ctx.textAlign = "center"
+      ctx.fillText(label, x + size / 2, y + size + 15)
+    }
+  }
+
+  // Draw dash icon
+  const drawDashIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+    ctx.strokeStyle = "#66CCFF"
+    ctx.lineWidth = 3
+
+    // Draw arrow
+    ctx.beginPath()
+    // Arrow body
+    ctx.moveTo(x - size / 2, y)
+    ctx.lineTo(x + size / 3, y)
+    // Arrow head
+    ctx.moveTo(x + size / 5, y - size / 4)
+    ctx.lineTo(x + size / 2, y)
+    ctx.lineTo(x + size / 5, y + size / 4)
+    ctx.stroke()
+
+    // Draw motion lines
+    ctx.strokeStyle = "rgba(102, 204, 255, 0.6)"
+    ctx.lineWidth = 2
+
+    // First motion line
+    ctx.beginPath()
+    ctx.moveTo(x - size / 3, y - size / 5)
+    ctx.lineTo(x, y - size / 5)
+    ctx.stroke()
+
+    // Second motion line
+    ctx.beginPath()
+    ctx.moveTo(x - size / 4, y)
+    ctx.lineTo(x - size / 8, y)
+    ctx.stroke()
+
+    // Third motion line
+    ctx.beginPath()
+    ctx.moveTo(x - size / 3, y + size / 5)
+    ctx.lineTo(x, y + size / 5)
+    ctx.stroke()
+  }
+
+  // Draw special attack icon
+  const drawSpecialIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+    // Draw star shape for special attack
+    const spikes = 5
+    const outerRadius = size / 2
+    const innerRadius = size / 4
+
+    ctx.fillStyle = "#FFCC33"
+    ctx.beginPath()
+
+    for (let i = 0; i < spikes * 2; i++) {
+      const radius = i % 2 === 0 ? outerRadius : innerRadius
+      const angle = (Math.PI * 2 * i) / (spikes * 2) - Math.PI / 2
+      const pointX = x + radius * Math.cos(angle)
+      const pointY = y + radius * Math.sin(angle)
+
+      if (i === 0) {
+        ctx.moveTo(pointX, pointY)
+      } else {
+        ctx.lineTo(pointX, pointY)
+      }
+    }
+
+    ctx.closePath()
+    ctx.fill()
+
+    // Add glow effect
+    const pulseIntensity = Math.sin(frameCountRef.current * 0.1) * 0.3 + 0.7
+    ctx.strokeStyle = `rgba(255, 204, 51, ${pulseIntensity * 0.8})`
+    ctx.lineWidth = 2
+    ctx.stroke()
+  }
+
+  // Enhanced scoreboard
+  const drawEnhancedScoreboard = (ctx: CanvasRenderingContext2D, gameState: GameState, localPlayerId: string) => {
+    const players = Object.values(gameState.players)
+    if (players.length === 0) return
+
+    // Sort players by kills (descending)
+    const sortedPlayers = [...players].sort((a, b) => b.kills - a.kills)
+
+    // Draw scoreboard in top-right corner
+    const scoreboardWidth = 200
+    const headerHeight = 40
+    const rowHeight = 30
+    const scoreboardHeight = headerHeight + sortedPlayers.length * rowHeight
+    const scoreboardX = gameState.arenaSize.width - scoreboardWidth - 15
+    const scoreboardY = 15
+
+    // Draw semi-transparent background with blur effect
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
+    ctx.beginPath()
+    ctx.roundRect(scoreboardX, scoreboardY, scoreboardWidth, scoreboardHeight, 12)
+    ctx.fill()
+
+    // Add subtle border
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)"
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.roundRect(scoreboardX, scoreboardY, scoreboardWidth, scoreboardHeight, 12)
+    ctx.stroke()
+
+    // Draw header
+    const gradient = ctx.createLinearGradient(
+      scoreboardX,
+      scoreboardY,
+      scoreboardX + scoreboardWidth,
+      scoreboardY + headerHeight,
+    )
+    gradient.addColorStop(0, "rgba(30, 30, 30, 0.9)")
+    gradient.addColorStop(1, "rgba(60, 60, 60, 0.9)")
+
+    ctx.fillStyle = gradient
+    ctx.beginPath()
+    ctx.roundRect(scoreboardX, scoreboardY, scoreboardWidth, headerHeight, {
+      upperLeft: 12,
+      upperRight: 12,
+      lowerLeft: 0,
+      lowerRight: 0,
+    })
+    ctx.fill()
+
+    // Draw header text with shadow
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+    ctx.font = "bold 18px Arial"
+    ctx.textAlign = "center"
+    ctx.fillText("SCOREBOARD", scoreboardX + scoreboardWidth / 2 + 1, scoreboardY + 25 + 1)
+
+    ctx.fillStyle = "#FFFFFF"
+    ctx.fillText("SCOREBOARD", scoreboardX + scoreboardWidth / 2, scoreboardY + 25)
+
+    // Draw separator line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)"
+    ctx.beginPath()
+    ctx.moveTo(scoreboardX, scoreboardY + headerHeight)
+    ctx.lineTo(scoreboardX + scoreboardWidth, scoreboardY + headerHeight)
+    ctx.stroke()
+
+    // Draw player scores with alternating row backgrounds
+    sortedPlayers.forEach((player, index) => {
+      const isLocalPlayer = player.id === localPlayerId
+      const rowY = scoreboardY + headerHeight + index * rowHeight
+
+      // Draw row background
+      if (isLocalPlayer) {
+        // Highlight local player
+        ctx.fillStyle = "rgba(255, 255, 100, 0.2)"
+      } else {
+        // Alternating row colors
+        ctx.fillStyle = index % 2 === 0 ? "rgba(40, 40, 40, 0.4)" : "rgba(60, 60, 60, 0.4)"
+      }
+
+      ctx.beginPath()
+      if (index === sortedPlayers.length - 1) {
+        // Last row gets rounded bottom corners
+        ctx.roundRect(scoreboardX, rowY, scoreboardWidth, rowHeight, {
+          upperLeft: 0,
+          upperRight: 0,
+          lowerLeft: 12,
+          lowerRight: 12,
+        })
+      } else {
+        // Regular rows
+        ctx.rect(scoreboardX, rowY, scoreboardWidth, rowHeight)
+      }
+      ctx.fill()
+
+      // Draw rank number (1st, 2nd, 3rd, etc.)
+      ctx.fillStyle = index === 0 ? "#FFD700" : index === 1 ? "#C0C0C0" : index === 2 ? "#CD7F32" : "#FFFFFF"
+      ctx.font = "bold 14px Arial"
+      ctx.textAlign = "center"
+      ctx.fillText(`${index + 1}`, scoreboardX + 20, rowY + rowHeight / 2 + 5)
+
+      // Draw color indicator (circle)
+      ctx.fillStyle = player.color
+      ctx.beginPath()
+      ctx.arc(scoreboardX + 40, rowY + rowHeight / 2, 8, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Add stroke to color indicator
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.5)"
+      ctx.lineWidth = 1
+      ctx.stroke()
+
+      // Draw player name
+      ctx.fillStyle = isLocalPlayer ? "#FFFF77" : "#FFFFFF"
+      ctx.font = isLocalPlayer ? "bold 14px Arial" : "14px Arial"
+      ctx.textAlign = "left"
+
+      // Truncate long names
+      let displayName = player.name
+      if (ctx.measureText(displayName).width > 90) {
+        // Truncate and add ellipsis
+        while (ctx.measureText(displayName + "...").width > 90 && displayName.length > 0) {
+          displayName = displayName.slice(0, -1)
+        }
+        displayName += "..."
+      }
+
+      ctx.fillText(displayName, scoreboardX + 55, rowY + rowHeight / 2 + 5)
+
+      // Draw kills with background pill
+      const killsText = `${player.kills}`
+      const killsWidth = ctx.measureText(killsText).width + 16
+
+      // Draw pill background
+      ctx.fillStyle = "rgba(80, 80, 80, 0.6)"
+      ctx.beginPath()
+      ctx.roundRect(scoreboardX + scoreboardWidth - 40 - killsWidth / 2, rowY + rowHeight / 2 - 10, killsWidth, 20, 10)
+      ctx.fill()
+
+      // Draw kills text
+      ctx.fillStyle = "#FFFFFF"
+      ctx.textAlign = "center"
+      ctx.fillText(killsText, scoreboardX + scoreboardWidth - 40, rowY + rowHeight / 2 + 5)
+    })
+  }
+
+  // Replace the existing drawCooldownIndicator function with this empty one since we're not using it anymore
   const drawCooldownIndicator = (
     ctx: CanvasRenderingContext2D,
     x: number,
@@ -499,68 +930,12 @@ export default function GameRenderer({ gameState, localPlayerId }: GameRendererP
     percentage: number,
     label: string,
   ) => {
-    // Draw background
-    ctx.fillStyle = "#333333"
-    ctx.fillRect(x, y, width, height)
-
-    // Draw fill with color based on readiness
-    ctx.fillStyle = percentage === 1 ? "#00ff00" : "#ff9900"
-    ctx.fillRect(x, y, width * percentage, height)
-
-    // Draw label
-    ctx.fillStyle = "#ffffff"
-    ctx.font = "12px Arial"
-    ctx.textAlign = "left"
-    ctx.fillText(label, x + width + 10, y + height - 1)
+    // This function is no longer used, but we keep it to avoid breaking references
   }
 
-  // Draw mini-scoreboard
+  // Replace the existing drawMiniScoreboard function with this empty one since we're not using it anymore
   const drawMiniScoreboard = (ctx: CanvasRenderingContext2D, gameState: GameState) => {
-    const players = Object.values(gameState.players)
-    if (players.length === 0) return
-
-    // Sort players by kills (descending)
-    const sortedPlayers = [...players].sort((a, b) => b.kills - a.kills)
-
-    // Draw mini-scoreboard in top-right corner
-    const scoreboardWidth = 160
-    const scoreboardHeight = 30 + sortedPlayers.length * 20
-    const scoreboardX = gameState.arenaSize.width - scoreboardWidth - 10
-    const scoreboardY = 10
-
-    // Draw semi-transparent background
-    ctx.fillStyle = "rgba(0, 0, 0, 0.4)"
-    ctx.beginPath()
-    ctx.roundRect(scoreboardX, scoreboardY, scoreboardWidth, scoreboardHeight, 8)
-    ctx.fill()
-
-    // Draw header
-    ctx.fillStyle = "#FFFFFF"
-    ctx.font = "14px Arial"
-    ctx.textAlign = "center"
-    ctx.fillText("SCOREBOARD", scoreboardX + scoreboardWidth / 2, scoreboardY + 20)
-
-    // Draw player scores
-    ctx.textAlign = "left"
-    ctx.font = "12px Arial"
-
-    sortedPlayers.forEach((player, index) => {
-      const isLocalPlayer = player.id === localPlayerId
-      const y = scoreboardY + 40 + index * 20
-
-      // Draw color indicator
-      ctx.fillStyle = player.color
-      ctx.fillRect(scoreboardX + 10, y - 8, 8, 8)
-
-      // Draw player name
-      ctx.fillStyle = isLocalPlayer ? "#FFFF00" : "#FFFFFF"
-      ctx.fillText(player.name, scoreboardX + 25, y)
-
-      // Draw kills
-      ctx.textAlign = "right"
-      ctx.fillText(`${player.kills}`, scoreboardX + scoreboardWidth - 10, y)
-      ctx.textAlign = "left"
-    })
+    // This function is no longer used, but we keep it to avoid breaking references
   }
 
   // Draw debug information

@@ -565,17 +565,6 @@ export default function GameComponent({ playerId, playerName, isHost, gameMode, 
       {/* Resource Monitor */}
       <ResourceMonitor visible={showResourceMonitor} position="bottom-right" />
 
-      {/* Tutorial overlay */}
-      {showTutorial && (
-        <div className="absolute top-0 left-0 right-0 bg-black/70 text-white p-3 text-center">
-          <h3 className="font-bold mb-1">New Bow Mechanics:</h3>
-          <p className="text-sm">
-            Movement is slowed while drawing your bow. Hold for at least 30% charge for effective shots. Quick shots
-            will fall to the ground quickly.
-          </p>
-        </div>
-      )}
-
       {/* Small hint text */}
       <div className="absolute bottom-2 right-2 text-xs text-white/70 bg-black/20 backdrop-blur-sm px-2 py-1 rounded">
         Press M to toggle sound | F3 for debug | F8 for game debug | F11 for resource monitor

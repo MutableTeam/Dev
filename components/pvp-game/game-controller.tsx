@@ -5,7 +5,6 @@ import { createInitialGameState, createPlayer, type GameState, updateGameState }
 import GameRenderer from "./game-renderer"
 import DebugOverlay from "./debug-overlay"
 import {
-  initializeAudio,
   playBowDrawSound,
   playBowReleaseSound,
   playBowFullDrawSound,
@@ -22,6 +21,7 @@ import {
 import { debugManager, DebugLevel } from "@/utils/debug-utils"
 import transitionDebugger from "@/utils/transition-debug"
 import ResourceMonitor from "@/components/resource-monitor"
+import { createAIController, AIDifficulty } from "../../utils/game-ai"
 
 interface GameControllerProps {
   playerId: string
@@ -52,9 +52,11 @@ export default function GameController({
   const specialSoundPlayedRef = useRef<boolean>(false)
   const audioInitializedRef = useRef<boolean>(false)
   const gameInitializedRef = useRef<boolean>(false)
+  const aiControllersRef = useRef<Record<string, ReturnType<typeof createAIController>>>({})
   const [showDebug, setShowDebug] = useState<boolean>(false)
   const [showResourceMonitor, setShowResourceMonitor] = useState<boolean>(false)
   const componentIdRef = useRef<string>(`game-controller-${Date.now()}`)
+  const [showTutorial, setShowTutorial] = useState<boolean>(false)
 
   // Initialize debug system
   useEffect(() => {
@@ -105,6 +107,17 @@ export default function GameController({
     // Prevent multiple initializations
     if (gameInitializedRef.current) return
 
+    // Initialize audio directly
+    audioManager
+      .init()
+      .then(() => {
+        audioInitializedRef.current = true
+        debugManager.logInfo("AUDIO", "Audio system initialized")
+      })
+      .catch((err) => {
+        debugManager.logError("AUDIO", "Failed to initialize audio", err)
+      })
+
     // Enable global error tracking
     debugManager.setupGlobalErrorTracking()
 
@@ -126,16 +139,6 @@ export default function GameController({
     gameInitializedRef.current = true
 
     debugManager.logInfo("GAME", `Initializing game with mode: ${gameMode}`)
-
-    // Initialize audio system
-    initializeAudio()
-      .then(() => {
-        audioInitializedRef.current = true
-        debugManager.logInfo("AUDIO", "Audio system initialized")
-      })
-      .catch((err) => {
-        debugManager.logError("AUDIO", "Failed to initialize audio", err)
-      })
 
     // Create local player
     const playerColors = ["#FF5252", "#4CAF50", "#2196F3", "#FFC107"]
@@ -161,7 +164,9 @@ export default function GameController({
 
     debugManager.logInfo("GAME", `Adding ${aiCount} AI opponents for game mode: ${gameMode}`)
 
-    // Add AI players
+    // Add AI players with varying difficulty
+    const difficulties = [AIDifficulty.EASY, AIDifficulty.MEDIUM, AIDifficulty.HARD, AIDifficulty.EXPERT]
+
     for (let i = 1; i <= aiCount; i++) {
       const aiId = `ai-${i}`
       currentState.players[aiId] = createPlayer(
@@ -170,6 +175,13 @@ export default function GameController({
         playerPositions[i % playerPositions.length],
         playerColors[i % playerColors.length],
       )
+
+      // Assign random difficulty to each AI
+      const randomDifficulty = difficulties[Math.floor(Math.random() * difficulties.length)]
+      aiControllersRef.current[aiId] = createAIController(randomDifficulty)
+
+      // Log the AI creation with its difficulty
+      debugManager.logInfo("GAME", `Created AI player ${aiId} with difficulty: ${randomDifficulty}`)
     }
 
     // Update state
@@ -230,6 +242,18 @@ export default function GameController({
           }
         }
 
+        // Update AI controls
+        Object.keys(aiControllersRef.current).forEach((aiId) => {
+          if (gameStateRef.current.players[aiId]) {
+            const aiController = aiControllersRef.current[aiId]
+            const { controls, targetRotation } = aiController.update(aiId, gameStateRef.current, deltaTime)
+
+            // Apply AI controls
+            gameStateRef.current.players[aiId].controls = controls
+            gameStateRef.current.players[aiId].rotation = targetRotation
+          }
+        })
+
         // Update game state with error handling and timeout protection
         let newState = gameStateRef.current
 
@@ -271,9 +295,6 @@ export default function GameController({
           if (localPlayer && audioInitializedRef.current && !audioManager.isSoundMuted()) {
             // Only try to play sounds if audio is initialized and not muted
             try {
-              // Sound effect code remains the same...
-              // (keeping the existing sound effect code)
-
               // Bow drawing sound
               if (localPlayer.isDrawingBow && !bowSoundPlayedRef.current) {
                 playBowDrawSound()
@@ -432,7 +453,10 @@ export default function GameController({
           player.controls.right = true
           break
         case "shift":
-          player.controls.dash = true
+          // Only trigger dash if not already dashing and cooldown is complete
+          if (!player.isDashing && player.dashCooldown <= 0) {
+            player.controls.dash = true
+          }
           break
         // Toggle debug mode with F3
         case "f3":
@@ -585,7 +609,9 @@ export default function GameController({
     )
 
     // Clear memory tracking interval
-    clearInterval(memoryTrackingInterval)
+    if (memoryTrackingInterval.current) {
+      clearInterval(memoryTrackingInterval.current)
+    }
 
     // Track component unmount
     debugManager.trackComponentUnmount("GameController", "useEffect cleanup")
@@ -627,84 +653,6 @@ export default function GameController({
       debugManager.trackComponentUnmount("GameController")
     }
   }, [playerId, playerName, isHost, gameMode, onGameEnd])
-
-  // Update AI players
-  useEffect(() => {
-    const aiUpdateInterval = transitionDebugger.safeSetInterval(
-      () => {
-        try {
-          Object.keys(gameStateRef.current.players).forEach((id) => {
-            if (id.startsWith("ai-")) {
-              const ai = gameStateRef.current.players[id]
-              if (!ai) return // Skip if AI player doesn't exist
-
-              // Simple AI: move randomly and shoot occasionally
-              ai.controls.up = Math.random() > 0.7
-              ai.controls.down = Math.random() > 0.7 && !ai.controls.up
-              ai.controls.left = Math.random() > 0.7
-              ai.controls.right = Math.random() > 0.7 && !ai.controls.left
-
-              // Randomly shoot arrows
-              if (Math.random() > 0.95 && !ai.isDrawingBow) {
-                ai.controls.shoot = true
-
-                // Release arrow after a random time
-                transitionDebugger.safeSetTimeout(
-                  () => {
-                    try {
-                      if (gameStateRef.current.players[id]) {
-                        gameStateRef.current.players[id].controls.shoot = false
-                      }
-                    } catch (error) {
-                      debugManager.logError("AI", "Error in AI arrow release", error)
-                    }
-                  },
-                  Math.random() * 1000 + 200,
-                  `${componentIdRef.current}-ai-${id}-release-arrow`,
-                )
-              }
-
-              // Randomly use special attack
-              if (Math.random() > 0.98 && !ai.isChargingSpecial && ai.specialAttackCooldown <= 0) {
-                ai.controls.special = true
-
-                // Release special after a random time
-                transitionDebugger.safeSetTimeout(
-                  () => {
-                    try {
-                      if (gameStateRef.current.players[id]) {
-                        gameStateRef.current.players[id].controls.special = false
-                      }
-                    } catch (error) {
-                      debugManager.logError("AI", "Error in AI special release", error)
-                    }
-                  },
-                  Math.random() * 500 + 500,
-                  `${componentIdRef.current}-ai-${id}-release-special`,
-                )
-              }
-
-              // Randomly dash
-              ai.controls.dash = Math.random() > 0.95
-
-              // Randomly change rotation
-              if (Math.random() > 0.9) {
-                ai.rotation = Math.random() * Math.PI * 2
-              }
-            }
-          })
-        } catch (error) {
-          debugManager.logError("AI", "Error in AI update interval", error)
-        }
-      },
-      500,
-      `${componentIdRef.current}-ai-update`,
-    )
-
-    return () => {
-      transitionDebugger.safeClearInterval(`${componentIdRef.current}-ai-update`)
-    }
-  }, [])
 
   // Track renders
   useEffect(() => {

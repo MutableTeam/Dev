@@ -27,9 +27,11 @@ export interface Player extends GameObject {
   deaths: number
   lives: number // Added lives property
   cooldown: number
+  // NEW DASH SYSTEM
   dashCooldown: number
   isDashing: boolean
-  dashDirection: Vector2D | null
+  dashStartTime: number | null
+  dashVelocity: Vector2D | null
   // Bow mechanics
   isDrawingBow: boolean
   drawStartTime: number | null
@@ -108,9 +110,11 @@ export const createPlayer = (id: string, name: string, position: Vector2D, color
     deaths: 0,
     lives: 3, // Default lives
     cooldown: 0,
+    // NEW DASH SYSTEM
     dashCooldown: 0,
     isDashing: false,
-    dashDirection: null,
+    dashStartTime: null,
+    dashVelocity: null,
     // Bow mechanics
     isDrawingBow: false,
     drawStartTime: null,
@@ -277,6 +281,34 @@ const calculateArrowSpeed = (drawTime: number, maxDrawTime: number): number => {
   return minSpeed + drawPercentage * (maxSpeed - minSpeed)
 }
 
+// COMPLETELY NEW DASH IMPLEMENTATION
+// Calculate dash velocity based on input or facing direction
+const calculateDashVelocity = (player: Player): Vector2D => {
+  const DASH_SPEED = 800 // Fixed dash speed
+  const dashVelocity: Vector2D = { x: 0, y: 0 }
+
+  // First try to use movement input direction
+  if (player.controls.up || player.controls.down || player.controls.left || player.controls.right) {
+    if (player.controls.up) dashVelocity.y -= 1
+    if (player.controls.down) dashVelocity.y += 1
+    if (player.controls.left) dashVelocity.x -= 1
+    if (player.controls.right) dashVelocity.x += 1
+
+    // Normalize the direction vector
+    const magnitude = Math.sqrt(dashVelocity.x * dashVelocity.x + dashVelocity.y * dashVelocity.y)
+    if (magnitude > 0) {
+      dashVelocity.x = (dashVelocity.x / magnitude) * DASH_SPEED
+      dashVelocity.y = (dashVelocity.y / magnitude) * DASH_SPEED
+    }
+  } else {
+    // If no movement input, use facing direction
+    dashVelocity.x = Math.cos(player.rotation) * DASH_SPEED
+    dashVelocity.y = Math.sin(player.rotation) * DASH_SPEED
+  }
+
+  return dashVelocity
+}
+
 // Update the updateGameState function to check for time limit and update animation states
 export const updateGameState = (
   state: GameState,
@@ -300,9 +332,7 @@ export const updateGameState = (
         position: { ...newState.players[playerId].position },
         velocity: { ...newState.players[playerId].velocity },
         controls: { ...newState.players[playerId].controls },
-        dashDirection: newState.players[playerId].dashDirection
-          ? { ...newState.players[playerId].dashDirection }
-          : null,
+        dashVelocity: newState.players[playerId].dashVelocity ? { ...newState.players[playerId].dashVelocity } : null,
       }
     })
 
@@ -406,7 +436,7 @@ export const updateGameState = (
       const now = Date.now()
       const timeSinceLastAnimChange = now - player.lastAnimationChange
 
-      // Priority order: death > hit > fire > run > idle
+      // Priority order: death > hit > fire > dash > run > idle
       if (player.health <= 0 && player.animationState !== "death") {
         player.animationState = "death"
         player.lastAnimationChange = now
@@ -417,9 +447,17 @@ export const updateGameState = (
           player.animationState = "fire"
           player.lastAnimationChange = now
         }
+      } else if (player.isDashing && player.animationState !== "dash") {
+        player.animationState = "dash"
+        player.lastAnimationChange = now
       } else if ((player.velocity.x !== 0 || player.velocity.y !== 0) && player.animationState !== "run") {
         // Only change to run if we're not already in a higher priority animation
-        if (player.animationState !== "hit" && player.animationState !== "death" && player.animationState !== "fire") {
+        if (
+          player.animationState !== "hit" &&
+          player.animationState !== "death" &&
+          player.animationState !== "fire" &&
+          player.animationState !== "dash"
+        ) {
           player.animationState = "run"
           player.lastAnimationChange = now
         }
@@ -428,6 +466,7 @@ export const updateGameState = (
         player.animationState !== "death" &&
         player.animationState !== "hit" &&
         player.animationState !== "fire" &&
+        player.animationState !== "dash" &&
         player.velocity.x === 0 &&
         player.velocity.y === 0
       ) {
@@ -437,32 +476,65 @@ export const updateGameState = (
         player.lastAnimationChange = now
       }
 
-      // Handle dash
-      if (player.isDashing) {
-        if (player.dashDirection) {
-          player.position.x += player.dashDirection.x * 10 * deltaTime
-          player.position.y += player.dashDirection.y * 10 * deltaTime
-        }
+      // COMPLETELY NEW DASH IMPLEMENTATION
+      // Handle dash initiation
+      if (player.controls.dash && !player.isDashing && player.dashCooldown <= 0) {
+        // Start a new dash
+        player.isDashing = true
+        player.dashStartTime = Date.now() / 1000 // Current time in seconds
+        player.dashVelocity = calculateDashVelocity(player)
+        player.dashCooldown = 1.5 // 1.5 second cooldown
+        player.animationState = "dash"
+        player.lastAnimationChange = now
+      }
 
-        // End dash after 0.2 seconds
-        if (player.dashCooldown <= 1.8) {
+      // Handle active dash
+      if (player.isDashing && player.dashStartTime !== null) {
+        const currentTime = Date.now() / 1000
+        const dashDuration = 0.15 // 150ms dash
+
+        // Check if dash should end
+        if (currentTime - player.dashStartTime >= dashDuration) {
+          // End dash
           player.isDashing = false
-          player.dashDirection = null
+          player.dashStartTime = null
+          player.dashVelocity = null
+
+          // Return to appropriate animation
+          if (player.velocity.x !== 0 || player.velocity.y !== 0) {
+            player.animationState = "run"
+          } else {
+            player.animationState = "idle"
+          }
+          player.lastAnimationChange = now
+        } else if (player.dashVelocity) {
+          // Apply dash movement
+          player.position.x += player.dashVelocity.x * deltaTime
+          player.position.y += player.dashVelocity.y * deltaTime
         }
       } else {
-        // Normal movement
+        // Normal movement (only if not dashing)
         const speed = 200 // pixels per second
 
         // Apply movement penalty when drawing bow
         const movementMultiplier = player.isDrawingBow ? 0.4 : 1.0 // 40% speed when drawing bow
 
-        if (player.controls.up) player.velocity.y = -speed * movementMultiplier
-        else if (player.controls.down) player.velocity.y = speed * movementMultiplier
-        else player.velocity.y = 0
+        // Reset velocity
+        player.velocity.x = 0
+        player.velocity.y = 0
 
+        // Apply controls to velocity
+        if (player.controls.up) player.velocity.y = -speed * movementMultiplier
+        if (player.controls.down) player.velocity.y = speed * movementMultiplier
         if (player.controls.left) player.velocity.x = -speed * movementMultiplier
-        else if (player.controls.right) player.velocity.x = speed * movementMultiplier
-        else player.velocity.x = 0
+        if (player.controls.right) player.velocity.x = speed * movementMultiplier
+
+        // Normalize diagonal movement
+        if (player.velocity.x !== 0 && player.velocity.y !== 0) {
+          const magnitude = Math.sqrt(player.velocity.x * player.velocity.x + player.velocity.y * player.velocity.y)
+          player.velocity.x = (player.velocity.x / magnitude) * speed * movementMultiplier
+          player.velocity.y = (player.velocity.y / magnitude) * speed * movementMultiplier
+        }
 
         // Apply velocity
         player.position.x += player.velocity.x * deltaTime
@@ -576,26 +648,6 @@ export const updateGameState = (
         // Reset special attack state
         player.isChargingSpecial = false
         player.specialChargeStartTime = null
-      }
-
-      // Handle dash
-      if (player.controls.dash && player.dashCooldown <= 0 && !player.isDashing) {
-        player.isDashing = true
-        player.dashCooldown = 2 // 2 second cooldown between dashes
-
-        // Dash in the direction of movement or facing direction if not moving
-        if (player.velocity.x !== 0 || player.velocity.y !== 0) {
-          const magnitude = Math.sqrt(player.velocity.x ** 2 + player.velocity.y ** 2)
-          player.dashDirection = {
-            x: player.velocity.x / magnitude,
-            y: player.velocity.y / magnitude,
-          }
-        } else {
-          player.dashDirection = {
-            x: Math.cos(player.rotation),
-            y: Math.sin(player.rotation),
-          }
-        }
       }
 
       // Collision with walls
@@ -797,7 +849,6 @@ export function handlePlayerDeath(state: GameState, playerId: string): GameState
 // Helper function to play hit sound
 export const playHitSound = () => {
   // This would be implemented in the audio manager
-  // For now, we'll just log it
   console.log("Hit sound played")
 }
 
