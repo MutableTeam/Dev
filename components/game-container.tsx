@@ -85,6 +85,11 @@ export function GameContainer({ gameId, playerId, playerName, isHost, gameMode, 
 
   return (
     <div className="relative w-full h-full">
+      {/* Development Banner */}
+      <div className="w-full bg-yellow-600 text-black font-bold text-center py-2 px-4 mb-2 rounded-t-md border-b-2 border-yellow-800">
+        Sprite Sheet System Currently In Development
+      </div>
+
       <GameErrorBoundary>
         <GameComponent
           playerId={playerId}
