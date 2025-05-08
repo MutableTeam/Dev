@@ -1,5 +1,8 @@
+"use client"
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import { AlertCircle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -40,4 +43,4 @@ const AlertDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttrib
 )
 AlertDescription.displayName = "AlertDescription"
 
-export { Alert, AlertTitle, AlertDescription }
+export { Alert, AlertTitle, AlertDescription, AlertCircle }

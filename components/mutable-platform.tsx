@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Wallet, Gamepad2, ArrowLeftRight, Smartphone, Code, Mail, CheckCircle, AlertCircle } from "lucide-react"
+import { Gamepad2, ArrowLeftRight, Smartphone, Code, Mail, CheckCircle, AlertCircle } from "lucide-react"
 import Image from "next/image"
 import MutableMarketplace from "./mutable-marketplace"
 import GameSelection from "./pvp-game/game-selection"
@@ -12,14 +12,13 @@ import MatchmakingLobby from "./pvp-game/matchmaking-lobby"
 import type { Connection } from "@solana/web3.js"
 import SoundButton from "./sound-button"
 import { withClickSound } from "@/utils/sound-utils"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { trackEvent } from "@/utils/analytics"
 import LastStandGameLauncher from "@/games/last-stand/game-launcher"
 
 // Add responsive styles for tabs
 const tabStyles = {
   container: "sticky top-0 z-30 bg-opacity-100 w-full",
-  list: "mb-4 border-2 border-black bg-[#FFD54F] dark:bg-[#D4AF37] dark:border-gray-700 w-full grid grid-cols-5 p-0 h-auto",
+  list: "mb-4 border-2 border-black bg-[#FFD54F] dark:bg-[#D4AF37] dark:border-gray-700 w-full grid grid-cols-4 p-0 h-auto",
   trigger:
     "data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-gray-800 dark:data-[state=active]:text-white font-mono py-2 px-1 h-auto flex flex-col items-center justify-center",
 }
@@ -60,7 +59,7 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
     // Track developer contact event
     trackEvent("developer_contact", { source: "develop_tab" })
     window.location.href =
-      "mailto:mutableexchange@gmail.com?subject=Game%20Developer%20Submission&body=I'm%20interested%20in%20developing%20a%20game%20for%20the%20Mutable%20platform.%0A%0AGame%20Name:%20%0AGame%20Type:%20%0ABrief%20Description:%20%0A%0AThank%20you!"
+      "mailto:mutablepvp@gmail.com?subject=Game%20Developer%20Submission&body=I'm%20interested%20in%20developing%20a%20game%20for%20the%20Mutable%20platform.%0A%0AGame%20Name:%20%0AGame%20Type:%20%0ABrief%20Description:%20%0A%0AThank%20you!"
   }
 
   return (
@@ -79,10 +78,6 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
             <TabsTrigger value="mobile-games" className={tabStyles.trigger} onClick={withClickSound()}>
               <Smartphone className="h-4 w-4 mb-1" />
               <span className="text-xs sm:text-sm whitespace-normal text-center">MOBILE</span>
-            </TabsTrigger>
-            <TabsTrigger value="wallet" className={tabStyles.trigger} onClick={withClickSound()}>
-              <Wallet className="h-4 w-4 mb-1" />
-              <span className="text-xs sm:text-sm whitespace-normal text-center">WALLET</span>
             </TabsTrigger>
             <TabsTrigger value="develop" className={tabStyles.trigger} onClick={withClickSound()}>
               <Code className="h-4 w-4 mb-1" />
@@ -212,114 +207,6 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
             </Card>
           </TabsContent>
 
-          <TabsContent value="wallet" className="mt-0 h-full">
-            <Card className="arcade-card">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <ThemeToggle />
-                    <Wallet className="h-5 w-5 dark:text-gray-300" />
-                    <CardTitle className="font-mono dark:text-white">WALLET</CardTitle>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="bg-[#FFD54F] text-black border-2 border-black flex items-center gap-1 font-mono dark:bg-[#D4AF37] dark:border-gray-700 dark:text-black"
-                  >
-                    <Image src="/images/mutable-token.png" alt="MUTB" width={16} height={16} className="rounded-full" />
-                    {mutbBalance.toFixed(2)} MUTB
-                  </Badge>
-                </div>
-                <CardDescription className="dark:text-gray-300">Manage your wallet and tokens</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 border-2 border-black rounded-md bg-[#f5efdc] dark:bg-gray-700 dark:border-gray-600">
-                    <div className="font-bold mb-2 font-mono dark:text-white">CONNECTED WALLET</div>
-                    <div className="text-sm font-mono truncate dark:text-gray-300">{publicKey}</div>
-                    <div className="mt-2 text-sm dark:text-gray-300">
-                      <span className="font-medium">SOL Balance:</span>{" "}
-                      {localBalance !== null ? localBalance : "Loading..."}
-                    </div>
-                  </div>
-
-                  <div className="p-4 border-2 border-black rounded-md bg-[#f5efdc] dark:bg-gray-700 dark:border-gray-600">
-                    <div className="font-bold mb-2 font-mono dark:text-white">MUTABLE TOKENS</div>
-                    <div className="flex items-center gap-2">
-                      <Image
-                        src="/images/mutable-token.png"
-                        alt="MUTB"
-                        width={24}
-                        height={24}
-                        className="rounded-full"
-                      />
-                      <div>
-                        <div className="font-medium font-mono dark:text-white">MUTB</div>
-                        <div className="text-sm text-muted-foreground dark:text-gray-400">Mutable Protocol Token</div>
-                      </div>
-                      <div className="ml-auto font-mono dark:text-white">{mutbBalance.toFixed(2)}</div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 border-2 border-black rounded-md bg-[#f5efdc] dark:bg-gray-700 dark:border-gray-600">
-                    <div className="font-bold mb-2 font-mono dark:text-white">GAME TOKENS</div>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Image
-                          src="/images/mutable-logo-transparent.png"
-                          alt="GOLD"
-                          width={24}
-                          height={14}
-                          className="rounded-full object-contain"
-                        />
-                        <div>
-                          <div className="font-medium font-mono dark:text-white">GOLD</div>
-                          <div className="text-sm text-muted-foreground dark:text-gray-400">Fantasy RPG</div>
-                        </div>
-                        <div className="ml-auto font-mono dark:text-white">1,250</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Image
-                          src="/images/mutable-logo-transparent.png"
-                          alt="GEMS"
-                          width={24}
-                          height={14}
-                          className="rounded-full object-contain"
-                        />
-                        <div>
-                          <div className="font-medium font-mono dark:text-white">GEMS</div>
-                          <div className="text-sm text-muted-foreground dark:text-gray-400">Space Explorer</div>
-                        </div>
-                        <div className="ml-auto font-mono dark:text-white">350</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Image
-                          src="/images/mutable-logo-transparent.png"
-                          alt="COINS"
-                          width={24}
-                          height={14}
-                          className="rounded-full object-contain"
-                        />
-                        <div>
-                          <div className="font-medium font-mono dark:text-white">COINS</div>
-                          <div className="text-sm text-muted-foreground dark:text-gray-400">Crypto Racer</div>
-                        </div>
-                        <div className="ml-auto font-mono dark:text-white">500</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <SoundButton
-                  className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono dark:bg-[#D4AF37] dark:hover:bg-[#C4A137] dark:border-gray-700 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] dark:text-black"
-                  onClick={() => setActiveTab("exchange")}
-                >
-                  GO TO EXCHANGE
-                </SoundButton>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-
           <TabsContent value="develop" className="mt-0 h-full">
             <Card className="arcade-card">
               <CardHeader>
@@ -425,7 +312,7 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
                         </p>
                         <div className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-md">
                           <Mail className="h-4 w-4 text-blue-600" />
-                          <span className="font-mono text-sm dark:text-gray-300">mutableexchange@gmail.com</span>
+                          <span className="font-mono text-sm dark:text-gray-300">mutablepvp@gmail.com</span>
                         </div>
                       </div>
 

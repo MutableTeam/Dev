@@ -11,6 +11,7 @@ import Image from "next/image"
 import SoundButton from "./sound-button"
 import { audioManager, playIntroSound, initializeAudio, loadAudioFiles } from "@/utils/audio-manager"
 import { ThemeToggle } from "./theme-toggle"
+import { SOL_TOKEN, MUTB_TOKEN } from "@/config/token-registry"
 
 // Define types for Phantom wallet
 type PhantomEvent = "connect" | "disconnect" | "accountChanged"
@@ -120,6 +121,7 @@ export default function MultiWalletConnector({
   const [publicKey, setPublicKey] = useState<string>("")
   const [balance, setBalance] = useState<number | null>(null)
   const [isTestMode, setIsTestMode] = useState(false)
+  const [mutbBalance, setMutbBalance] = useState<number | null>(null)
 
   // UI state
   const [loading, setLoading] = useState(false)
@@ -227,37 +229,43 @@ export default function MultiWalletConnector({
     }
   }, [provider, isTestMode])
 
-  // Fetch SOL balance when connected
+  // Fetch SOL and MUTB balances when connected
   useEffect(() => {
-    const getBalance = async () => {
+    const getBalances = async () => {
       if (connected && publicKey) {
         if (isTestMode) {
-          // Set mock balance for test mode
+          // Set mock balances for test mode
           setBalance(5.0)
+          setMutbBalance(100.0)
           return
         }
 
         try {
           const publicKeyObj = new PublicKey(publicKey)
-          const balance = await connection.getBalance(publicKeyObj)
-          setBalance(balance / 1e9) // Convert lamports to SOL
+          const solBalance = await connection.getBalance(publicKeyObj)
+          setBalance(solBalance / 1e9) // Convert lamports to SOL
+
+          // In a real app, you would fetch the MUTB token balance here
+          // For now, we'll use a mock value for all wallets
+          setMutbBalance(50.0)
         } catch (error) {
-          console.error("Error fetching balance:", error)
+          console.error("Error fetching balances:", error)
           setBalance(null)
+          setMutbBalance(null)
         }
       }
     }
 
-    getBalance()
+    getBalances()
   }, [connected, publicKey, isTestMode])
 
   // Notify parent component when connection state changes
   useEffect(() => {
     if (onConnectionChange) {
-      console.log("Notifying parent of connection change:", { connected, publicKey, balance })
+      console.log("Notifying parent of connection change:", { connected, publicKey, balance, mutbBalance })
       onConnectionChange(connected, publicKey, balance, provider)
     }
-  }, [connected, publicKey, balance, provider, onConnectionChange])
+  }, [connected, publicKey, balance, mutbBalance, provider, onConnectionChange])
 
   // Connect to wallet
   const connectWallet = async (walletType: WalletType) => {
@@ -451,16 +459,21 @@ export default function MultiWalletConnector({
           <span className="text-[10px] xs:text-xs font-mono font-bold dark:text-white">
             {shortenAddress(publicKey)}
           </span>
-          <Badge
-            variant="outline"
-            className={`${
-              isTestMode
-                ? "bg-purple-200 text-purple-800 border-purple-400 dark:bg-purple-900/50 dark:text-purple-100 dark:border-purple-600"
-                : "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/50 dark:text-green-100 dark:border-green-600"
-            } font-mono text-[8px] xs:text-xs px-1 py-0 h-4 sm:h-5 font-bold badge`}
-          >
-            {isTestMode ? "TEST" : balance !== null ? `${balance} SOL` : "..."}
-          </Badge>
+          <div className="flex items-center gap-1">
+            <Badge
+              variant="outline"
+              className="bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/50 dark:text-blue-100 dark:border-blue-600 font-mono text-[8px] xs:text-xs px-1 py-0 h-4 sm:h-5 font-bold badge flex items-center gap-1"
+            >
+              <Image
+                src={MUTB_TOKEN.logoURI || "/placeholder.svg"}
+                alt="MUTB"
+                width={12}
+                height={12}
+                className="rounded-full w-2 h-2 sm:w-3 sm:h-3"
+              />
+              {isTestMode ? "100.0 MUTB" : mutbBalance !== null ? `${mutbBalance} MUTB` : "..."}
+            </Badge>
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <ThemeToggle size="xs" />
@@ -570,21 +583,37 @@ export default function MultiWalletConnector({
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium dark:text-gray-300">Status:</span>
-                      <Badge
-                        variant="outline"
-                        className="bg-green-50 text-green-700 border-green-200 font-mono dark:bg-green-900/30 dark:text-green-200 dark:border-green-700"
-                      >
-                        CONNECTED
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium dark:text-gray-300">Balance:</span>
-                      {balance !== null ? (
-                        <span className="font-mono dark:text-white">{balance} SOL</span>
-                      ) : (
-                        <Skeleton className="h-4 w-20 dark:bg-gray-700" />
-                      )}
+                      <span className="text-sm font-medium dark:text-gray-300">Balances:</span>
+                      <div className="flex flex-col gap-1 items-end">
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src={SOL_TOKEN.logoURI || "/placeholder.svg"}
+                            alt="SOL"
+                            width={16}
+                            height={16}
+                            className="rounded-full"
+                          />
+                          {balance !== null ? (
+                            <span className="font-mono dark:text-white">{balance} SOL</span>
+                          ) : (
+                            <Skeleton className="h-4 w-20 dark:bg-gray-700" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src={MUTB_TOKEN.logoURI || "/placeholder.svg"}
+                            alt="MUTB"
+                            width={16}
+                            height={16}
+                            className="rounded-full"
+                          />
+                          {mutbBalance !== null ? (
+                            <span className="font-mono dark:text-white">{mutbBalance} MUTB</span>
+                          ) : (
+                            <Skeleton className="h-4 w-20 dark:bg-gray-700" />
+                          )}
+                        </div>
+                      </div>
                     </div>
                     {isTestMode && (
                       <div className="bg-purple-50 p-3 rounded-md border border-purple-200 text-sm text-purple-800 dark:bg-purple-900/30 dark:border-purple-800 dark:text-purple-200">
