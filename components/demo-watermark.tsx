@@ -8,7 +8,7 @@ export default function DemoWatermark() {
 
   return (
     <div
-      className="fixed top-3 left-1/2 transform -translate-x-1/2 z-50 flex items-start gap-2 bg-black/85 text-white text-sm px-3 py-2 rounded-md backdrop-blur-sm transition-all duration-300 cursor-pointer border border-red-500 shadow-lg shadow-red-500/30 hover:bg-red-900/80"
+      className="fixed top-3 left-1/2 transform -translate-x-1/2 z-[110] flex items-start gap-2 bg-black/85 text-white text-sm px-3 py-2 rounded-md backdrop-blur-sm transition-all duration-300 cursor-pointer border border-red-500 shadow-lg shadow-red-500/30 hover:bg-red-900/80"
       style={{
         maxWidth: expanded ? "450px" : "220px",
         width: expanded ? "auto" : "auto",

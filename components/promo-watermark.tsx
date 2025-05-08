@@ -1,104 +1,30 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import Image from "next/image"
-import Link from "next/link"
-import { Sparkles, X, Check } from "lucide-react"
+import { Sparkles } from "lucide-react"
 
 export default function PromoWatermark() {
   const [isHovered, setIsHovered] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const formRef = useRef<HTMLFormElement>(null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Add this custom hook implementation
-  const useWalletConnection = () => {
-    const [walletAddress, setWalletAddress] = useState<string>("")
-    const [isTestMode, setIsTestMode] = useState(false)
-
-    useEffect(() => {
-      // Check if window is defined (client-side)
-      if (typeof window !== "undefined") {
-        // Check for Phantom wallet
-        const solWindow = window as any
-        if (solWindow.solana?.isPhantom && solWindow.solana.isConnected && solWindow.solana.publicKey) {
-          setWalletAddress(solWindow.solana.publicKey.toString())
-          setIsTestMode(false)
-          return
-        }
-
-        // Check for Solflare wallet
-        if (solWindow.solflare?.isSolflare && solWindow.solflare.isConnected && solWindow.solflare.publicKey) {
-          setWalletAddress(solWindow.solflare.publicKey.toString())
-          setIsTestMode(false)
-          return
-        }
-
-        // Check if we're in test mode
-        if (solWindow.testWalletActive) {
-          setWalletAddress("TestModeWallet1111111111111111111111111")
-          setIsTestMode(true)
-          return
-        }
-      }
-    }, [])
-
-    return { walletAddress, isTestMode }
-  }
-
-  const { walletAddress, isTestMode } = useWalletConnection()
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsExpanded(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    // Don't prevent default - let the form submit naturally to Salesforce
-    // But we still want to show our loading and success states
-    setIsSubmitting(true)
-
-    // We'll use a timeout to simulate the form submission time
-    // and show our success message after
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setIsSuccess(true)
-
-      // Reset success message after 5 seconds
-      setTimeout(() => {
-        setIsSuccess(false)
-        setIsExpanded(false)
-      }, 5000)
-    }, 1000)
+  const handleClick = () => {
+    // Open the claim tokens page in a new tab
+    window.open("https://www.mutablepvp.com/claim-tokens", "_blank", "noopener,noreferrer")
   }
 
   return (
-    <div className="fixed top-2 left-2 sm:top-3 sm:left-3 z-[99]" ref={dropdownRef}>
+    <div className="fixed top-2 left-2 sm:top-3 sm:left-3 z-[99]">
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={`flex items-center gap-1 sm:gap-2 px-2 py-1 sm:px-2 sm:py-1 md:px-3 md:py-1.5 rounded-md transition-all duration-300 ${
-          isHovered || isExpanded ? "bg-amber-500" : "bg-amber-400"
+          isHovered ? "bg-amber-500" : "bg-amber-400"
         } border border-amber-600 shadow-md text-xs sm:text-sm cursor-pointer`}
         style={{
-          background:
-            isHovered || isExpanded
-              ? "linear-gradient(135deg, #f59f0b 0%, #fbbf24 50%, #f59f0b 100%)"
-              : "linear-gradient(135deg, #fbbf24 0%, #f7e05b 50%, #fbbf24 100%)",
+          background: isHovered
+            ? "linear-gradient(135deg, #f59f0b 0%, #fbbf24 50%, #f59f0b 100%)"
+            : "linear-gradient(135deg, #fbbf24 0%, #f7e05b 50%, #fbbf24 100%)",
         }}
       >
         <div className="relative">
@@ -109,7 +35,7 @@ export default function PromoWatermark() {
             height={16}
             className="rounded-full w-3 h-3 sm:w-4 sm:h-4 md:w-6 md:h-6"
           />
-          {isHovered && !isExpanded && (
+          {isHovered && (
             <Sparkles
               className="absolute -top-1 -right-1 h-2 w-2 sm:h-3 sm:w-3 text-yellow-300"
               style={{ filter: "drop-shadow(0 0 2px #fff)" }}
@@ -125,146 +51,6 @@ export default function PromoWatermark() {
           style={{ filter: "drop-shadow(0 0 2px #fff)" }}
         />
       </button>
-
-      {/* Dropdown Form */}
-      {isExpanded && (
-        <div className="absolute top-full left-0 mt-2 w-64 xs:w-72 sm:w-80 md:w-96 bg-[#000033] border-4 border-[#00ff00] rounded-lg shadow-lg overflow-hidden arcade-form-container">
-          <div className="relative p-4">
-            {/* Close button */}
-            <button
-              onClick={() => setIsExpanded(false)}
-              className="absolute top-2 right-2 text-white hover:text-[#ff00ff] transition-colors"
-            >
-              <X size={20} />
-            </button>
-
-            {/* Pixel decorations */}
-            <div className="absolute top-4 right-4 w-2 h-2 bg-[#ff00ff] opacity-50"></div>
-            <div className="absolute bottom-4 left-4 w-2 h-2 bg-[#00ffff] opacity-50"></div>
-            <div className="absolute top-4 left-4 w-2 h-2 bg-[#ffff00] opacity-50"></div>
-            <div className="absolute bottom-4 right-4 w-2 h-2 bg-[#00ff00] opacity-50"></div>
-
-            {/* Success message */}
-            {isSuccess ? (
-              <div className="flex flex-col items-center justify-center py-8">
-                <div className="rounded-full bg-green-500/20 p-3 mb-4">
-                  <Check className="h-8 w-8 text-green-500" />
-                </div>
-                <h3 className="text-[#ff00ff] text-center mb-2 text-lg font-press-start-2p leading-relaxed">
-                  REGISTRATION
-                  <br />
-                  COMPLETE
-                </h3>
-                <p className="text-[#00ffff] text-center text-sm font-press-start-2p leading-relaxed">
-                  Up To 100 MUTB TOKENS
-                  <br />
-                  WILL BE CREDITED
-                  <br />
-                  AT TOKEN LAUNCH
-                </p>
-              </div>
-            ) : (
-              <>
-                <h2 className="text-[#ff00ff] text-center mb-6 text-lg font-press-start-2p leading-relaxed">
-                  PLAYER
-                  <br />
-                  REGISTRATION
-                </h2>
-
-                <form
-                  ref={formRef}
-                  onSubmit={handleSubmit}
-                  action="https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8&orgId=00DgL000002HXqG"
-                  method="POST"
-                  className="space-y-4"
-                >
-                  {/* Hidden Salesforce fields */}
-                  <input type="hidden" name="oid" value="00DgL000002HXqG" />
-                  <input type="hidden" name="retURL" value="https://www.mutablepvp.com" />
-
-                  <div>
-                    <label htmlFor="last_name" className="block text-[#00ffff] text-xs font-press-start-2p mb-1">
-                      USERNAME
-                    </label>
-                    <input
-                      id="last_name"
-                      name="last_name"
-                      type="text"
-                      required
-                      className="w-full p-2 bg-black/70 border-2 border-[#00ffff] text-white rounded font-mono text-sm font-bold focus:border-[#ff00ff] focus:outline-none focus:ring-1 focus:ring-[#ff00ff]"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="email" className="block text-[#00ffff] text-xs font-press-start-2p mb-1">
-                      EMAIL
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      className="w-full p-2 bg-black/70 border-2 border-[#00ffff] text-white rounded font-mono text-sm font-bold focus:border-[#ff00ff] focus:outline-none focus:ring-1 focus:ring-[#ff00ff]"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="00NgL00000txijh" className="block text-[#00ffff] text-xs font-press-start-2p mb-1">
-                      SOLANA ADDRESS
-                    </label>
-                    <input
-                      id="00NgL00000txijh"
-                      name="00NgL00000txijh"
-                      type="text"
-                      required
-                      defaultValue={walletAddress}
-                      placeholder="6BkEas82vMNfj6yt8gUDj6SinCKoNcj1vituuaQrC7uq"
-                      className="w-full p-2 bg-black/70 border-2 border-[#00ffff] text-white rounded font-mono text-sm font-bold focus:border-[#ff00ff] focus:outline-none focus:ring-1 focus:ring-[#ff00ff]"
-                    />
-
-                    <div className="text-right mt-1">
-                      <Link
-                        href="https://phantom.app/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#ffff00] text-[8px] sm:text-[10px] font-press-start-2p hover:text-white transition-colors"
-                      >
-                        NEED A WALLET? GET PHANTOM
-                      </Link>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        id="00NgL00000txvc5"
-                        name="00NgL00000txvc5"
-                        value="1"
-                        className="sr-only peer"
-                        defaultChecked
-                      />
-                      <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer border-2 border-[#ffff00] peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-[#ffff00] after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ffff00]"></div>
-                    </label>
-                    <span className="text-white text-[8px] sm:text-[10px] font-press-start-2p leading-tight">
-                      STAY UP TO DATE WITH MUTABLE NEWS
-                    </span>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    name="submit"
-                    className="w-full py-3 bg-[#ff0000] text-white border-2 border-white rounded font-press-start-2p text-sm uppercase tracking-wider shadow-[0_6px_0_#990000] hover:bg-[#ff3333] hover:transform hover:-translate-y-1 hover:shadow-[0_7px_0_#990000] active:transform active:translate-y-1 active:shadow-[0_2px_0_#990000] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? "REGISTERING..." : "REGISTER PLAYER"}
-                  </button>
-                </form>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
