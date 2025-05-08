@@ -15,6 +15,43 @@ export default function PromoWatermark() {
   const formRef = useRef<HTMLFormElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
+  // Add this custom hook implementation
+  const useWalletConnection = () => {
+    const [walletAddress, setWalletAddress] = useState<string>("")
+    const [isTestMode, setIsTestMode] = useState(false)
+
+    useEffect(() => {
+      // Check if window is defined (client-side)
+      if (typeof window !== "undefined") {
+        // Check for Phantom wallet
+        const solWindow = window as any
+        if (solWindow.solana?.isPhantom && solWindow.solana.isConnected && solWindow.solana.publicKey) {
+          setWalletAddress(solWindow.solana.publicKey.toString())
+          setIsTestMode(false)
+          return
+        }
+
+        // Check for Solflare wallet
+        if (solWindow.solflare?.isSolflare && solWindow.solflare.isConnected && solWindow.solflare.publicKey) {
+          setWalletAddress(solWindow.solflare.publicKey.toString())
+          setIsTestMode(false)
+          return
+        }
+
+        // Check if we're in test mode
+        if (solWindow.testWalletActive) {
+          setWalletAddress("TestModeWallet1111111111111111111111111")
+          setIsTestMode(true)
+          return
+        }
+      }
+    }, [])
+
+    return { walletAddress, isTestMode }
+  }
+
+  const { walletAddress, isTestMode } = useWalletConnection()
+
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -30,22 +67,14 @@ export default function PromoWatermark() {
   }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    // Don't prevent default - let the form submit naturally to Salesforce
+    // But we still want to show our loading and success states
     setIsSubmitting(true)
 
-    // Get form data
-    const formData = new FormData(e.currentTarget)
-
-    try {
-      // Simulate form submission - in production, replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Reset form
-      if (formRef.current) {
-        formRef.current.reset()
-      }
-
-      // Show success message
+    // We'll use a timeout to simulate the form submission time
+    // and show our success message after
+    setTimeout(() => {
+      setIsSubmitting(false)
       setIsSuccess(true)
 
       // Reset success message after 5 seconds
@@ -53,11 +82,7 @@ export default function PromoWatermark() {
         setIsSuccess(false)
         setIsExpanded(false)
       }, 5000)
-    } catch (error) {
-      console.error("Form submission error:", error)
-    } finally {
-      setIsSubmitting(false)
-    }
+    }, 1000)
   }
 
   return (
@@ -131,7 +156,7 @@ export default function PromoWatermark() {
                   COMPLETE
                 </h3>
                 <p className="text-[#00ffff] text-center text-sm font-press-start-2p leading-relaxed">
-                  50 MUTB TOKENS
+                  Up To 100 MUTB TOKENS
                   <br />
                   WILL BE CREDITED
                   <br />
@@ -146,23 +171,20 @@ export default function PromoWatermark() {
                   REGISTRATION
                 </h2>
 
-                <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label htmlFor="first_name" className="block text-[#00ffff] text-xs font-press-start-2p mb-1">
-                      FIRST NAME
-                    </label>
-                    <input
-                      id="first_name"
-                      name="first_name"
-                      type="text"
-                      required
-                      className="w-full p-2 bg-black/70 border-2 border-[#00ffff] text-white rounded font-mono text-sm font-bold focus:border-[#ff00ff] focus:outline-none focus:ring-1 focus:ring-[#ff00ff]"
-                    />
-                  </div>
+                <form
+                  ref={formRef}
+                  onSubmit={handleSubmit}
+                  action="https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8&orgId=00DgL000002HXqG"
+                  method="POST"
+                  className="space-y-4"
+                >
+                  {/* Hidden Salesforce fields */}
+                  <input type="hidden" name="oid" value="00DgL000002HXqG" />
+                  <input type="hidden" name="retURL" value="https://www.mutablepvp.com" />
 
                   <div>
                     <label htmlFor="last_name" className="block text-[#00ffff] text-xs font-press-start-2p mb-1">
-                      LAST NAME
+                      USERNAME
                     </label>
                     <input
                       id="last_name"
@@ -187,14 +209,15 @@ export default function PromoWatermark() {
                   </div>
 
                   <div>
-                    <label htmlFor="solana_address" className="block text-[#00ffff] text-xs font-press-start-2p mb-1">
+                    <label htmlFor="00NgL00000txijh" className="block text-[#00ffff] text-xs font-press-start-2p mb-1">
                       SOLANA ADDRESS
                     </label>
                     <input
-                      id="solana_address"
-                      name="solana_address"
+                      id="00NgL00000txijh"
+                      name="00NgL00000txijh"
                       type="text"
                       required
+                      defaultValue={walletAddress}
                       placeholder="6BkEas82vMNfj6yt8gUDj6SinCKoNcj1vituuaQrC7uq"
                       className="w-full p-2 bg-black/70 border-2 border-[#00ffff] text-white rounded font-mono text-sm font-bold focus:border-[#ff00ff] focus:outline-none focus:ring-1 focus:ring-[#ff00ff]"
                     />
@@ -213,7 +236,14 @@ export default function PromoWatermark() {
 
                   <div className="flex items-center space-x-3">
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" name="email_opt_in" className="sr-only peer" defaultChecked />
+                      <input
+                        type="checkbox"
+                        id="00NgL00000txvc5"
+                        name="00NgL00000txvc5"
+                        value="1"
+                        className="sr-only peer"
+                        defaultChecked
+                      />
                       <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer border-2 border-[#ffff00] peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-[#ffff00] after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ffff00]"></div>
                     </label>
                     <span className="text-white text-[8px] sm:text-[10px] font-press-start-2p leading-tight">
@@ -224,6 +254,7 @@ export default function PromoWatermark() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
+                    name="submit"
                     className="w-full py-3 bg-[#ff0000] text-white border-2 border-white rounded font-press-start-2p text-sm uppercase tracking-wider shadow-[0_6px_0_#990000] hover:bg-[#ff3333] hover:transform hover:-translate-y-1 hover:shadow-[0_7px_0_#990000] active:transform active:translate-y-1 active:shadow-[0_2px_0_#990000] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? "REGISTERING..." : "REGISTER PLAYER"}

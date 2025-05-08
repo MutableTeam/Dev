@@ -122,12 +122,15 @@ export default function MultiWalletConnector({
   const [balance, setBalance] = useState<number | null>(null)
   const [isTestMode, setIsTestMode] = useState(false)
   const [mutbBalance, setMutbBalance] = useState<number | null>(null)
+  const [connectedWallet, setConnectedWallet] = useState<PhantomProvider | SolflareProvider | null>(null)
 
   // UI state
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isAudioInitialized, setIsAudioInitialized] = useState(false)
+
+  const testWalletAddress = "TestModeWallet1111111111111111111111111"
 
   // Initialize audio manager (but don't load sounds yet)
   useEffect(() => {
@@ -168,6 +171,7 @@ export default function MultiWalletConnector({
         setPublicKey(solWindow.solana!.publicKey.toString())
         setActiveWallet("phantom")
         setIsCollapsed(true) // Minimize wallet by default for already connected wallets
+        setConnectedWallet(solWindow.solana!)
 
         // Track already connected wallet
         if (typeof window !== "undefined" && (window as any).gtag) {
@@ -185,6 +189,7 @@ export default function MultiWalletConnector({
         setPublicKey(solWindow.solflare!.publicKey.toString())
         setActiveWallet("solflare")
         setIsCollapsed(true) // Minimize wallet by default for already connected wallets
+        setConnectedWallet(solWindow.solflare!)
 
         // Track already connected wallet
         if (typeof window !== "undefined" && (window as any).gtag) {
@@ -214,6 +219,7 @@ export default function MultiWalletConnector({
         setPublicKey("")
         setBalance(null)
         setActiveWallet(null)
+        setConnectedWallet(null)
       })
 
       provider.on("accountChanged", () => {
@@ -224,6 +230,7 @@ export default function MultiWalletConnector({
           setPublicKey("")
           setBalance(null)
           setActiveWallet(null)
+          setConnectedWallet(null)
         }
       })
     }
@@ -284,6 +291,7 @@ export default function MultiWalletConnector({
       setIsTestMode(true)
       setBalance(5.0) // Set mock balance
       setIsCollapsed(true) // Minimize wallet by default after connection
+      setConnectedWallet(mockProvider)
 
       // Play intro sound when wallet is connected (if not muted)
       if (!audioManager.isSoundMuted()) {
@@ -329,6 +337,7 @@ export default function MultiWalletConnector({
         setProvider(walletProvider)
         setActiveWallet(walletType)
         setIsTestMode(false)
+        setConnectedWallet(walletProvider)
 
         // Play intro sound when wallet is connected (if not muted)
         if (!audioManager.isSoundMuted()) {
@@ -352,6 +361,7 @@ export default function MultiWalletConnector({
           setProvider(walletProvider)
           setActiveWallet(walletType)
           setIsTestMode(false)
+          setConnectedWallet(walletProvider)
 
           // Play intro sound when wallet is connected (if not muted)
           if (!audioManager.isSoundMuted()) {
@@ -407,6 +417,7 @@ export default function MultiWalletConnector({
       setActiveWallet(null)
       setIsTestMode(false)
       setProvider(null)
+      setConnectedWallet(null)
       return
     }
 
@@ -438,6 +449,18 @@ export default function MultiWalletConnector({
     setIsCollapsed(!isCollapsed)
   }
 
+  const getWalletAddress = () => {
+    if (isTestMode) {
+      return testWalletAddress
+    }
+
+    if (connectedWallet) {
+      return connectedWallet.publicKey.toString()
+    }
+
+    return ""
+  }
+
   // Render the collapsed wallet view when connected
   const renderCollapsedWallet = () => {
     return (
@@ -457,7 +480,7 @@ export default function MultiWalletConnector({
             />
           )}
           <span className="text-[10px] xs:text-xs font-mono font-bold dark:text-white">
-            {shortenAddress(publicKey)}
+            {shortenAddress(getWalletAddress())}
           </span>
           <div className="flex items-center gap-1">
             <Badge
@@ -576,7 +599,7 @@ export default function MultiWalletConnector({
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium dark:text-gray-300">Address:</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-mono dark:text-white">{shortenAddress(publicKey)}</span>
+                        <span className="text-sm font-mono dark:text-white">{shortenAddress(getWalletAddress())}</span>
                         <SoundButton variant="ghost" size="icon" className="h-8 w-8" onClick={copyAddress}>
                           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                         </SoundButton>

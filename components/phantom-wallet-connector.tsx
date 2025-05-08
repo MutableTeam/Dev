@@ -40,6 +40,8 @@ export default function PhantomWalletConnector() {
   const [balance, setBalance] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const isTestMode = false // Replace with your actual test mode logic
+  const testWalletAddress = "YOUR_TEST_WALLET_ADDRESS" // Replace with your test wallet address
 
   // Check if Phantom is available
   useEffect(() => {
@@ -164,6 +166,20 @@ export default function PhantomWalletConnector() {
     return `${address.slice(0, 4)}...${address.slice(-4)}`
   }
 
+  const getWalletAddress = () => {
+    if (isTestMode) {
+      return testWalletAddress
+    }
+
+    if (provider && provider.publicKey) {
+      return provider.publicKey.toString()
+    }
+
+    return ""
+  }
+
+  const currentWalletAddress = getWalletAddress()
+
   return (
     <div className="space-y-6">
       {!connected && (
@@ -186,7 +202,7 @@ export default function PhantomWalletConnector() {
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Address:</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-mono">{shortenAddress(publicKey)}</span>
+                  <span className="text-sm font-mono">{shortenAddress(currentWalletAddress)}</span>
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={copyAddress}>
                     {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   </Button>
@@ -237,7 +253,12 @@ export default function PhantomWalletConnector() {
       </Card>
 
       {connected && (
-        <MutablePlatform publicKey={publicKey} balance={balance} provider={provider} connection={connection} />
+        <MutablePlatform
+          publicKey={currentWalletAddress}
+          balance={balance}
+          provider={provider}
+          connection={connection}
+        />
       )}
     </div>
   )

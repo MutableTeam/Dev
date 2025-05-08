@@ -28,6 +28,9 @@ interface TokenSwapFormProps {
     txId: string,
   ) => void
   checkingTradability?: boolean
+  connectedWallet: any
+  isTestMode: boolean
+  setWalletAddress: (address: string) => void
 }
 
 export function TokenSwapForm({
@@ -40,6 +43,9 @@ export function TokenSwapForm({
   isTokenTradable,
   onSwap,
   checkingTradability = false,
+  connectedWallet,
+  isTestMode,
+  setWalletAddress,
 }: TokenSwapFormProps) {
   // State for the swap form
   const [inputToken, setInputToken] = useState<TokenConfig>(swapPair.inputToken)
@@ -143,6 +149,13 @@ export function TokenSwapForm({
       return () => clearTimeout(timer)
     }
   }, [swapAmount, inputToken, outputToken, jupiterClient, publicKey, slippageBps, isTokenTradable])
+
+  // Auto-populate wallet address when not in test mode
+  useEffect(() => {
+    if (!isTestMode && connectedWallet && connectedWallet.publicKey) {
+      setWalletAddress(connectedWallet.publicKey.toString())
+    }
+  }, [connectedWallet, isTestMode, setWalletAddress])
 
   // Function to swap tokens
   const handleSwap = async () => {
