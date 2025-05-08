@@ -5,7 +5,17 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { ArrowLeftRight, TrendingUp, ArrowDownUp, Info, Loader2, AlertCircle } from "lucide-react"
+import {
+  ArrowLeftRight,
+  TrendingUp,
+  ArrowDownUp,
+  Info,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
+  ExternalLink,
+  Settings,
+} from "lucide-react"
 import Image from "next/image"
 import { type Connection, PublicKey, Transaction } from "@solana/web3.js"
 import {
@@ -17,15 +27,22 @@ import {
 import SoundButton from "./sound-button"
 import { withClickSound } from "@/utils/sound-utils"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { mockSwapSolForMutb, mockSwapMutbForSol } from "@/utils/token-swap-mock"
 import { useToast } from "@/components/ui/use-toast"
 import { ToastAction } from "@/components/ui/toast"
+import { createJupiterApiClient, type JupiterQuoteResponse } from "@/utils/jupiter-sdk"
+import { Slider } from "@/components/ui/slider"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
-// Flag to use mock implementation for testing
-const USE_MOCK = true
+// IMPORTANT: Disable mock implementation completely
+const USE_MOCK = false
 
-// MUTB token mint address on devnet - using a valid base58 string
-const MUTB_MINT_ADDRESS = "5R3KsVN6fucM7Mxyob4oro5Xp3qMxAb7Vi4L4Di57jCY"
+// MUTB token mint address on devnet
+const MUTB_MINT_ADDRESS = "BKc4wfcYXm8Eky71EoeAmKuao7zY1dhiJgYaQUAEVGyG"
+// SOL mint address (wrapped SOL)
+const SOL_MINT_ADDRESS = "So11111111111111111111111111111111111111112"
+
+// Declare LAMPORTS_PER_SOL
+const LAMPORTS_PER_SOL = 1000000000
 
 interface MutableMarketplaceProps {
   publicKey: string
@@ -73,6 +90,73 @@ export default function MutableMarketplace({
   const [swapError, setSwapError] = useState<string | null>(null)
   const [mutbTokenAccount, setMutbTokenAccount] = useState<string | null>(null)
 
+  // Jupiter quote state
+  const [jupiterQuote, setJupiterQuote] = useState<JupiterQuoteResponse | null>(null)
+  const [isLoadingQuote, setIsLoadingQuote] = useState<boolean>(false)
+  const [slippageBps, setSlippageBps] = useState<number>(50) // 0.5% default slippage
+  const [jupiterClient, setJupiterClient] = useState<any>(null)
+  const [isTokenTradable, setIsTokenTradable] = useState<boolean>(false)
+  const [checkingTradability, setCheckingTradability] = useState<boolean>(true)
+
+  // Transaction history
+  const [transactionHistory, setTransactionHistory] = useState<
+    Array<{
+      type: "swap" | "pool"
+      timestamp: number
+      inputAmount: number
+      inputToken: string
+      outputAmount: number
+      outputToken: string
+      txId: string
+    }>
+  >([])
+
+  // Initialize Jupiter client
+  useEffect(() => {
+    if (connection) {
+      const client = createJupiterApiClient(connection)
+      setJupiterClient(client)
+
+      // Check if token is tradable
+      const checkTokenTradability = async () => {
+        setCheckingTradability(true)
+        try {
+          const tradable = await client.isTokenTradable(SOL_MINT_ADDRESS, MUTB_MINT_ADDRESS)
+          console.log("Token tradability check result:", tradable)
+          setIsTokenTradable(tradable)
+        } catch (error) {
+          console.error("Error checking token tradability:", error)
+          setIsTokenTradable(false)
+        } finally {
+          setCheckingTradability(false)
+        }
+      }
+
+      checkTokenTradability()
+
+      // Load transaction history from localStorage
+      try {
+        const savedHistory = localStorage.getItem("mutb_transaction_history")
+        if (savedHistory) {
+          setTransactionHistory(JSON.parse(savedHistory))
+        }
+      } catch (error) {
+        console.error("Error loading transaction history:", error)
+      }
+    }
+  }, [connection])
+
+  // Save transaction history to localStorage when it changes
+  useEffect(() => {
+    if (transactionHistory.length > 0) {
+      try {
+        localStorage.setItem("mutb_transaction_history", JSON.stringify(transactionHistory))
+      } catch (error) {
+        console.error("Error saving transaction history:", error)
+      }
+    }
+  }, [transactionHistory])
+
   // Fetch MUTB token account and balance
   useEffect(() => {
     const fetchTokenAccount = async () => {
@@ -102,14 +186,7 @@ export default function MutableMarketplace({
           return
         }
 
-        // In test mode, just use mock data
-        if (USE_MOCK) {
-          setMutbTokenAccount("mock-token-account")
-          setMutbBalance(100) // Mock balance
-          return
-        }
-
-        // Only fetch real token accounts if not in mock mode
+        // Only fetch real token accounts
         try {
           const tokenAccounts = await connection.getParsedTokenAccountsByOwner(userPublicKey, {
             programId: TOKEN_PROGRAM_ID,
@@ -124,16 +201,17 @@ export default function MutableMarketplace({
             setMutbTokenAccount(mutbAccount.pubkey.toString())
             const balance = mutbAccount.account.data.parsed.info.tokenAmount.uiAmount
             setMutbBalance(balance)
+            console.log("Found MUTB token account with balance:", balance)
           } else {
             // No existing token account found
             setMutbTokenAccount(null)
             setMutbBalance(0)
+            console.log("No MUTB token account found, balance set to 0")
           }
         } catch (error) {
           console.error("Error fetching token accounts:", error)
-          // Use mock data as fallback
-          setMutbTokenAccount("mock-token-account")
-          setMutbBalance(100) // Mock balance
+          setMutbTokenAccount(null)
+          setMutbBalance(0)
         }
       } catch (error) {
         console.error("Error in fetchTokenAccount:", error)
@@ -147,7 +225,7 @@ export default function MutableMarketplace({
         const solPriceValue = await getCryptoPrice("solana")
         setSolPrice(solPriceValue)
 
-        // MUTB is fixed at $0.01
+        // MUTB is fixed at $0.10
         const mutbPriceValue = 0.1
         setMutbPrice(mutbPriceValue)
 
@@ -160,7 +238,7 @@ export default function MutableMarketplace({
         // Fallback to default values
         setExchangeRate(10000) // 10,000 MUTB per SOL
         setSolPrice(100) // $100 per SOL
-        setMutbPrice(0.1) // $0.01 per MUTB
+        setMutbPrice(0.1) // $0.10 per MUTB
       } finally {
         setIsLoadingPrice(false)
       }
@@ -227,11 +305,83 @@ export default function MutableMarketplace({
     }
   }
 
+  // Get Jupiter quote
+  const getJupiterQuote = async () => {
+    if (!jupiterClient || !publicKey || !isTokenTradable) return
+
+    setIsLoadingQuote(true)
+    setSwapError(null)
+
+    try {
+      const amount = Number.parseFloat(swapAmount)
+      if (isNaN(amount) || amount <= 0) {
+        setSwapError("Please enter a valid amount")
+        setIsLoadingQuote(false)
+        return
+      }
+
+      // Convert to the smallest unit based on decimals
+      // SOL has 9 decimals, assuming MUTB also has 9
+      const inputDecimals = 9
+      const amountInSmallestUnit = Math.floor(amount * Math.pow(10, inputDecimals))
+
+      const inputMint = swapDirection === "sol-to-mutb" ? SOL_MINT_ADDRESS : MUTB_MINT_ADDRESS
+      const outputMint = swapDirection === "sol-to-mutb" ? MUTB_MINT_ADDRESS : SOL_MINT_ADDRESS
+
+      console.log(`Getting Jupiter quote for ${amount} ${swapDirection === "sol-to-mutb" ? "SOL" : "MUTB"}`)
+      const quote = await jupiterClient.getQuote(
+        inputMint,
+        outputMint,
+        amountInSmallestUnit,
+        slippageBps,
+        false, // Allow indirect routes
+      )
+
+      setJupiterQuote(quote)
+
+      // Update the exchange rate based on the quote
+      if (quote) {
+        const inAmount = Number.parseFloat(quote.inAmount) / Math.pow(10, inputDecimals)
+        const outAmount = Number.parseFloat(quote.outAmount) / Math.pow(10, inputDecimals)
+        const quoteRate = outAmount / inAmount
+
+        if (swapDirection === "sol-to-mutb") {
+          setExchangeRate(quoteRate)
+        } else {
+          setExchangeRate(1 / quoteRate)
+        }
+      }
+    } catch (error) {
+      console.error("Error getting Jupiter quote:", error)
+      setSwapError("Failed to get quote. Please try again.")
+    } finally {
+      setIsLoadingQuote(false)
+    }
+  }
+
+  // Effect to get quote when amount or direction changes
+  useEffect(() => {
+    if (jupiterClient && publicKey && isTokenTradable) {
+      const timer = setTimeout(() => {
+        getJupiterQuote()
+      }, 500) // Debounce
+
+      return () => clearTimeout(timer)
+    }
+  }, [swapAmount, swapDirection, jupiterClient, publicKey, slippageBps, isTokenTradable])
+
   const handleSwap = async () => {
     setSwapError(null)
     setIsSwapping(true)
 
     try {
+      // Check if token is tradable
+      if (!isTokenTradable) {
+        setSwapError("Token is not tradable on Jupiter yet. Please wait for it to be indexed.")
+        setIsSwapping(false)
+        return
+      }
+
       const amount = Number.parseFloat(swapAmount)
       if (isNaN(amount) || amount <= 0) {
         setSwapError("Please enter a valid amount")
@@ -239,97 +389,152 @@ export default function MutableMarketplace({
         return
       }
 
-      if (!provider && !USE_MOCK) {
+      if (!provider) {
         setSwapError("Wallet not connected")
         setIsSwapping(false)
         return
       }
 
+      // Check balances
       if (swapDirection === "sol-to-mutb") {
-        // Check if user has enough SOL
         if (balance !== null && amount > balance) {
           setSwapError("Insufficient SOL balance")
           setIsSwapping(false)
           return
         }
-
-        // Calculate minimum amount out with 1% slippage
-        const minimumAmountOut = amount * exchangeRate * 0.99
-
-        try {
-          // Use mock implementation
-          const result = await mockSwapSolForMutb(amount)
-          console.log("Mock swap completed:", result)
-
-          // Update MUTB balance
-          setMutbBalance(mutbBalance + result.amount)
-
-          // ADDED: Notify parent component about SOL balance change
-          if (onBalanceChange && balance !== null) {
-            onBalanceChange("sol", balance - amount)
-          }
-
-          // Show success toast
-          toast({
-            title: "Swap Successful!",
-            description: `You swapped ${amount} SOL for ${result.amount.toFixed(2)} MUTB`,
-            variant: "default",
-            className: "border-2 border-black bg-[#FFD54F] text-black font-mono",
-            action: (
-              <ToastAction altText="OK" className="border border-black">
-                OK
-              </ToastAction>
-            ),
-          })
-        } catch (error) {
-          console.error("Error executing swap:", error)
-          setSwapError("Transaction failed. Please try again.")
-          setIsSwapping(false)
-          return
-        }
       } else {
-        // MUTB to SOL swap
-        // Check if user has enough MUTB
         if (amount > mutbBalance) {
           setSwapError("Insufficient MUTB balance")
           setIsSwapping(false)
           return
         }
+      }
 
-        // Calculate minimum amount out with 1% slippage
-        const minimumAmountOut = (amount / exchangeRate) * 0.99
-
-        try {
-          // Use mock implementation
-          const result = await mockSwapMutbForSol(amount)
-          console.log("Mock swap completed:", result)
-
-          // Update MUTB balance
-          setMutbBalance(mutbBalance - amount)
-
-          // ADDED: Notify parent component about SOL balance change
-          if (onBalanceChange && balance !== null) {
-            onBalanceChange("mutb", balance + result.amount)
-          }
-
-          // Show success toast
-          toast({
-            title: "Swap Successful!",
-            description: `You swapped ${amount} MUTB for ${result.amount.toFixed(4)} SOL`,
-            variant: "default",
-            className: "border-2 border-black bg-[#FFD54F] text-black font-mono",
-            action: (
-              <ToastAction altText="OK" className="border border-black">
-                OK
-              </ToastAction>
-            ),
-          })
-        } catch (error) {
-          console.error("Error executing swap:", error)
-          setSwapError("Transaction failed. Please try again.")
+      // Use Jupiter for real swaps
+      if (!jupiterQuote) {
+        await getJupiterQuote()
+        if (!jupiterQuote) {
+          setSwapError("Failed to get quote. Please try again.")
           setIsSwapping(false)
           return
         }
+      }
+
+      try {
+        // Get the swap transaction
+        const swapResponse = await jupiterClient.getSwapTransaction(jupiterQuote, publicKey)
+
+        // Execute the swap
+        const swapResult = await jupiterClient.executeSwap(
+          swapResponse.swapTransaction,
+          new PublicKey(publicKey),
+          provider.signTransaction.bind(provider),
+          jupiterQuote,
+        )
+
+        console.log("Jupiter swap completed:", swapResult)
+
+        // Update balances
+        // We should refetch the actual balances, but for now we'll estimate
+        const outAmount = Number.parseFloat(jupiterQuote.outAmount) / 1e9 // Assuming 9 decimals
+
+        if (swapDirection === "sol-to-mutb") {
+          // Don't update the UI balance - let it be refreshed from chain
+          // setMutbBalance(mutbBalance + outAmount)
+
+          // Add to transaction history
+          setTransactionHistory((prev) => [
+            {
+              type: "swap",
+              timestamp: Date.now(),
+              inputAmount: amount,
+              inputToken: "SOL",
+              outputAmount: outAmount,
+              outputToken: "MUTB",
+              txId: swapResult.txid,
+            },
+            ...prev.slice(0, 9), // Keep only the 10 most recent transactions
+          ])
+
+          // Don't update parent balance - let it refresh from chain
+          // if (onBalanceChange && balance !== null) {
+          //   onBalanceChange("sol", balance - amount)
+          // }
+        } else {
+          // Don't update the UI balance - let it be refreshed from chain
+          // setMutbBalance(mutbBalance - amount)
+
+          // Add to transaction history
+          setTransactionHistory((prev) => [
+            {
+              type: "swap",
+              timestamp: Date.now(),
+              inputAmount: amount,
+              inputToken: "MUTB",
+              outputAmount: outAmount,
+              outputToken: "SOL",
+              txId: swapResult.txid,
+            },
+            ...prev.slice(0, 9), // Keep only the 10 most recent transactions
+          ])
+
+          // Don't update parent balance - let it refresh from chain
+          // if (onBalanceChange && balance !== null) {
+          //   onBalanceChange("sol", balance + outAmount)
+          // }
+        }
+
+        // Show success toast
+        toast({
+          title: "Swap Successful!",
+          description: `You swapped ${amount} ${swapDirection === "sol-to-mutb" ? "SOL" : "MUTB"} for ${outAmount.toFixed(swapDirection === "sol-to-mutb" ? 2 : 4)} ${swapDirection === "sol-to-mutb" ? "MUTB" : "SOL"}`,
+          variant: "default",
+          className: "border-2 border-black bg-[#FFD54F] text-black font-mono",
+          action: (
+            <ToastAction altText="OK" className="border border-black">
+              OK
+            </ToastAction>
+          ),
+        })
+
+        // Reset the form
+        setSwapAmount("1")
+        setJupiterQuote(null)
+
+        // Refresh balances after swap
+        if (publicKey) {
+          try {
+            // Refresh SOL balance
+            const solBalance = await connection.getBalance(new PublicKey(publicKey))
+            if (onBalanceChange) {
+              onBalanceChange("sol", solBalance / LAMPORTS_PER_SOL)
+            }
+
+            // Refresh MUTB balance
+            const userPublicKey = new PublicKey(publicKey)
+            const mutbMint = new PublicKey(MUTB_MINT_ADDRESS)
+            const tokenAccounts = await connection.getParsedTokenAccountsByOwner(userPublicKey, {
+              programId: TOKEN_PROGRAM_ID,
+            })
+
+            const mutbAccount = tokenAccounts.value.find(
+              (account) => account.account.data.parsed.info.mint === MUTB_MINT_ADDRESS,
+            )
+
+            if (mutbAccount) {
+              const balance = mutbAccount.account.data.parsed.info.tokenAmount.uiAmount
+              setMutbBalance(balance)
+              console.log("Updated MUTB balance after swap:", balance)
+            }
+          } catch (error) {
+            console.error("Error refreshing balances after swap:", error)
+          }
+        }
+      } catch (error) {
+        console.error("Error executing Jupiter swap:", error)
+        setSwapError("Transaction failed. Please try again.")
+        setIsSwapping(false)
+        return
       }
     } catch (error) {
       console.error("Swap error:", error)
@@ -339,20 +544,117 @@ export default function MutableMarketplace({
     }
   }
 
+  // Function to create a liquidity pool for MUTB/SOL
+  const createLiquidityPool = async () => {
+    if (!jupiterClient || !publicKey || !provider) {
+      setSwapError("Wallet not connected")
+      return
+    }
+
+    setIsSwapping(true)
+    setSwapError(null)
+
+    try {
+      // For demonstration, we'll use 1 SOL and 10,000 MUTB as initial liquidity
+      const solAmount = 1
+      const mutbAmount = 10000
+
+      // Check balances
+      if (balance !== null && solAmount > balance) {
+        setSwapError("Insufficient SOL balance for pool creation")
+        return
+      }
+
+      if (mutbAmount > mutbBalance) {
+        setSwapError("Insufficient MUTB balance for pool creation")
+        return
+      }
+
+      // Create the pool
+      const txid = await jupiterClient.createLiquidityPool(
+        MUTB_MINT_ADDRESS,
+        solAmount,
+        mutbAmount,
+        new PublicKey(publicKey),
+        provider.signTransaction.bind(provider),
+      )
+
+      console.log("Liquidity pool created:", txid)
+
+      // Add to transaction history
+      setTransactionHistory((prev) => [
+        {
+          type: "pool",
+          timestamp: Date.now(),
+          inputAmount: solAmount,
+          inputToken: "SOL",
+          outputAmount: mutbAmount,
+          outputToken: "MUTB",
+          txId: txid,
+        },
+        ...prev.slice(0, 9), // Keep only the 10 most recent transactions
+      ])
+
+      // Show success toast
+      toast({
+        title: "Liquidity Pool Created!",
+        description: `Successfully created MUTB/SOL pool with ${solAmount} SOL and ${mutbAmount} MUTB`,
+        variant: "default",
+        className: "border-2 border-black bg-[#FFD54F] text-black font-mono",
+        action: (
+          <ToastAction altText="OK" className="border border-black">
+            OK
+          </ToastAction>
+        ),
+      })
+
+      // Update balances (in a real implementation, you would refetch)
+      if (onBalanceChange && balance !== null) {
+        onBalanceChange("sol", balance - solAmount)
+      }
+      setMutbBalance(mutbBalance - mutbAmount)
+    } catch (error) {
+      console.error("Error creating liquidity pool:", error)
+      setSwapError("Failed to create liquidity pool. Please try again.")
+    } finally {
+      setIsSwapping(false)
+    }
+  }
+
   const toggleSwapDirection = () => {
     setSwapDirection(swapDirection === "sol-to-mutb" ? "mutb-to-sol" : "sol-to-mutb")
     setSwapAmount("1") // Reset amount when toggling
+    setJupiterQuote(null) // Reset quote
   }
 
   const calculateReceiveAmount = () => {
     const amount = Number.parseFloat(swapAmount)
     if (isNaN(amount) || amount <= 0) return "0"
 
-    if (swapDirection === "sol-to-mutb") {
-      return (amount * exchangeRate).toFixed(2)
+    if (jupiterQuote) {
+      // Use Jupiter quote for calculation
+      const outputAmount = Number.parseFloat(jupiterQuote.outAmount) / 1e9 // Assuming 9 decimals
+      return outputAmount.toFixed(swapDirection === "sol-to-mutb" ? 2 : 4)
     } else {
-      return (amount / exchangeRate).toFixed(4)
+      // Use our exchange rate as fallback
+      if (swapDirection === "sol-to-mutb") {
+        return (amount * exchangeRate).toFixed(2)
+      } else {
+        return (amount / exchangeRate).toFixed(4)
+      }
     }
+  }
+
+  // Format timestamp to readable date
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp)
+    return date.toLocaleString()
+  }
+
+  // Format transaction ID to shortened form
+  const formatTxId = (txId: string) => {
+    if (txId.length <= 12) return txId
+    return `${txId.substring(0, 6)}...${txId.substring(txId.length - 6)}`
   }
 
   return (
@@ -376,9 +678,37 @@ export default function MutableMarketplace({
             </Badge>
           </div>
         </div>
-        <CardDescription>Swap between SOL and MUTB tokens</CardDescription>
+        <CardDescription>Swap between SOL and MUTB tokens using Jupiter</CardDescription>
       </CardHeader>
       <CardContent>
+        {checkingTradability ? (
+          <div className="flex items-center justify-center p-4">
+            <Loader2 className="h-6 w-6 animate-spin mr-2" />
+            <span>Checking if MUTB token is tradable on Jupiter...</span>
+          </div>
+        ) : !isTokenTradable ? (
+          <Alert className="mb-4 border-2 border-yellow-500 bg-yellow-50">
+            <AlertCircle className="h-4 w-4 text-yellow-600" />
+            <AlertTitle className="text-yellow-800">Token Not Yet Tradable</AlertTitle>
+            <AlertDescription className="text-yellow-700">
+              <p className="mb-2">
+                Your MUTB token is not yet indexed by Jupiter. Swaps are disabled until the token is tradable.
+              </p>
+              <p className="text-sm">
+                Jupiter typically takes 24-48 hours to index new liquidity pools. Please check back later.
+              </p>
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert className="mb-4 border-2 border-green-500 bg-green-50">
+            <Info className="h-4 w-4 text-green-600" />
+            <AlertTitle className="text-green-800">MUTB Token is Tradable!</AlertTitle>
+            <AlertDescription className="text-green-700">
+              Your MUTB token is now tradable on Jupiter. You can perform real swaps on Solana devnet.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Tabs defaultValue="swap" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4 border-2 border-black bg-[#FFD54F]">
             <TabsTrigger
@@ -402,13 +732,23 @@ export default function MutableMarketplace({
               </div>
             </TabsTrigger>
             <TabsTrigger
-              value="info"
+              value="history"
               className="data-[state=active]:bg-white data-[state=active]:text-black font-mono"
               onClick={withClickSound()}
             >
               <div className="flex items-center gap-2">
                 <Info className="h-4 w-4" />
-                <span>INFO</span>
+                <span>HISTORY</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="pool"
+              className="data-[state=active]:bg-white data-[state=active]:text-black font-mono"
+              onClick={withClickSound()}
+            >
+              <div className="flex items-center gap-2">
+                <RefreshCw className="h-4 w-4" />
+                <span>POOL</span>
               </div>
             </TabsTrigger>
           </TabsList>
@@ -452,7 +792,7 @@ export default function MutableMarketplace({
                       className="border-2 border-black font-mono"
                       min="0"
                       step="0.01"
-                      disabled={isSwapping}
+                      disabled={isSwapping || !isTokenTradable}
                     />
                   </div>
                   <div className="flex items-center gap-2 bg-white p-2 rounded-md border-2 border-black">
@@ -474,7 +814,7 @@ export default function MutableMarketplace({
                   size="icon"
                   className="h-8 w-8 border-2 border-black rounded-full bg-white"
                   onClick={toggleSwapDirection}
-                  disabled={isSwapping}
+                  disabled={isSwapping || !isTokenTradable}
                 >
                   <ArrowDownUp className="h-4 w-4" />
                 </SoundButton>
@@ -509,6 +849,66 @@ export default function MutableMarketplace({
                 </div>
               </div>
 
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Slippage Tolerance:</span>
+                  <span className="text-sm font-bold">{(slippageBps / 100).toFixed(2)}%</span>
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <SoundButton variant="outline" size="sm" className="h-8 border border-black">
+                      <Settings className="h-4 w-4 mr-1" />
+                      Settings
+                    </SoundButton>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 p-4 border-2 border-black">
+                    <div className="space-y-4">
+                      <h4 className="font-bold">Slippage Tolerance</h4>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">{(slippageBps / 100).toFixed(2)}%</span>
+                        <div className="flex gap-2">
+                          <SoundButton
+                            variant="outline"
+                            size="sm"
+                            className="h-6 text-xs border border-black"
+                            onClick={() => setSlippageBps(50)}
+                          >
+                            0.5%
+                          </SoundButton>
+                          <SoundButton
+                            variant="outline"
+                            size="sm"
+                            className="h-6 text-xs border border-black"
+                            onClick={() => setSlippageBps(100)}
+                          >
+                            1%
+                          </SoundButton>
+                          <SoundButton
+                            variant="outline"
+                            size="sm"
+                            className="h-6 text-xs border border-black"
+                            onClick={() => setSlippageBps(200)}
+                          >
+                            2%
+                          </SoundButton>
+                        </div>
+                      </div>
+                      <Slider
+                        value={[slippageBps]}
+                        min={10}
+                        max={500}
+                        step={10}
+                        onValueChange={(value) => setSlippageBps(value[0])}
+                        className="w-full"
+                      />
+                      <p className="text-xs text-gray-500">
+                        Your transaction will revert if the price changes unfavorably by more than this percentage.
+                      </p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
               {swapError && (
                 <Alert variant="destructive" className="border-2 border-red-500">
                   <AlertCircle className="h-4 w-4" />
@@ -521,7 +921,7 @@ export default function MutableMarketplace({
                 <p className="flex items-start gap-2">
                   <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>
-                    {isLoadingPrice ? (
+                    {isLoadingPrice || isLoadingQuote ? (
                       <span className="flex items-center gap-2">
                         <Loader2 className="h-3 w-3 animate-spin" />
                         Loading prices...
@@ -529,8 +929,8 @@ export default function MutableMarketplace({
                     ) : (
                       <>
                         Live Exchange Rate: 1 SOL = {exchangeRate.toFixed(0)} MUTB. (SOL: $
-                        {solPrice?.toFixed(2) || "..."}, MUTB: ${mutbPrice.toFixed(2)}) Swaps are executed on Solana
-                        devnet.
+                        {solPrice?.toFixed(2) || "..."}, MUTB: ${mutbPrice.toFixed(2)})
+                        {" Swaps are executed on Solana devnet using Jupiter."}
                       </>
                     )}
                   </span>
@@ -585,65 +985,208 @@ export default function MutableMarketplace({
               <div className="p-4 border-2 border-black rounded-md bg-[#f5efdc]">
                 <h3 className="font-bold mb-2 font-mono">RECENT TRADES</h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span>2.5 SOL → 50 MUTB</span>
-                    <span className="text-gray-500">2 min ago</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span>100 MUTB → 5 SOL</span>
-                    <span className="text-gray-500">5 min ago</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span>0.8 SOL → 16 MUTB</span>
-                    <span className="text-gray-500">12 min ago</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span>30 MUTB → 1.5 SOL</span>
-                    <span className="text-gray-500">15 min ago</span>
-                  </div>
+                  {transactionHistory.length > 0 ? (
+                    transactionHistory
+                      .filter((tx) => tx.type === "swap")
+                      .slice(0, 4)
+                      .map((tx, index) => (
+                        <div key={index} className="flex justify-between items-center text-sm">
+                          <span>
+                            {tx.inputAmount.toFixed(tx.inputToken === "SOL" ? 2 : 0)} {tx.inputToken} →{" "}
+                            {tx.outputAmount.toFixed(tx.outputToken === "SOL" ? 4 : 0)} {tx.outputToken}
+                          </span>
+                          <span className="text-gray-500">{new Date(tx.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                      ))
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center text-sm">
+                        <span>2.5 SOL → 50 MUTB</span>
+                        <span className="text-gray-500">2 min ago</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span>100 MUTB → 5 SOL</span>
+                        <span className="text-gray-500">5 min ago</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span>0.8 SOL → 16 MUTB</span>
+                        <span className="text-gray-500">12 min ago</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span>30 MUTB → 1.5 SOL</span>
+                        <span className="text-gray-500">15 min ago</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="info">
+          <TabsContent value="history">
             <div className="space-y-4">
               <div className="p-4 border-2 border-black rounded-md bg-[#f5efdc]">
-                <h3 className="font-bold mb-2 font-mono">ABOUT MUTB TOKEN</h3>
-                <p className="text-sm mb-3">
-                  MUTB is the native utility token of the Mutable gaming platform. It can be used for:
-                </p>
-                <ul className="list-disc list-inside text-sm space-y-1">
-                  <li>Entering tournaments and competitions</li>
-                  <li>Purchasing in-game items and power-ups</li>
-                  <li>Staking to earn rewards and exclusive benefits</li>
-                  <li>Governance voting on platform decisions</li>
-                </ul>
+                <h3 className="font-bold mb-4 font-mono">TRANSACTION HISTORY</h3>
+                {transactionHistory.length > 0 ? (
+                  <div className="space-y-3">
+                    {transactionHistory.map((tx, index) => (
+                      <div key={index} className="p-3 bg-white rounded-md border border-gray-200">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-medium">{tx.type === "swap" ? "Swap" : "Pool Creation"}</span>
+                          <span className="text-xs text-gray-500">{formatDate(tx.timestamp)}</span>
+                        </div>
+                        <div className="text-sm mb-1">
+                          {tx.inputAmount.toFixed(tx.inputToken === "SOL" ? 4 : 2)} {tx.inputToken}{" "}
+                          {tx.type === "swap" ? "→" : "+"} {tx.outputAmount.toFixed(tx.outputToken === "SOL" ? 4 : 2)}{" "}
+                          {tx.outputToken}
+                        </div>
+                        <div className="flex items-center text-xs text-gray-500">
+                          <span>TX: {formatTxId(tx.txId)}</span>
+                          <a
+                            href={`https://explorer.solana.com/tx/${tx.txId}?cluster=devnet`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-2 text-blue-500 hover:underline flex items-center"
+                          >
+                            View <ExternalLink className="h-3 w-3 ml-1" />
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-500">
+                    <p>No transaction history yet.</p>
+                    <p className="text-sm mt-2">
+                      Your transactions will appear here after you make a swap or create a pool.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="pool">
+            <div className="space-y-4">
+              <div className="p-4 border-2 border-black rounded-md bg-[#f5efdc]">
+                <h3 className="font-bold mb-2 font-mono">LIQUIDITY POOL STATUS</h3>
+                <div className="bg-green-100 border border-green-300 p-3 rounded-md text-sm mb-3">
+                  <p className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <span>
+                      {isTokenTradable
+                        ? "Your MUTB token is now tradable on Jupiter! The liquidity pool has been successfully created and indexed."
+                        : "Your liquidity pool has been created but may not be indexed by Jupiter yet. This typically takes 24-48 hours."}
+                    </span>
+                  </p>
+                </div>
+
+                <div className="space-y-2 mt-4">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Pool Status:</span>
+                    <span className="text-sm font-medium">
+                      {isTokenTradable ? (
+                        <span className="text-green-600">Active & Indexed</span>
+                      ) : (
+                        <span className="text-yellow-600">Created, Awaiting Indexing</span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Jupiter Integration:</span>
+                    <span className="text-sm font-medium">
+                      {isTokenTradable ? (
+                        <span className="text-green-600">Available</span>
+                      ) : (
+                        <span className="text-yellow-600">Pending</span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <a
+                    href={`https://explorer.solana.com/address/${MUTB_MINT_ADDRESS}?cluster=devnet`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline flex items-center text-sm"
+                  >
+                    View MUTB Token on Solana Explorer <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
+                </div>
               </div>
 
               <div className="p-4 border-2 border-black rounded-md bg-[#f5efdc]">
-                <h3 className="font-bold mb-2 font-mono">TOKEN METRICS</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Total Supply:</span>
-                    <span className="text-sm font-medium">100,000,000 MUTB</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Circulating Supply:</span>
-                    <span className="text-sm font-medium">25,000,000 MUTB</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Current Price:</span>
-                    <span className="text-sm font-medium">${mutbPrice.toFixed(2)} USD (Fixed)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Market Cap:</span>
-                    <span className="text-sm font-medium">${(25000000 * mutbPrice).toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Token Type:</span>
-                    <span className="text-sm font-medium">SPL (Solana)</span>
-                  </div>
+                <h3 className="font-bold mb-2 font-mono">CHECK JUPITER INTEGRATION</h3>
+                <p className="text-sm mb-3">
+                  You can manually check if your token is tradable on Jupiter using these methods:
+                </p>
+                <ol className="list-decimal list-inside text-sm space-y-2">
+                  <li>
+                    <strong>Jupiter Swap UI:</strong> Visit{" "}
+                    <a
+                      href="https://jup.ag/swap/SOL-5R3KsVN6fucM7Mxyob4oro5Xp3qMxAb7Vi4L4Di57jCY?cluster=devnet"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      Jupiter Swap
+                    </a>{" "}
+                    and try to swap SOL to MUTB.
+                  </li>
+                  <li>
+                    <strong>API Check:</strong> Use the Jupiter API to check if your token is tradable by making a
+                    request to:{" "}
+                    <code className="bg-gray-100 p-1 rounded">
+                      https://quote-api.jup.ag/v6/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=5R3KsVN6fucM7Mxyob4oro5Xp3qMxAb7Vi4L4Di57jCY&amount=10000000
+                    </code>
+                  </li>
+                  <li>
+                    <strong>Refresh Token Status:</strong> Click the button below to check if your token is now tradable
+                    on Jupiter.
+                  </li>
+                </ol>
+                <div className="mt-4">
+                  <SoundButton
+                    className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
+                    onClick={async () => {
+                      setCheckingTradability(true)
+                      try {
+                        const tradable = await jupiterClient.isTokenTradable(SOL_MINT_ADDRESS, MUTB_MINT_ADDRESS)
+                        setIsTokenTradable(tradable)
+
+                        toast({
+                          title: tradable ? "Token is Tradable!" : "Token Not Yet Tradable",
+                          description: tradable
+                            ? "Your MUTB token is now tradable on Jupiter."
+                            : "Your token is not yet indexed by Jupiter. Please check back later.",
+                          variant: "default",
+                          className: tradable
+                            ? "border-2 border-green-500 bg-green-50 text-green-800"
+                            : "border-2 border-yellow-500 bg-yellow-50 text-yellow-800",
+                        })
+                      } catch (error) {
+                        console.error("Error checking token tradability:", error)
+                        toast({
+                          title: "Error Checking Token",
+                          description: "Failed to check if your token is tradable. Please try again.",
+                          variant: "destructive",
+                        })
+                      } finally {
+                        setCheckingTradability(false)
+                      }
+                    }}
+                    disabled={checkingTradability}
+                  >
+                    {checkingTradability ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        CHECKING...
+                      </span>
+                    ) : (
+                      "CHECK TOKEN STATUS"
+                    )}
+                  </SoundButton>
                 </div>
               </div>
             </div>
@@ -655,13 +1198,15 @@ export default function MutableMarketplace({
           <SoundButton
             className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
             onClick={handleSwap}
-            disabled={isSwapping || (!publicKey && !USE_MOCK)}
+            disabled={isSwapping || !publicKey || !isTokenTradable}
           >
             {isSwapping ? (
               <span className="flex items-center justify-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 SWAPPING...
               </span>
+            ) : !isTokenTradable ? (
+              "TOKEN NOT YET TRADABLE"
             ) : (
               "SWAP TOKENS"
             )}

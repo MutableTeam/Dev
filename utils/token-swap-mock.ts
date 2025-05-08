@@ -72,3 +72,70 @@ export async function mockGetTokenBalance(connection: Connection, owner: PublicK
   // For MUTB, return a random balance between 0 and 1000
   return Math.floor(Math.random() * 1000)
 }
+
+// Mock Jupiter API response
+export async function mockJupiterQuote(
+  inputMint: string,
+  outputMint: string,
+  amount: string,
+  slippageBps: number,
+): Promise<any> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 800))
+
+  const inputAmount = Number.parseInt(amount)
+  let outputAmount
+
+  // Calculate based on which direction we're swapping
+  if (inputMint.includes("11111")) {
+    // SOL to MUTB
+    outputAmount = inputAmount * MOCK_EXCHANGE_RATE
+  } else {
+    // MUTB to SOL
+    outputAmount = inputAmount / MOCK_EXCHANGE_RATE
+  }
+
+  return {
+    inputMint,
+    outputMint,
+    inAmount: amount,
+    outAmount: outputAmount.toString(),
+    otherAmountThreshold: (outputAmount * (1 - slippageBps / 10000)).toString(),
+    swapMode: "ExactIn",
+    slippageBps,
+    platformFee: {
+      amount: "0",
+      feeBps: 0,
+    },
+    priceImpactPct: "0.1",
+    routePlan: [
+      {
+        swapInfo: {
+          ammKey: "mock_amm_" + Math.random().toString(36).substring(2, 10),
+          label: "Mock DEX",
+          inputMint,
+          outputMint,
+          inAmount: amount,
+          outAmount: outputAmount.toString(),
+          feeAmount: "0",
+          feeMint: inputMint,
+        },
+        percent: 100,
+      },
+    ],
+    contextSlot: 123456789,
+    timeTaken: 0.123,
+  }
+}
+
+// Mock Jupiter swap transaction
+export async function mockJupiterSwapTransaction(quoteResponse: any, userPublicKey: string): Promise<any> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 600))
+
+  return {
+    swapTransaction: "mock_transaction_data_" + Math.random().toString(36).substring(2, 15),
+    lastValidBlockHeight: 123456789,
+    prioritizationFeeLamports: 5000,
+  }
+}
