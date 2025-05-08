@@ -36,6 +36,7 @@ export interface Player extends GameObject {
   isDrawingBow: boolean
   drawStartTime: number | null
   maxDrawTime: number
+  minDrawTime: number // Added minimum draw time property
   // Special attack
   isChargingSpecial: boolean
   specialChargeStartTime: number | null
@@ -63,6 +64,7 @@ export interface Player extends GameObject {
   invulnerableTime: number // Time in seconds of invulnerability after being hit
   explosiveArrowCooldown: number
   isUsingExplosiveArrow: boolean
+  lastHitByWeakShot?: boolean // Flag to track if player was hit by a weak shot
 }
 
 // Update the GameState interface to include maxGameTime and gameMode
@@ -130,6 +132,7 @@ export const createPlayer = (id: string, name: string, position: Vector2D, color
     isDrawingBow: false,
     drawStartTime: null,
     maxDrawTime: 1.5, // 1.5 seconds for max draw
+    minDrawTime: 0.45, // 30% of max draw time
     // Special attack
     isChargingSpecial: false,
     specialChargeStartTime: null,

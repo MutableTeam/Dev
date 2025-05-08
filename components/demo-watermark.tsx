@@ -26,6 +26,8 @@ export default function DemoWatermark() {
             No real transactions, simulated lobbies
             <br />
             and placeholder games.
+            <br />
+            Mobile Game Controls not currently supported.
           </p>
         ) : (
           <p className="whitespace-nowrap text-xs sm:text-sm font-medium">DEMO PURPOSES ONLY</p>

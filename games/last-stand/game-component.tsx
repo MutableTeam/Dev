@@ -37,7 +37,7 @@ export default function LastStandGame({
 }: LastStandGameProps) {
   // Game state
   const [gameState, setGameState] = useState(() => createInitialLastStandState(playerId, playerName, gameMode))
-  const [showConfirmation, setShowConfirmation] = useState<boolean>(true)
+  const [showConfirmation, setShowConfirmation] = useState<boolean>(false)
   const [showCountdown, setShowCountdown] = useState<boolean>(false)
   const [showGameOver, setShowGameOver] = useState<boolean>(false)
   const [leaderboardTimeRemaining, setLeaderboardTimeRemaining] = useState<string>("00:00")
@@ -66,6 +66,11 @@ export default function LastStandGame({
       const animationSet = createArcherAnimationSet()
       animatorRef.current = new SpriteAnimator(animationSet)
     }
+  }, [])
+
+  // Auto-start countdown when component mounts
+  useEffect(() => {
+    setShowCountdown(true)
   }, [])
 
   // Handle confirmation
@@ -525,17 +530,6 @@ export default function LastStandGame({
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button variant="outline" className="border-2 border-black" onClick={handleExit}>
-              Exit
-            </Button>
-            <Button
-              className="bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
-              onClick={handleRestart}
-            >
-              Play Again ({gameMode === "hourly" ? "5" : gameMode === "daily" ? "10" : "0"} MUTB)
-            </Button>
-          </CardFooter>
         </Card>
       </div>
     )

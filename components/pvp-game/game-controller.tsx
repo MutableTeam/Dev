@@ -58,6 +58,7 @@ export default function GameController({
   const [showResourceMonitor, setShowResourceMonitor] = useState<boolean>(false)
   const componentIdRef = useRef<string>(`game-controller-${Date.now()}`)
   const [showTutorial, setShowTutorial] = useState<boolean>(false)
+  const animationTimeoutsRef = useRef<Record<string, NodeJS.Timeout>>({})
 
   // Initialize debug system
   useEffect(() => {
@@ -517,6 +518,27 @@ export default function GameController({
           }
           break
       }
+
+      // Check if player should return to run animation after key release
+      if (
+        !player.isDrawingBow &&
+        !player.isDashing &&
+        !player.isChargingSpecial &&
+        player.health > 0 &&
+        player.hitAnimationTimer <= 0 &&
+        (player.animationState === "fire" || player.animationState === "special" || player.animationState === "hit")
+      ) {
+        // Check if any movement keys are still pressed
+        const isMoving = player.controls.up || player.controls.down || player.controls.left || player.controls.right
+
+        // Set appropriate animation state
+        if (isMoving) {
+          player.animationState = "run"
+        } else {
+          player.animationState = "idle"
+        }
+        player.lastAnimationChange = Date.now()
+      }
     }
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -553,12 +575,65 @@ export default function GameController({
     const handleMouseUp = (e: MouseEvent) => {
       if (!gameStateRef.current.players[playerId]) return
 
+      const player = gameStateRef.current.players[playerId]
+
       if (e.button === 0) {
         // Left click release - fire arrow
-        gameStateRef.current.players[playerId].controls.shoot = false
+        player.controls.shoot = false
+
+        // Schedule transition back to run/idle after firing animation completes
+        if (player.animationState === "fire") {
+          // Clear any existing timeout for this player
+          if (animationTimeoutsRef.current[playerId]) {
+            clearTimeout(animationTimeoutsRef.current[playerId])
+          }
+
+          // Set a timeout to change animation state after a short delay
+          animationTimeoutsRef.current[playerId] = setTimeout(() => {
+            if (
+              gameStateRef.current.players[playerId] &&
+              gameStateRef.current.players[playerId].animationState === "fire" &&
+              !gameStateRef.current.players[playerId].isDrawingBow
+            ) {
+              // Check if player is moving
+              const isMoving =
+                player.controls.up || player.controls.down || player.controls.left || player.controls.right
+
+              // Set appropriate animation
+              gameStateRef.current.players[playerId].animationState = isMoving ? "run" : "idle"
+              gameStateRef.current.players[playerId].lastAnimationChange = Date.now()
+            }
+          }, 300) // Short delay to allow fire animation to complete
+        }
       } else if (e.button === 2) {
         // Right click release - fire special attack
-        gameStateRef.current.players[playerId].controls.special = false
+        player.controls.special = false
+
+        // Similar logic for special attack animation
+        if (player.animationState === "special" || player.animationState === "fire") {
+          // Clear any existing timeout for this player
+          if (animationTimeoutsRef.current[playerId]) {
+            clearTimeout(animationTimeoutsRef.current[playerId])
+          }
+
+          // Set a timeout to change animation state after a short delay
+          animationTimeoutsRef.current[playerId] = setTimeout(() => {
+            if (
+              gameStateRef.current.players[playerId] &&
+              (gameStateRef.current.players[playerId].animationState === "special" ||
+                gameStateRef.current.players[playerId].animationState === "fire") &&
+              !gameStateRef.current.players[playerId].isChargingSpecial
+            ) {
+              // Check if player is moving
+              const isMoving =
+                player.controls.up || player.controls.down || player.controls.left || player.controls.right
+
+              // Set appropriate animation
+              gameStateRef.current.players[playerId].animationState = isMoving ? "run" : "idle"
+              gameStateRef.current.players[playerId].lastAnimationChange = Date.now()
+            }
+          }, 300) // Short delay to allow special animation to complete
+        }
       }
     }
 
@@ -642,6 +717,12 @@ export default function GameController({
         requestAnimationFrameIdRef.current = null
         transitionDebugger.trackCleanup("GameController", "Animation Frame", true)
       }
+
+      // Clear all animation timeouts
+      Object.keys(animationTimeoutsRef.current).forEach((key) => {
+        clearTimeout(animationTimeoutsRef.current[key])
+      })
+      animationTimeoutsRef.current = {}
 
       // Remove all event listeners
       transitionDebugger.safeRemoveEventListener(`${componentIdRef.current}-game-keydown`)
