@@ -1,4 +1,3 @@
-import { Gamepad2, Target, Waves } from "lucide-react"
 import { gameRegistry } from "@/types/game-registry"
 import TopDownShooterGame from "./top-down-shooter"
 import LastStandGame from "./last-stand"
@@ -16,7 +15,7 @@ export function registerGames() {
       name: "Archer Arena",
       description: "A fast-paced top-down archery battle game",
       image: "/images/archer-game.png",
-      icon: <Target size={16} />,
+      iconName: "Target", // Use string identifier instead of JSX
       status: "live",
       minWager: 1,
       maxWager: 10,
@@ -42,7 +41,7 @@ export function registerGames() {
       name: "Archer Arena: Last Stand",
       description: "Fight waves of undead enemies in this survival archery game",
       image: "/images/last-stand.jpg",
-      icon: <Waves size={16} />,
+      iconName: "Waves", // Use string identifier instead of JSX
       status: "live",
       minWager: 0,
       maxWager: 10,
@@ -68,7 +67,7 @@ export function registerGames() {
       name: "Pixel Pool",
       description: "Classic 8-ball pool with pixel art graphics",
       image: "/images/pixel-art-pool.png",
-      icon: <Gamepad2 size={16} />,
+      iconName: "Gamepad2", // Use string identifier instead of JSX
       status: "coming-soon",
       minWager: 5,
       maxWager: 20,
