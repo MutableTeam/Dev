@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { useCyberpunkTheme } from "@/contexts/cyberpunk-theme-context"
-import { Cpu, Monitor } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { keyframes } from "@emotion/react"
 import styled from "@emotion/styled"
@@ -84,13 +83,8 @@ export function StyleSwitcher({ className, size = "default" }: StyleSwitcherProp
           className={cn("relative", size === "xs" ? "h-8 w-8 p-0" : size === "sm" ? "h-9 text-xs" : "h-10", className)}
           title={tooltipText}
         >
-          <Cpu
-            className={cn(
-              "transition-all",
-              size === "xs" ? "h-3 w-3" : size === "sm" ? "h-4 w-4 mr-2" : "h-5 w-5 mr-2",
-            )}
-          />
-          {size !== "xs" && <span>{buttonText}</span>}
+          {/* No icon */}
+          <span>{buttonText}</span>
         </CyberButton>
       ) : (
         <Button
@@ -100,13 +94,8 @@ export function StyleSwitcher({ className, size = "default" }: StyleSwitcherProp
           className={cn(className)}
           title={tooltipText}
         >
-          <Monitor
-            className={cn(
-              "transition-all",
-              size === "xs" ? "h-3 w-3" : size === "sm" ? "h-4 w-4 mr-2" : "h-5 w-5 mr-2",
-            )}
-          />
-          {size !== "xs" && <span>{buttonText}</span>}
+          {/* No icon */}
+          <span>{buttonText}</span>
         </Button>
       )}
     </>

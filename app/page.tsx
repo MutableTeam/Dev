@@ -13,7 +13,6 @@ import { Connection, clusterApiUrl } from "@solana/web3.js"
 import "@/styles/retro-arcade.css"
 import { initializeGoogleAnalytics } from "@/utils/analytics"
 import { StyleSwitcher } from "@/components/style-switcher"
-import { StyleTest } from "@/components/style-test"
 
 // Google Analytics Measurement ID
 const GA_MEASUREMENT_ID = "G-41DL97N287"
@@ -77,7 +76,6 @@ export default function Home() {
       <RetroArcadeBackground>
         <div className="max-w-6xl mx-auto p-4 md:p-8 z-10 relative">
           <DemoWatermark />
-          <StyleTest />
 
           {walletConnected && publicKey && (
             <div className="mt-16">

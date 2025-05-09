@@ -10,6 +10,7 @@ import { useCyberpunkTheme } from "@/contexts/cyberpunk-theme-context"
 import { Button } from "@/components/ui/button"
 import styled from "@emotion/styled"
 import { keyframes } from "@emotion/react"
+import { useEffect, useState } from "react"
 
 // Cyberpunk animations
 const cardHover = keyframes`
@@ -42,6 +43,9 @@ const CyberGameCard = styled(Card)`
   transition: all 0.3s ease;
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   
   &:hover {
     transform: translateY(-5px);
@@ -92,6 +96,7 @@ const CyberPlayButton = styled(Button)`
   overflow: hidden;
   transition: all 0.3s ease;
   text-shadow: none;
+  width: 100%;
   
   &:hover {
     transform: translateY(-2px);
@@ -132,35 +137,53 @@ interface GameSelectionProps {
 export default function GameSelection({ publicKey, balance, mutbBalance, onSelectGame }: GameSelectionProps) {
   const { styleMode } = useCyberpunkTheme()
   const isCyberpunk = styleMode === "cyberpunk"
+  const [games, setGames] = useState<any[]>([])
 
-  // Get all games from registry
-  const allGames = gameRegistry.getAllGames().map((game) => ({
-    id: game.config.id,
-    name: game.config.name,
-    description: game.config.description,
-    image: game.config.image,
-    icon: game.config.icon,
-    status: game.config.status,
-    minWager: game.config.minWager,
-  }))
+  useEffect(() => {
+    // Get all games from registry
+    const allGames = gameRegistry.getAllGames().map((game) => ({
+      id: game.config.id,
+      name: game.config.name,
+      description: game.config.description,
+      image: game.config.image,
+      icon: game.config.icon,
+      status: game.config.status,
+      minWager: game.config.minWager,
+      originalName: game.config.name, // Store original name for reference
+    }))
 
-  // Sort games: available games first, then put "Archer Arena: Last Stand" next to "Archer Arena"
-  const games = allGames.sort((a, b) => {
-    // First, sort by status (live games first)
-    if (a.status === "live" && b.status !== "live") return -1
-    if (a.status !== "live" && b.status === "live") return 1
+    // Modify the name for Archer Arena: Last Stand
+    const processedGames = allGames.map((game) => {
+      if (game.name === "Archer Arena: Last Stand") {
+        return {
+          ...game,
+          name: "AA: Last Stand",
+          description: "Archer Arena: Last Stand - " + game.description,
+        }
+      }
+      return game
+    })
 
-    // Then, ensure "Archer Arena: Last Stand" is next to "Archer Arena"
-    if (a.name === "Archer Arena" && b.name === "Archer Arena: Last Stand") return -1
-    if (a.name === "Archer Arena: Last Stand" && b.name === "Archer Arena") return 1
+    // Sort games: available games first, then put "AA: Last Stand" next to "Archer Arena"
+    const sortedGames = processedGames.sort((a, b) => {
+      // First, sort by status (live games first)
+      if (a.status === "live" && b.status !== "live") return -1
+      if (a.status !== "live" && b.status === "live") return 1
 
-    // Default sort by name
-    return a.name.localeCompare(b.name)
-  })
+      // Then, ensure "AA: Last Stand" is next to "Archer Arena"
+      if (a.name === "Archer Arena" && b.name === "AA: Last Stand") return -1
+      if (a.name === "AA: Last Stand" && b.name === "Archer Arena") return 1
+
+      // Default sort by name
+      return a.name.localeCompare(b.name)
+    })
+
+    setGames(sortedGames)
+  }, [])
 
   // Custom image override for Last Stand
   const getGameImage = (game) => {
-    if (game.name === "Archer Arena: Last Stand") {
+    if (game.originalName === "Archer Arena: Last Stand" || game.name === "AA: Last Stand") {
       return "/images/last-stand.jpg"
     }
     return game.image || "/placeholder.svg"
@@ -216,7 +239,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {games.map((game) =>
             isCyberpunk ? (
-              <CyberGameCard key={game.id}>
+              <CyberGameCard key={game.id} className="flex flex-col h-[420px]">
                 <div className="relative">
                   <Image
                     src={getGameImage(game) || "/placeholder.svg"}
@@ -247,9 +270,10 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="p-3 mt-auto">
+                <div className="mt-auto"></div>
+                <CardFooter className="p-3">
                   <CyberPlayButton
-                    className="w-full cyber-play-button"
+                    className="cyber-play-button"
                     disabled={game.status !== "live"}
                     onClick={() => handleGameSelect(game.id)}
                   >
@@ -260,7 +284,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
             ) : (
               <Card
                 key={game.id}
-                className={`border-2 ${game.status === "live" ? "border-black" : "border-gray-300"} overflow-hidden flex flex-col h-full`}
+                className={`border-2 ${game.status === "live" ? "border-black" : "border-gray-300"} overflow-hidden flex flex-col h-[420px]`}
               >
                 <div className="relative">
                   <Image
@@ -294,7 +318,8 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="p-3 mt-auto">
+                <div className="mt-auto"></div>
+                <CardFooter className="p-3">
                   <SoundButton
                     className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
                     disabled={game.status !== "live"}
