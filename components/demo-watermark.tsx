@@ -9,7 +9,6 @@ export default function DemoWatermark() {
   const [mounted, setMounted] = useState(false)
 
   // Use a portal to render the component at the root level of the DOM
-  // This ensures it's not affected by parent container stacking contexts
   useEffect(() => {
     setMounted(true)
     return () => setMounted(false)
@@ -21,9 +20,9 @@ export default function DemoWatermark() {
       style={{
         maxWidth: expanded ? "450px" : "350px",
         width: expanded ? "auto" : "auto",
-        pointerEvents: "auto", // Explicitly enable pointer events
-        position: "fixed", // Reinforce fixed positioning
-        isolation: "isolate", // Create a new stacking context
+        pointerEvents: "auto",
+        position: "fixed",
+        isolation: "isolate",
       }}
       onClick={() => setExpanded(!expanded)}
       onMouseEnter={() => setExpanded(true)}

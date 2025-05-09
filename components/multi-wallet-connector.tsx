@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-// Import the Laptop icon at the top of the file with the other imports
 import { Copy, Check, Wallet, TestTube, ChevronUp, ChevronDown } from "lucide-react"
 import { Connection, clusterApiUrl, PublicKey } from "@solana/web3.js"
 import Image from "next/image"
@@ -12,6 +11,212 @@ import SoundButton from "./sound-button"
 import { audioManager, playIntroSound, initializeAudio, loadAudioFiles } from "@/utils/audio-manager"
 import { ThemeToggle } from "./theme-toggle"
 import { SOL_TOKEN, MUTB_TOKEN } from "@/config/token-registry"
+
+// Add this after the existing imports
+import { keyframes } from "@emotion/react"
+import styled from "@emotion/styled"
+
+// Add these styled components and keyframes after the imports and before the component definition
+const pulse = keyframes`
+  0% {
+    filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.7));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 25px rgba(255, 0, 255, 0.7));
+  }
+  100% {
+    filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.9));
+    transform: scale(1.05);
+  }
+`
+
+const controllerGlitch = keyframes`
+  0%, 90%, 100% { opacity: 0; transform: translate(0); }
+  92% { opacity: 0.3; transform: translate(-5px, 3px); }
+  94% { opacity: 0; transform: translate(0); }
+  96% { opacity: 0.3; transform: translate(5px, -3px); }
+  98% { opacity: 0; transform: translate(0); }
+`
+
+const blinkKeyframes = keyframes`
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.5; }
+`
+
+// Add this CSS block right before the MultiWalletConnectorProps interface
+const StyledImage = styled(Image)`
+  filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.7));
+  animation: ${pulse} 3s infinite alternate;
+  transform-origin: center;
+  transition: all 0.3s ease;
+  margin: 0 auto;
+
+  .controller-container:hover & {
+    filter: drop-shadow(0 0 25px rgba(0, 255, 255, 1));
+    transform: scale(1.08);
+  }
+
+  .controller-container:active & {
+    transform: scale(0.95);
+    filter: drop-shadow(0 0 15px rgba(255, 0, 255, 1));
+  }
+`
+
+const ControllerContainer = styled.div`
+  position: relative;
+  margin: 0 auto;
+  text-align: center;
+  max-width: 400px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+`
+
+const ControllerGlitch = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+  background-image: url('/images/mutable-logo-transparent.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0;
+  filter: hue-rotate(30deg) brightness(1.2);
+  animation: ${controllerGlitch} 5s infinite;
+  z-index: 5;
+`
+
+const CyberpunkCard = styled(Card)`
+  background: linear-gradient(135deg, rgba(16, 16, 48, 0.9) 0%, rgba(32, 16, 64, 0.9) 100%);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.2), inset 0 0 10px rgba(255, 0, 255, 0.1);
+  backdrop-filter: blur(5px);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 48%, rgba(0, 255, 255, 0.1) 50%, transparent 52%);
+    background-size: 200% 200%;
+    animation: shine 8s infinite linear;
+    z-index: 0;
+  }
+
+  @keyframes shine {
+    0% { background-position: 200% 0; }
+    100% { background-position: 0 200%; }
+  }
+`
+
+const CyberpunkCardHeader = styled(CardHeader)`
+  border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+  background: rgba(16, 16, 48, 0.7);
+  position: relative;
+  z-index: 1;
+`
+
+const CyberpunkCardTitle = styled(CardTitle)`
+  color: #0ff;
+  text-shadow: 0 0 5px rgba(0, 255, 255, 0.7);
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 1rem;
+  letter-spacing: 1px;
+`
+
+const CyberpunkCardContent = styled(CardContent)`
+  position: relative;
+  z-index: 1;
+`
+
+const CyberpunkCardFooter = styled(CardFooter)`
+  border-top: 1px solid rgba(0, 255, 255, 0.3);
+  background: rgba(16, 16, 48, 0.7);
+  position: relative;
+  z-index: 1;
+`
+
+const CyberpunkButton = styled(SoundButton)`
+  background: linear-gradient(90deg, #0ff 0%, #f0f 100%);
+  color: #000;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  text-shadow: none;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+    background: linear-gradient(90deg, #0ff 20%, #f0f 80%);
+  }
+  
+  &:active {
+    transform: translateY(1px);
+  }
+`
+
+const GridBackground = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  transform: perspective(500px) rotateX(60deg);
+  transform-origin: center bottom;
+  opacity: 0.3;
+  z-index: 0;
+`
+
+const CyberpunkBadge = styled(Badge)`
+  background: linear-gradient(90deg, rgba(0, 255, 255, 0.2) 0%, rgba(255, 0, 255, 0.2) 100%);
+  border: 1px solid rgba(0, 255, 255, 0.5);
+  color: #0ff;
+  text-shadow: 0 0 5px rgba(0, 255, 255, 0.7);
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  padding: 0.2rem 0.5rem;
+`
+
+const TestModeButton = styled(CyberpunkButton)`
+  background: linear-gradient(90deg, #f0f 0%, #b300b3 100%);
+  
+  &:hover {
+    background: linear-gradient(90deg, #f0f 20%, #b300b3 80%);
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.7);
+  }
+`
+
+const TestModeBadge = styled(CyberpunkBadge)`
+  background: linear-gradient(90deg, rgba(255, 0, 255, 0.2) 0%, rgba(179, 0, 179, 0.2) 100%);
+  border: 1px solid rgba(255, 0, 255, 0.5);
+  color: #f0f;
+  text-shadow: 0 0 5px rgba(255, 0, 255, 0.7);
+`
 
 // Define types for Phantom wallet
 type PhantomEvent = "connect" | "disconnect" | "accountChanged"
@@ -464,10 +669,10 @@ export default function MultiWalletConnector({
   // Render the collapsed wallet view when connected
   const renderCollapsedWallet = () => {
     return (
-      <div className="flex items-center justify-between bg-gradient-to-r from-amber-200 to-amber-300 dark:from-slate-700 dark:to-slate-600 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 shadow-md border-2 border-amber-400 dark:border-slate-500 ml-auto">
+      <div className="flex items-center justify-between bg-gradient-to-r from-[#0a0a24]/80 to-[#1a1a4a]/80 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 shadow-md border border-[#0ff]/50 ml-auto backdrop-blur-sm">
         <div className="flex items-center gap-1 sm:gap-2">
           {isTestMode ? (
-            <div className="bg-purple-600 dark:bg-purple-500 p-1 rounded-full">
+            <div className="bg-[#f0f]/80 p-1 rounded-full">
               <TestTube className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
             </div>
           ) : (
@@ -479,13 +684,13 @@ export default function MultiWalletConnector({
               className="rounded-full w-3 h-3 sm:w-4 sm:h-4"
             />
           )}
-          <span className="text-[10px] xs:text-xs font-mono font-bold dark:text-white">
+          <span className="text-[10px] xs:text-xs font-mono font-bold text-[#0ff]">
             {shortenAddress(getWalletAddress())}
           </span>
           <div className="flex items-center gap-1">
-            <Badge
+            <CyberpunkBadge
               variant="outline"
-              className="bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/50 dark:text-blue-100 dark:border-blue-600 font-mono text-[8px] xs:text-xs px-1 py-0 h-4 sm:h-5 font-bold badge flex items-center gap-1"
+              className="font-mono text-[8px] xs:text-xs px-1 py-0 h-4 sm:h-5 font-bold badge flex items-center gap-1"
             >
               <Image
                 src={MUTB_TOKEN.logoURI || "/placeholder.svg"}
@@ -495,7 +700,7 @@ export default function MultiWalletConnector({
                 className="rounded-full w-2 h-2 sm:w-3 sm:h-3"
               />
               {isTestMode ? "100.0 MUTB" : mutbBalance !== null ? `${mutbBalance} MUTB` : "..."}
-            </Badge>
+            </CyberpunkBadge>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -503,7 +708,7 @@ export default function MultiWalletConnector({
           <SoundButton
             variant="ghost"
             size="icon"
-            className="h-5 w-5 sm:h-6 sm:w-6 hover:bg-amber-400/70 dark:hover:bg-slate-500/70 rounded-full"
+            className="h-5 w-5 sm:h-6 sm:w-6 hover:bg-[#0ff]/20 rounded-full text-[#0ff]"
             onClick={toggleCollapse}
           >
             <ChevronDown className="h-2 w-2 sm:h-3 sm:w-3" />
@@ -517,17 +722,17 @@ export default function MultiWalletConnector({
   return (
     <div className={`${compact && connected ? "flex justify-end w-full" : "space-y-6"} ${className}`}>
       {!connected && !compact && (
-        <div className="logo-container mb-2 sm:mb-6">
-          <div className="logo-pulse"></div>
-          <Image
+        <ControllerContainer className="controller-container mb-2 sm:mb-6">
+          <ControllerGlitch aria-hidden="true" />
+          <StyledImage
             src="/images/mutable-logo-transparent.png"
             alt="Mutable Logo"
             width={200}
             height={120}
-            className="w-auto h-auto max-w-[200px] animated-logo z-10"
+            className="w-auto h-auto max-w-[200px] z-10"
             style={{ opacity: 1 }}
           />
-        </div>
+        </ControllerContainer>
       )}
 
       {connected && isCollapsed && compact ? (
@@ -535,45 +740,46 @@ export default function MultiWalletConnector({
         <div className="wallet-compact-header wallet-foreground-element">{renderCollapsedWallet()}</div>
       ) : (
         // Regular card view
-        <Card className={`${compact ? "w-full" : "w-full max-w-md mx-auto"} arcade-card wallet-card-foreground`}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CyberpunkCard className={`${compact ? "w-full" : "w-full max-w-md mx-auto"} relative overflow-hidden`}>
+          <GridBackground />
+          <CyberpunkCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-2">
-              <Wallet className="h-5 w-5 dark:text-gray-300" />
-              <CardTitle className="font-mono dark:text-white">SOLANA WALLET</CardTitle>
+              <Wallet className="h-5 w-5 text-[#0ff]" />
+              <CyberpunkCardTitle>SOLANA WALLET</CyberpunkCardTitle>
             </div>
             <div className="flex items-center gap-2">
               {connected && !isCollapsed && (
-                <SoundButton variant="ghost" size="icon" className="h-8 w-8" onClick={toggleCollapse}>
+                <SoundButton
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-[#0ff] hover:text-[#0ff]/80 hover:bg-[#0ff]/10"
+                  onClick={toggleCollapse}
+                >
                   <ChevronUp className="h-4 w-4" />
                 </SoundButton>
               )}
             </div>
-          </CardHeader>
+          </CyberpunkCardHeader>
 
           {connected && isCollapsed ? (
-            <CardContent className="pt-4">{renderCollapsedWallet()}</CardContent>
+            <CyberpunkCardContent className="pt-4">{renderCollapsedWallet()}</CyberpunkCardContent>
           ) : (
             <>
               {!connected && (
-                <CardDescription className="px-6 dark:text-gray-300">
+                <CardDescription className="px-6 text-[#0ff] mt-2">
                   Connect your Solana wallet to use Mutable
                 </CardDescription>
               )}
-              <CardContent className="space-y-4">
+              <CyberpunkCardContent className="space-y-4 text-[#0ff]">
                 {connected ? (
                   <>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium dark:text-gray-300">Wallet:</span>
+                      <span className="text-sm font-medium">Wallet:</span>
                       <div className="flex items-center gap-2">
                         {isTestMode ? (
                           <>
-                            <TestTube className="h-5 w-5 text-purple-500 dark:text-purple-400" />
-                            <Badge
-                              variant="outline"
-                              className="bg-purple-100 text-purple-800 border-2 border-purple-300 font-mono dark:bg-purple-900/30 dark:text-purple-200 dark:border-purple-700"
-                            >
-                              TEST MODE
-                            </Badge>
+                            <TestTube className="h-5 w-5 text-[#f0f]" />
+                            <TestModeBadge variant="outline">TEST MODE</TestModeBadge>
                           </>
                         ) : (
                           <>
@@ -586,27 +792,27 @@ export default function MultiWalletConnector({
                               height={20}
                               className="rounded-full"
                             />
-                            <Badge
-                              variant="outline"
-                              className="bg-[#FFD54F] text-black border-2 border-black font-mono dark:bg-[#D4AF37] dark:border-gray-700 dark:text-black"
-                            >
-                              {activeWallet?.toUpperCase()}
-                            </Badge>
+                            <CyberpunkBadge variant="outline">{activeWallet?.toUpperCase()}</CyberpunkBadge>
                           </>
                         )}
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium dark:text-gray-300">Address:</span>
+                      <span className="text-sm font-medium">Address:</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-mono dark:text-white">{shortenAddress(getWalletAddress())}</span>
-                        <SoundButton variant="ghost" size="icon" className="h-8 w-8" onClick={copyAddress}>
+                        <span className="text-sm font-mono">{shortenAddress(getWalletAddress())}</span>
+                        <SoundButton
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-[#0ff] hover:text-[#0ff]/80 hover:bg-[#0ff]/10"
+                          onClick={copyAddress}
+                        >
                           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                         </SoundButton>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium dark:text-gray-300">Balances:</span>
+                      <span className="text-sm font-medium">Balances:</span>
                       <div className="flex flex-col gap-1 items-end">
                         <div className="flex items-center gap-2">
                           <Image
@@ -617,9 +823,9 @@ export default function MultiWalletConnector({
                             className="rounded-full"
                           />
                           {balance !== null ? (
-                            <span className="font-mono dark:text-white">{balance} SOL</span>
+                            <span className="font-mono">{balance} SOL</span>
                           ) : (
-                            <Skeleton className="h-4 w-20 dark:bg-gray-700" />
+                            <Skeleton className="h-4 w-20 bg-[#0ff]/10" />
                           )}
                         </div>
                         <div className="flex items-center gap-2">
@@ -631,15 +837,15 @@ export default function MultiWalletConnector({
                             className="rounded-full"
                           />
                           {mutbBalance !== null ? (
-                            <span className="font-mono dark:text-white">{mutbBalance} MUTB</span>
+                            <span className="font-mono">{mutbBalance} MUTB</span>
                           ) : (
-                            <Skeleton className="h-4 w-20 dark:bg-gray-700" />
+                            <Skeleton className="h-4 w-20 bg-[#0ff]/10" />
                           )}
                         </div>
                       </div>
                     </div>
                     {isTestMode && (
-                      <div className="bg-purple-50 p-3 rounded-md border border-purple-200 text-sm text-purple-800 dark:bg-purple-900/30 dark:border-purple-800 dark:text-purple-200">
+                      <div className="bg-[#f0f]/10 p-3 rounded-md border border-[#f0f]/30 text-sm text-[#f0f]">
                         <p className="font-medium mb-1">Test Mode Active</p>
                         <p>You're using a simulated wallet for testing. No real transactions will be made.</p>
                       </div>
@@ -648,21 +854,27 @@ export default function MultiWalletConnector({
                 ) : (
                   <div className="py-2">
                     <div className="grid grid-cols-1 gap-3">
-                      {wallets.map((wallet) => (
-                        <SoundButton
-                          key={wallet.type}
-                          onClick={() => connectWallet(wallet.type)}
-                          disabled={loading || (wallet.type !== "test" && !wallet.available)}
-                          className={`w-full border-2 text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.7)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.7)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono justify-start h-12 font-bold ${
-                            wallet.type === "test"
-                              ? "bg-purple-200 hover:bg-purple-300 border-purple-400 dark:bg-purple-800/70 dark:text-purple-50 dark:border-purple-600 dark:hover:bg-purple-700/70"
-                              : "bg-[#FFE066] hover:bg-[#FFD54F] border-black dark:bg-[#E6C244] dark:border-gray-700 dark:hover:bg-[#D4AF37] dark:text-black"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            {wallet.type === "test" ? (
+                      {wallets.map((wallet) =>
+                        wallet.type === "test" ? (
+                          <TestModeButton
+                            key={wallet.type}
+                            onClick={() => connectWallet(wallet.type)}
+                            disabled={loading}
+                            className="w-full justify-start h-12 font-bold"
+                          >
+                            <div className="flex items-center gap-2 z-10 relative">
                               <TestTube className="h-5 w-5" />
-                            ) : (
+                              <span>{wallet.name}</span>
+                            </div>
+                          </TestModeButton>
+                        ) : (
+                          <CyberpunkButton
+                            key={wallet.type}
+                            onClick={() => connectWallet(wallet.type)}
+                            disabled={loading || !wallet.available}
+                            className="w-full justify-start h-12 font-bold"
+                          >
+                            <div className="flex items-center gap-2 z-10 relative">
                               <Image
                                 src={wallet.icon || "/placeholder.svg"}
                                 alt={wallet.name}
@@ -670,28 +882,28 @@ export default function MultiWalletConnector({
                                 height={24}
                                 className="rounded-full"
                               />
-                            )}
-                            <span>{wallet.name}</span>
-                            {wallet.type !== "test" && !wallet.available && (
-                              <span className="text-xs ml-auto font-bold dark:text-gray-300">(Not Detected)</span>
-                            )}
-                          </div>
-                        </SoundButton>
-                      ))}
+                              <span>{wallet.name}</span>
+                              {!wallet.available && (
+                                <span className="text-xs ml-auto font-bold opacity-70">(Not Detected)</span>
+                              )}
+                            </div>
+                          </CyberpunkButton>
+                        ),
+                      )}
                     </div>
                   </div>
                 )}
-              </CardContent>
-              <CardFooter>
+              </CyberpunkCardContent>
+              <CyberpunkCardFooter>
                 {!connected ? (
-                  <div className="text-center w-full text-sm text-muted-foreground dark:text-gray-400">
+                  <div className="text-center w-full text-sm text-[#0ff]/80">
                     <p>Don't have a Solana wallet?</p>
                     <div className="flex justify-center gap-4 mt-2">
                       <a
                         href="https://phantom.app/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline dark:text-blue-400"
+                        className="text-[#0ff] hover:text-[#0ff]/80 hover:underline"
                       >
                         Get Phantom
                       </a>
@@ -699,30 +911,37 @@ export default function MultiWalletConnector({
                         href="https://solflare.com/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline dark:text-blue-400"
+                        className="text-[#0ff] hover:text-[#0ff]/80 hover:underline"
                       >
                         Get Solflare
                       </a>
                     </div>
                   </div>
-                ) : (
-                  <SoundButton
+                ) : isTestMode ? (
+                  <TestModeButton
                     variant="outline"
-                    className={`w-full border-2 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.5)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono ${
-                      isTestMode
-                        ? "border-purple-300 hover:bg-purple-100 dark:border-purple-700 dark:hover:bg-purple-900/50 dark:text-purple-100"
-                        : "border-black hover:bg-[#FFD54F] dark:border-gray-700 dark:hover:bg-[#D4AF37] dark:text-white"
-                    }`}
+                    className="w-full bg-[#f0f]/10 border-[#f0f]/30 hover:bg-[#f0f]/20"
                     onClick={disconnectWallet}
                   >
-                    DISCONNECT
-                  </SoundButton>
+                    <span className="relative z-10">DISCONNECT</span>
+                  </TestModeButton>
+                ) : (
+                  <CyberpunkButton
+                    variant="outline"
+                    className="w-full bg-[#0ff]/10 border-[#0ff]/30 hover:bg-[#0ff]/20"
+                    onClick={disconnectWallet}
+                  >
+                    <span className="relative z-10">DISCONNECT</span>
+                  </CyberpunkButton>
                 )}
-              </CardFooter>
+              </CyberpunkCardFooter>
             </>
           )}
-        </Card>
+        </CyberpunkCard>
       )}
     </div>
   )
 }
+
+// Add a named export at the end of the file
+export { MultiWalletConnector }

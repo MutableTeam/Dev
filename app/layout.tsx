@@ -1,39 +1,31 @@
 import type React from "react"
-import "./globals.css"
-import "../styles/ios-dark-mode.css"
-import "../styles/ios-dark-mode-overrides.css"
-import "@/styles/game-container.css"
-import "@/styles/promo-watermark.css"
-import "@/styles/wallet-connector.css"
 import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { GameProvider } from "@/contexts/game-context"
-import { IOSDarkModeFix } from "@/components/ios-dark-mode-fix"
-import IOSDarkModeScript from "./ios-dark-mode-script"
-import { inter, pressStart2P } from "./fonts"
+import { CyberpunkThemeProvider } from "@/contexts/cyberpunk-theme-context"
+
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "MutableDev Game Platform",
-  description: "A modular game platform for web3 games",
-  generator: "v0.dev",
+  title: "Mutable Platform",
+  description: "Web3 Gaming Platform on Solana",
+    generator: 'v0.dev'
 }
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
-    <html lang="en" className={`${inter.variable} ${pressStart2P.variable}`}>
-      <head>
-        <meta name="color-scheme" content="light dark" />
-      </head>
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <IOSDarkModeScript />
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-          <IOSDarkModeFix />
-          <GameProvider>{children}</GameProvider>
-        </ThemeProvider>
+        <CyberpunkThemeProvider>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+            {children}
+          </ThemeProvider>
+        </CyberpunkThemeProvider>
       </body>
     </html>
   )
