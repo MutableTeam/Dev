@@ -39,9 +39,21 @@ export function CyberpunkThemeProvider({ children }: { children: React.ReactNode
 
     // Apply global CSS variables for cyberpunk mode
     if (styleMode === "cyberpunk") {
-      document.documentElement.classList.add("cyberpunk-mode")
+      document.documentElement.classList.add("cyberpunk-theme")
+      document.body.style.backgroundColor = "#000"
+      document.body.style.color = "rgb(224, 255, 255)"
+
+      // Force all cards to use cyberpunk styling
+      const cards = document.querySelectorAll(".card, .arcade-card")
+      cards.forEach((card) => {
+        ;(card as HTMLElement).style.backgroundColor = "rgba(0, 0, 0, 0.8)"
+        ;(card as HTMLElement).style.borderColor = "rgba(6, 182, 212, 0.5)"
+        ;(card as HTMLElement).style.color = "rgb(224, 255, 255)"
+      })
     } else {
-      document.documentElement.classList.remove("cyberpunk-mode")
+      document.documentElement.classList.remove("cyberpunk-theme")
+      document.body.style.removeProperty("background-color")
+      document.body.style.removeProperty("color")
     }
   }, [styleMode])
 

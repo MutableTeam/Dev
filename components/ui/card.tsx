@@ -120,7 +120,7 @@ const glitchAnim2 = keyframes`
 // Styled components for cyberpunk mode
 const CyberCardHeader = styled.div`
   border-bottom: 1px solid rgba(0, 255, 255, 0.3);
-  background: rgba(16, 16, 48, 0.7);
+  background: rgba(16, 16, 48, 0.7) !important;
   position: relative;
   z-index: 1;
   padding: 1.5rem;
@@ -160,6 +160,7 @@ const CyberCardContent = styled.div`
   z-index: 1;
   padding: 1.5rem;
   padding-top: 1rem;
+  background: transparent !important;
   
   /* Glitch effect */
   &::before {
@@ -244,7 +245,15 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
     return (
       <div
         ref={ref}
-        className={cn("rounded-lg border bg-card text-card-foreground shadow-sm cyberpunk-card", className)}
+        className={cn(
+          "rounded-lg border !bg-black/80 !text-cyan-100 shadow-sm cyberpunk-card !border-cyan-500/50",
+          className,
+        )}
+        style={{
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          color: "rgb(224, 255, 255)",
+          borderColor: "rgba(6, 182, 212, 0.5)",
+        }}
         {...props}
       >
         <GridBackground />

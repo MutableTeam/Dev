@@ -55,8 +55,8 @@ const imageGlow = keyframes`
 `
 
 const CyberGameCard = styled(Card)`
-  background: rgba(16, 16, 48, 0.8);
-  border: 1px solid rgba(0, 255, 255, 0.3);
+  background: rgba(16, 16, 48, 0.8) !important;
+  border: 1px solid rgba(0, 255, 255, 0.3) !important;
   transition: all 0.3s ease;
   overflow: hidden;
   position: relative;
@@ -283,7 +283,15 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
   }
 
   return (
-    <Card className={isCyberpunk ? "" : "bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"}>
+    <Card
+      className={
+        isCyberpunk
+          ? "!bg-black/80 !border-cyan-500/50"
+          : "bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+      }
+      style={isCyberpunk ? { backgroundColor: "rgba(0, 0, 0, 0.8)", borderColor: "rgba(6, 182, 212, 0.5)" } : {}}
+      data-game="archer-arena"
+    >
       <CardHeader className={isMobile ? "p-4" : undefined}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

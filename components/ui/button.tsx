@@ -55,6 +55,222 @@ const buttonShine = keyframes`
   }
 `
 
+// Glitch effect animations
+const glitchAnim = keyframes`
+  0%, 100% {
+    transform: translate(0);
+    text-shadow: -0.5px 0 #ff00de, 0.5px 0.5px #00ffff;
+  }
+  5% {
+    transform: translate(-1px, 0) skew(1deg);
+    text-shadow: -0.5px 0 #ff00de, 0.5px 0.5px #00ffff;
+  }
+  10% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: -0.5px 0 #ff00de, 0.5px 0.5px #00ffff;
+  }
+  15% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: 0.5px 0.5px #ff00de, -0.5px -0.5px #00ffff;
+  }
+  20% {
+    transform: translate(1px, -1px) skew(-1deg);
+    text-shadow: 0.5px 0.5px #ff00de, -0.5px -0.5px #00ffff;
+  }
+  25% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: 0.5px 0.5px #ff00de, -0.5px -0.5px #00ffff;
+  }
+  30% {
+    transform: translate(-1px, 0) skew(1deg);
+    text-shadow: -0.5px 0 #ff00de, 0.5px 0.5px #00ffff;
+  }
+  35% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: -0.5px 0 #ff00de, 0.5px 0.5px #00ffff;
+  }
+  40% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: 0 0 transparent, 0 0 transparent;
+  }
+  45% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: 0 0 transparent, 0 0 transparent;
+  }
+  50% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: 0 0 transparent, 0 0 transparent;
+  }
+  55% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: 0 0 transparent, 0 0 transparent;
+  }
+  60% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: 0 0 transparent, 0 0 transparent;
+  }
+  65% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: 0 0 transparent, 0 0 transparent;
+  }
+  70% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: 0 0 transparent, 0 0 transparent;
+  }
+  75% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: 0 0 transparent, 0 0 transparent;
+  }
+  80% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: 0 0 transparent, 0 0 transparent;
+  }
+  85% {
+    transform: translate(-1px, 0) skew(1deg);
+    text-shadow: -0.5px 0 #ff00de, 0.5px 0.5px #00ffff;
+  }
+  90% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: -0.5px 0 #ff00de, 0.5px 0.5px #00ffff;
+  }
+  95% {
+    transform: translate(0, 0) skew(0deg);
+    text-shadow: 0 0 transparent, 0 0 transparent;
+  }
+`
+
+// Replace the glitchClip keyframes with this more subtle version
+const glitchClip = keyframes`
+  0%, 100% {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  10% {
+    clip-path: polygon(0 5%, 100% 5%, 100% 95%, 0 95%);
+  }
+  20% {
+    clip-path: polygon(0 10%, 100% 10%, 100% 90%, 0 90%);
+  }
+  30% {
+    clip-path: polygon(0 10%, 100% 10%, 100% 90%, 0 90%);
+  }
+  40% {
+    clip-path: polygon(0 15%, 100% 15%, 100% 85%, 0 85%);
+  }
+  50% {
+    clip-path: polygon(0 10%, 100% 10%, 100% 90%, 0 90%);
+  }
+  60% {
+    clip-path: polygon(0 5%, 100% 5%, 100% 95%, 0 95%);
+  }
+  70% {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+`
+
+// Button shape glitch animation
+const buttonGlitch = keyframes`
+  0%, 100% {
+    transform: translate(0);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  7% {
+    transform: translate(-2px, 0);
+    clip-path: polygon(0 0, 100% 0, 98% 100%, 0 100%);
+  }
+  8% {
+    transform: translate(0, 0);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  9% {
+    transform: translate(2px, -2px);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 2% 100%);
+  }
+  10% {
+    transform: translate(0, 0);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  13% {
+    transform: translate(0, 0);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  14% {
+    transform: translate(-2px, 0);
+    clip-path: polygon(0 0, 97% 0, 100% 100%, 3% 100%);
+  }
+  15% {
+    transform: translate(0, 0);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  40% {
+    transform: translate(0, 0);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  41% {
+    transform: translate(3px, 1px);
+    clip-path: polygon(0 0, 100% 0, 97% 100%, 3% 100%);
+  }
+  42% {
+    transform: translate(0, 0);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  43% {
+    transform: translate(-3px, 0);
+    clip-path: polygon(3% 0, 100% 0, 97% 100%, 0 100%);
+  }
+  44% {
+    transform: translate(0, 0);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  73% {
+    transform: translate(0, 0);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  74% {
+    transform: translate(2px, 1px);
+    clip-path: polygon(0 0, 97% 0, 100% 100%, 3% 100%);
+  }
+  75% {
+    transform: translate(0, 0);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+`
+
+const flashGlitch = keyframes`
+  0%, 100% {
+    background: linear-gradient(90deg, #0ff 0%, #f0f 100%);
+  }
+  8% {
+    background: linear-gradient(90deg, #f0f 10%, #0ff 90%);
+  }
+  9% {
+    background: linear-gradient(90deg, #0ff 0%, #f0f 100%);
+  }
+  10% {
+    background: linear-gradient(270deg, #0ff 0%, #f0f 100%);
+  }
+  11% {
+    background: linear-gradient(90deg, #0ff 0%, #f0f 100%);
+  }
+  41% {
+    background: linear-gradient(90deg, #0ff 0%, #f0f 100%);
+  }
+  42% {
+    background: linear-gradient(90deg, #f0f 20%, #0ff 80%);
+  }
+  43% {
+    background: linear-gradient(90deg, #0ff 0%, #f0f 100%);
+  }
+  74% {
+    background: linear-gradient(90deg, #0ff 0%, #f0f 100%);
+  }
+  75% {
+    background: linear-gradient(270deg, #0ff 10%, #f0f 90%);
+  }
+  76% {
+    background: linear-gradient(90deg, #0ff 0%, #f0f 100%);
+  }
+`
+
 // Styled components for cyberpunk buttons
 const CyberButtonPrimary = styled.button`
   background: linear-gradient(90deg, #0ff 0%, #f0f 100%);
@@ -69,13 +285,50 @@ const CyberButtonPrimary = styled.button`
   transition: all 0.3s ease;
   text-shadow: none;
   border-radius: 0.375rem;
-  margin-top: 0; /* Position at top */
-  align-self: flex-start; /* Aligns to left in flex containers */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
   
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
-    background: linear-gradient(90deg, #0ff 20%, #f0f 80%);
+    animation: ${buttonGlitch} 4s infinite, ${flashGlitch} 4s infinite;
+    
+    & > span {
+      animation: ${glitchAnim} 8s infinite;
+    }
+    
+    &::before, &::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, #0ff 0%, #f0f 100%);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.3;
+    }
+    
+    &::before {
+      left: 1px;
+      text-shadow: -0.5px 0 #ff00de;
+      animation: ${glitchClip} 8s infinite linear alternate-reverse;
+      background: linear-gradient(90deg, #0ff 20%, #f0f 80%);
+      clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+    }
+    
+    &::after {
+      left: -1px;
+      text-shadow: 0.5px 0 #00ffff;
+      animation: ${glitchClip} 8s infinite linear alternate-reverse;
+      background: linear-gradient(90deg, #0ff 20%, #f0f 80%);
+      clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+    }
   }
   
   &:active {
@@ -97,6 +350,12 @@ const CyberButtonPrimary = styled.button`
     );
     animation: ${buttonShine} 3s infinite linear;
     z-index: 1;
+  }
+  
+  /* Ensure button content is above the shine effect */
+  & > * {
+    position: relative;
+    z-index: 2;
   }
 `
 
@@ -269,19 +528,30 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       const disabledClass = props.disabled ? "opacity-50 pointer-events-none" : ""
       const combinedClassName = `${sizeClasses} ${disabledClass} ${className || ""}`
 
+      // Add data-text attribute for glitch effect
+      const buttonText = typeof props.children === "string" ? props.children : ""
+      const dataTextProps = buttonText ? { "data-text": buttonText } : {}
+
+      // Wrap children in span for text glitch
+      const wrappedChildren = <span>{props.children}</span>
+
       switch (variant) {
         case "outline":
-          return <CyberButtonOutline ref={ref} className={combinedClassName} {...props} />
+          return <CyberButtonOutline ref={ref} className={combinedClassName} {...dataTextProps} {...props} />
         case "secondary":
-          return <CyberButtonSecondary ref={ref} className={combinedClassName} {...props} />
+          return <CyberButtonSecondary ref={ref} className={combinedClassName} {...dataTextProps} {...props} />
         case "ghost":
-          return <CyberButtonGhost ref={ref} className={combinedClassName} {...props} />
+          return <CyberButtonGhost ref={ref} className={combinedClassName} {...dataTextProps} {...props} />
         case "destructive":
-          return <CyberButtonDestructive ref={ref} className={combinedClassName} {...props} />
+          return <CyberButtonDestructive ref={ref} className={combinedClassName} {...dataTextProps} {...props} />
         case "gradient":
-          return <CyberButtonGradient ref={ref} className={combinedClassName} {...props} />
+          return <CyberButtonGradient ref={ref} className={combinedClassName} {...dataTextProps} {...props} />
         default:
-          return <CyberButtonPrimary ref={ref} className={combinedClassName} {...props} />
+          return (
+            <CyberButtonPrimary ref={ref} className={combinedClassName} {...dataTextProps} {...props}>
+              {wrappedChildren}
+            </CyberButtonPrimary>
+          )
       }
     }
 

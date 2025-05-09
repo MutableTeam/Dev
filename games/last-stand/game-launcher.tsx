@@ -12,12 +12,14 @@ import { withClickSound } from "@/utils/sound-utils"
 import { useToast } from "@/hooks/use-toast"
 import { GameContainer } from "@/components/game-container"
 import GamePopOutContainer from "@/components/game-pop-out-container"
+import { cn } from "@/lib/utils"
 
 interface LastStandGameLauncherProps {
   publicKey: string
   playerName: string
   mutbBalance: number
   onExit: () => void
+  isCyberpunk?: boolean
 }
 
 export default function LastStandGameLauncher({
@@ -25,6 +27,7 @@ export default function LastStandGameLauncher({
   playerName,
   mutbBalance,
   onExit,
+  isCyberpunk,
 }: LastStandGameLauncherProps) {
   const [selectedMode, setSelectedMode] = useState<string | null>(null)
   const [gameStarted, setGameStarted] = useState(false)
@@ -101,7 +104,14 @@ export default function LastStandGameLauncher({
         </GamePopOutContainer>
 
         {!isGamePopOutOpen && (
-          <Card className="bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <Card
+            className={cn(
+              "bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
+              isCyberpunk && "!bg-black/80 !border-cyan-500/50",
+            )}
+            style={isCyberpunk ? { backgroundColor: "rgba(0, 0, 0, 0.8)", borderColor: "rgba(6, 182, 212, 0.5)" } : {}}
+            data-game="last-stand"
+          >
             <CardHeader>
               <CardTitle className="text-center font-mono">GAME PAUSED</CardTitle>
             </CardHeader>
@@ -126,7 +136,14 @@ export default function LastStandGameLauncher({
     const mode = lastStandConfig.modes.find((m) => m.id === selectedMode)!
 
     return (
-      <Card className="bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <Card
+        className={cn(
+          "bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
+          isCyberpunk && "!bg-black/80 !border-cyan-500/50",
+        )}
+        style={isCyberpunk ? { backgroundColor: "rgba(0, 0, 0, 0.8)", borderColor: "rgba(6, 182, 212, 0.5)" } : {}}
+        data-game="last-stand"
+      >
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -145,7 +162,13 @@ export default function LastStandGameLauncher({
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <div className="p-4 border-2 border-black rounded-md bg-[#f5efdc]">
+          <div
+            className={cn(
+              "p-4 border-2 border-black rounded-md bg-[#f5efdc]",
+              isCyberpunk && "!bg-black/50 !border-cyan-500/50",
+            )}
+            style={isCyberpunk ? { backgroundColor: "rgba(0, 0, 0, 0.5)", borderColor: "rgba(6, 182, 212, 0.5)" } : {}}
+          >
             <div className="flex items-center gap-2 mb-2">
               <Trophy className="h-5 w-5" />
               <div className="font-bold">{mode.name}</div>
@@ -202,7 +225,14 @@ export default function LastStandGameLauncher({
   }
 
   return (
-    <Card className="bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+    <Card
+      className={cn(
+        "bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
+        isCyberpunk && "!bg-black/80 !border-cyan-500/50",
+      )}
+      style={isCyberpunk ? { backgroundColor: "rgba(0, 0, 0, 0.8)", borderColor: "rgba(6, 182, 212, 0.5)" } : {}}
+      data-game="last-stand"
+    >
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -225,7 +255,13 @@ export default function LastStandGameLauncher({
           {lastStandConfig.modes.map((mode) => (
             <Card
               key={mode.id}
-              className="border-2 border-black overflow-hidden cursor-pointer hover:bg-[#f5efdc] transition-colors flex flex-col"
+              className={cn(
+                "border-2 border-black overflow-hidden cursor-pointer hover:bg-[#f5efdc] transition-colors flex flex-col",
+                isCyberpunk && "!bg-black/80 !border-cyan-500/50",
+              )}
+              style={
+                isCyberpunk ? { backgroundColor: "rgba(0, 0, 0, 0.8)", borderColor: "rgba(6, 182, 212, 0.5)" } : {}
+              }
               onClick={withClickSound(() => handleModeSelect(mode.id))}
             >
               <CardHeader className="p-3">

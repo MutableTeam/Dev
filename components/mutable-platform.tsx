@@ -290,7 +290,22 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
           )}
         </div>
 
-        <div className="min-h-[500px] pt-4">
+        <div
+          className={cn(
+            "min-h-[500px] pt-4",
+            isCyberpunk &&
+              "!bg-black/80 !border !border-cyan-500/30 rounded-lg p-4 shadow-[0_0_15px_rgba(0,255,255,0.1)]",
+          )}
+          style={
+            isCyberpunk
+              ? {
+                  backgroundColor: "rgba(0, 0, 0, 0.8) !important",
+                  borderColor: "rgba(6, 182, 212, 0.3)",
+                  color: "rgb(224, 255, 255) !important",
+                }
+              : {}
+          }
+        >
           <TabsContent value="exchange" className="mt-0 h-full">
             {activeTab === "exchange" && (
               <MutableMarketplace
@@ -398,8 +413,13 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
             )}
           </TabsContent>
 
-          <TabsContent value="mobile-games" className="mt-0 h-full">
-            <Card className={cn("arcade-card", isCyberpunk && "bg-black/80 border-cyan-500/50")}>
+          <TabsContent value="mobile-games" className="mt-0 h-full" data-tab="mobile-games">
+            <Card
+              className={cn("arcade-card", isCyberpunk && "!bg-black/80 !border-cyan-500/50")}
+              style={
+                isCyberpunk ? { backgroundColor: "rgba(0, 0, 0, 0.8)", borderColor: "rgba(6, 182, 212, 0.5)" } : {}
+              }
+            >
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -427,8 +447,11 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
                 <div
                   className={cn(
                     "p-8 border-2 border-black rounded-lg bg-[#f5efdc] dark:bg-gray-700 dark:border-gray-600 text-center",
-                    isCyberpunk && "bg-black/50 border-cyan-500/50",
+                    isCyberpunk && "!bg-black/50 !border-cyan-500/50",
                   )}
+                  style={
+                    isCyberpunk ? { backgroundColor: "rgba(0, 0, 0, 0.5)", borderColor: "rgba(6, 182, 212, 0.5)" } : {}
+                  }
                 >
                   <div className="flex justify-center mb-6">
                     <Smartphone
@@ -459,8 +482,13 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
             </Card>
           </TabsContent>
 
-          <TabsContent value="develop" className="mt-0 h-full">
-            <Card className={cn("arcade-card", isCyberpunk && "bg-black/80 border-cyan-500/50")}>
+          <TabsContent value="develop" className="mt-0 h-full" data-tab="develop">
+            <Card
+              className={cn("arcade-card", isCyberpunk && "!bg-black/80 !border-cyan-500/50")}
+              style={
+                isCyberpunk ? { backgroundColor: "rgba(0, 0, 0, 0.8)", borderColor: "rgba(6, 182, 212, 0.5)" } : {}
+              }
+            >
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -480,8 +508,13 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
                     <div
                       className={cn(
                         "p-4 border-2 border-black rounded-md bg-[#f5efdc] dark:bg-gray-700 dark:border-gray-600",
-                        isCyberpunk && "bg-black/50 border-cyan-500/50",
+                        isCyberpunk && "!bg-black/50 !border-cyan-500/50",
                       )}
+                      style={
+                        isCyberpunk
+                          ? { backgroundColor: "rgba(0, 0, 0, 0.5)", borderColor: "rgba(6, 182, 212, 0.5)" }
+                          : {}
+                      }
                     >
                       <h3
                         className={cn(
@@ -534,8 +567,13 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
                     <div
                       className={cn(
                         "p-4 border-2 border-black rounded-md bg-[#f5efdc] dark:bg-gray-700 dark:border-gray-600",
-                        isCyberpunk && "bg-black/50 border-cyan-500/50",
+                        isCyberpunk && "!bg-black/50 !border-cyan-500/50",
                       )}
+                      style={
+                        isCyberpunk
+                          ? { backgroundColor: "rgba(0, 0, 0, 0.5)", borderColor: "rgba(6, 182, 212, 0.5)" }
+                          : {}
+                      }
                     >
                       <h3
                         className={cn(
@@ -588,8 +626,13 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
                     <div
                       className={cn(
                         "p-4 border-2 border-black rounded-md bg-[#f5efdc] dark:bg-gray-700 dark:border-gray-600",
-                        isCyberpunk && "bg-black/50 border-cyan-500/50",
+                        isCyberpunk && "!bg-black/50 !border-cyan-500/50",
                       )}
+                      style={
+                        isCyberpunk
+                          ? { backgroundColor: "rgba(0, 0, 0, 0.5)", borderColor: "rgba(6, 182, 212, 0.5)" }
+                          : {}
+                      }
                     >
                       <h3
                         className={cn(
@@ -647,8 +690,13 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
                     <div
                       className={cn(
                         "p-4 border-2 border-black rounded-md bg-[#f5efdc] dark:bg-gray-700 dark:border-gray-600",
-                        isCyberpunk && "bg-black/50 border-cyan-500/50",
+                        isCyberpunk && "!bg-black/50 !border-cyan-500/50",
                       )}
+                      style={
+                        isCyberpunk
+                          ? { backgroundColor: "rgba(0, 0, 0, 0.5)", borderColor: "rgba(6, 182, 212, 0.5)" }
+                          : {}
+                      }
                     >
                       <h3
                         className={cn(
@@ -724,8 +772,13 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
                     <div
                       className={cn(
                         "p-4 border-2 border-black rounded-md bg-[#f5efdc] dark:bg-gray-700 dark:border-gray-600",
-                        isCyberpunk && "bg-black/50 border-cyan-500/50",
+                        isCyberpunk && "!bg-black/50 !border-cyan-500/50",
                       )}
+                      style={
+                        isCyberpunk
+                          ? { backgroundColor: "rgba(0, 0, 0, 0.5)", borderColor: "rgba(6, 182, 212, 0.5)" }
+                          : {}
+                      }
                     >
                       <h3
                         className={cn(
@@ -763,8 +816,13 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
                     <div
                       className={cn(
                         "p-4 border-2 border-black rounded-md bg-[#f5efdc] dark:bg-gray-700 dark:border-gray-600",
-                        isCyberpunk && "bg-black/50 border-cyan-500/50",
+                        isCyberpunk && "!bg-black/50 !border-cyan-500/50",
                       )}
+                      style={
+                        isCyberpunk
+                          ? { backgroundColor: "rgba(0, 0, 0, 0.5)", borderColor: "rgba(6, 182, 212, 0.5)" }
+                          : {}
+                      }
                     >
                       <h3
                         className={cn(
