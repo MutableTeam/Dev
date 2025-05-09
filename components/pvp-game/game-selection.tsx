@@ -10,7 +10,24 @@ import { useCyberpunkTheme } from "@/contexts/cyberpunk-theme-context"
 import { Button } from "@/components/ui/button"
 import styled from "@emotion/styled"
 import { keyframes } from "@emotion/react"
-import { useEffect, useState } from "react"
+import { useIsMobile } from "@/components/ui/use-mobile"
+import { ResponsiveGrid } from "@/components/mobile-optimized-container"
+
+// Define breakpoints locally to avoid import issues
+const breakpoints = {
+  xs: 480,
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  "2xl": 1536,
+}
+
+// Define media queries directly in this file to avoid import issues
+const mediaQueries = {
+  mobile: `@media (max-width: ${breakpoints.md - 1}px)`,
+  touch: "@media (hover: none) and (pointer: coarse)",
+}
 
 // Cyberpunk animations
 const cardHover = keyframes`
@@ -47,6 +64,18 @@ const CyberGameCard = styled(Card)`
   flex-direction: column;
   height: 100%;
   
+  /* Mobile optimizations */
+  ${mediaQueries.mobile} {
+    /* Reduce animation complexity on mobile */
+    animation-duration: 50% !important;
+    transition-duration: 50% !important;
+    
+    /* Ensure touch targets are large enough */
+    & button {
+      min-height: 44px;
+    }
+  }
+  
   &:hover {
     transform: translateY(-5px);
     animation: ${cardHover} 3s infinite alternate;
@@ -58,6 +87,24 @@ const CyberGameCard = styled(Card)`
     .cyber-play-button {
       background: linear-gradient(90deg, #0ff 20%, #f0f 80%);
       box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+    }
+  }
+  
+  /* Disable hover effects on touch devices */
+  ${mediaQueries.touch} {
+    &:hover {
+      transform: none;
+      animation: none;
+      
+      .game-image {
+        animation: none;
+      }
+    }
+    
+    /* Add active state for touch feedback instead */
+    &:active {
+      transform: scale(0.98);
+      opacity: 0.95;
     }
   }
   
@@ -98,6 +145,13 @@ const CyberPlayButton = styled(Button)`
   text-shadow: none;
   width: 100%;
   
+  /* Mobile optimizations */
+  ${mediaQueries.mobile} {
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    min-height: 44px; /* Ensure touch target size */
+  }
+  
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
@@ -106,6 +160,21 @@ const CyberPlayButton = styled(Button)`
   
   &:active {
     transform: translateY(1px);
+  }
+  
+  /* Disable hover effects on touch devices */
+  ${mediaQueries.touch} {
+    &:hover {
+      transform: none;
+      box-shadow: none;
+      background: linear-gradient(90deg, #0ff 0%, #f0f 100%);
+    }
+    
+    /* Add active state for touch feedback instead */
+    &:active {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
   }
   
   &:disabled {
@@ -125,6 +194,12 @@ const CyberBadge = styled(Badge)`
   font-weight: bold;
   font-size: 0.75rem;
   letter-spacing: 1px;
+  
+  /* Mobile optimizations */
+  ${mediaQueries.mobile} {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
+  }
 `
 
 interface GameSelectionProps {
@@ -137,49 +212,45 @@ interface GameSelectionProps {
 export default function GameSelection({ publicKey, balance, mutbBalance, onSelectGame }: GameSelectionProps) {
   const { styleMode } = useCyberpunkTheme()
   const isCyberpunk = styleMode === "cyberpunk"
-  const [games, setGames] = useState<any[]>([])
+  const isMobile = useIsMobile()
 
-  useEffect(() => {
-    // Get all games from registry
-    const allGames = gameRegistry.getAllGames().map((game) => ({
-      id: game.config.id,
-      name: game.config.name,
-      description: game.config.description,
-      image: game.config.image,
-      icon: game.config.icon,
-      status: game.config.status,
-      minWager: game.config.minWager,
-      originalName: game.config.name, // Store original name for reference
-    }))
+  // Get all games from registry
+  const allGames = gameRegistry.getAllGames().map((game) => ({
+    id: game.config.id,
+    name: game.config.name,
+    description: game.config.description,
+    image: game.config.image,
+    icon: game.config.icon,
+    status: game.config.status,
+    minWager: game.config.minWager,
+    originalName: game.config.name, // Store original name for reference
+  }))
 
-    // Modify the name for Archer Arena: Last Stand
-    const processedGames = allGames.map((game) => {
-      if (game.name === "Archer Arena: Last Stand") {
-        return {
-          ...game,
-          name: "AA: Last Stand",
-          description: "Archer Arena: Last Stand - " + game.description,
-        }
+  // Modify the name for Archer Arena: Last Stand
+  const processedGames = allGames.map((game) => {
+    if (game.name === "Archer Arena: Last Stand") {
+      return {
+        ...game,
+        name: "AA: Last Stand",
+        description: "Archer Arena: Last Stand - " + game.description,
       }
-      return game
-    })
+    }
+    return game
+  })
 
-    // Sort games: available games first, then put "AA: Last Stand" next to "Archer Arena"
-    const sortedGames = processedGames.sort((a, b) => {
-      // First, sort by status (live games first)
-      if (a.status === "live" && b.status !== "live") return -1
-      if (a.status !== "live" && b.status === "live") return 1
+  // Sort games: available games first, then put "AA: Last Stand" next to "Archer Arena"
+  const games = processedGames.sort((a, b) => {
+    // First, sort by status (live games first)
+    if (a.status === "live" && b.status !== "live") return -1
+    if (a.status !== "live" && b.status === "live") return 1
 
-      // Then, ensure "AA: Last Stand" is next to "Archer Arena"
-      if (a.name === "Archer Arena" && b.name === "AA: Last Stand") return -1
-      if (a.name === "AA: Last Stand" && b.name === "Archer Arena") return 1
+    // Then, ensure "AA: Last Stand" is next to "Archer Arena"
+    if (a.name === "Archer Arena" && b.name === "AA: Last Stand") return -1
+    if (a.name === "AA: Last Stand" && b.name === "Archer Arena") return 1
 
-      // Default sort by name
-      return a.name.localeCompare(b.name)
-    })
-
-    setGames(sortedGames)
-  }, [])
+    // Default sort by name
+    return a.name.localeCompare(b.name)
+  })
 
   // Custom image override for Last Stand
   const getGameImage = (game) => {
@@ -213,11 +284,13 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
 
   return (
     <Card className={isCyberpunk ? "" : "bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"}>
-      <CardHeader>
+      <CardHeader className={isMobile ? "p-4" : undefined}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Gamepad2 className={`h-5 w-5 ${isCyberpunk ? "text-[#0ff]" : ""}`} />
-            <CardTitle className={isCyberpunk ? "" : "font-mono"}>MUTABLE GAMES</CardTitle>
+            <CardTitle className={`${isCyberpunk ? "" : "font-mono"} ${isMobile ? "text-lg" : ""}`}>
+              MUTABLE GAMES
+            </CardTitle>
           </div>
           <Badge
             variant="outline"
@@ -235,8 +308,15 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
           Select a game to play and wager MUTB tokens
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <CardContent className={isMobile ? "p-4" : undefined}>
+        <ResponsiveGrid
+          columns={{
+            base: 1,
+            sm: 2,
+            md: 3,
+          }}
+          gap={isMobile ? "0.75rem" : "1rem"}
+        >
           {games.map((game) =>
             isCyberpunk ? (
               <CyberGameCard key={game.id} className="flex flex-col h-[420px]">
@@ -247,6 +327,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                     width={400}
                     height={240}
                     className="w-full h-32 object-cover game-image"
+                    loading="lazy"
                   />
                   {game.status === "coming-soon" && (
                     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -254,15 +335,15 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                     </div>
                   )}
                 </div>
-                <CardHeader className="p-3">
+                <CardHeader className={isMobile ? "p-2" : "p-3"}>
                   <div className="flex items-center gap-2">
                     <div className="bg-[#0a0a24] p-1 rounded-md border border-[#0ff]/50 text-[#0ff]">{game.icon}</div>
-                    <CardTitle className="text-base font-mono">{game.name}</CardTitle>
+                    <CardTitle className={`text-base font-mono ${isMobile ? "text-sm" : ""}`}>{game.name}</CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent className="p-3 pt-0 flex-grow">
-                  <p className="text-sm text-[#0ff]/70">{game.description}</p>
-                  <div className="mt-2 text-xs flex items-center gap-1 text-[#0ff]/80">
+                <CardContent className={`${isMobile ? "p-2" : "p-3"} pt-0 flex-grow`}>
+                  <p className={`${isMobile ? "text-xs" : "text-sm"} text-[#0ff]/70`}>{game.description}</p>
+                  <div className={`mt-2 ${isMobile ? "text-xs" : "text-sm"} flex items-center gap-1 text-[#0ff]/80`}>
                     <span className="font-medium">Min Wager:</span>
                     <div className="flex items-center">
                       <Image src="/images/mutable-token.png" alt="MUTB" width={12} height={12} />
@@ -271,7 +352,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                   </div>
                 </CardContent>
                 <div className="mt-auto"></div>
-                <CardFooter className="p-3">
+                <CardFooter className={isMobile ? "p-2" : "p-3"}>
                   <CyberPlayButton
                     className="cyber-play-button"
                     disabled={game.status !== "live"}
@@ -293,6 +374,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                     width={400}
                     height={240}
                     className="w-full h-32 object-cover"
+                    loading="lazy"
                   />
                   {game.status === "coming-soon" && (
                     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -302,15 +384,15 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                     </div>
                   )}
                 </div>
-                <CardHeader className="p-3">
+                <CardHeader className={isMobile ? "p-2" : "p-3"}>
                   <div className="flex items-center gap-2">
                     <div className="bg-[#FFD54F] p-1 rounded-md border border-black">{game.icon}</div>
-                    <CardTitle className="text-base font-mono">{game.name}</CardTitle>
+                    <CardTitle className={`text-base font-mono ${isMobile ? "text-sm" : ""}`}>{game.name}</CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent className="p-3 pt-0 flex-grow">
-                  <p className="text-sm text-muted-foreground">{game.description}</p>
-                  <div className="mt-2 text-xs flex items-center gap-1">
+                <CardContent className={`${isMobile ? "p-2" : "p-3"} pt-0 flex-grow`}>
+                  <p className={`${isMobile ? "text-xs" : "text-sm"} text-muted-foreground`}>{game.description}</p>
+                  <div className={`mt-2 ${isMobile ? "text-xs" : "text-xs"} flex items-center gap-1`}>
                     <span className="font-medium">Min Wager:</span>
                     <div className="flex items-center">
                       <Image src="/images/mutable-token.png" alt="MUTB" width={12} height={12} />
@@ -319,7 +401,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                   </div>
                 </CardContent>
                 <div className="mt-auto"></div>
-                <CardFooter className="p-3">
+                <CardFooter className={isMobile ? "p-2" : "p-3"}>
                   <SoundButton
                     className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
                     disabled={game.status !== "live"}
@@ -331,7 +413,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
               </Card>
             ),
           )}
-        </div>
+        </ResponsiveGrid>
       </CardContent>
     </Card>
   )

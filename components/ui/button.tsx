@@ -69,8 +69,8 @@ const CyberButtonPrimary = styled.button`
   transition: all 0.3s ease;
   text-shadow: none;
   border-radius: 0.375rem;
-  margin-top: auto; /* Helps position at bottom when in flex containers */
-  align-self: flex-end; /* Aligns to bottom in flex containers */
+  margin-top: 0; /* Position at top */
+  align-self: flex-start; /* Aligns to left in flex containers */
   
   &:hover {
     transform: translateY(-2px);

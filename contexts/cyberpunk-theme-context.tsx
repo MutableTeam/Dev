@@ -18,13 +18,18 @@ interface CyberpunkThemeContextType {
 const CyberpunkThemeContext = createContext<CyberpunkThemeContextType | undefined>(undefined)
 
 export function CyberpunkThemeProvider({ children }: { children: React.ReactNode }) {
-  const [styleMode, setStyleMode] = useState<StyleMode>("regular")
+  // Change default from "regular" to "cyberpunk"
+  const [styleMode, setStyleMode] = useState<StyleMode>("cyberpunk")
 
   // Load preference from localStorage on mount
   useEffect(() => {
     const savedMode = localStorage.getItem("styleMode") as StyleMode | null
     if (savedMode && (savedMode === "regular" || savedMode === "cyberpunk")) {
       setStyleMode(savedMode)
+    } else {
+      // If no saved preference, set to cyberpunk and save it
+      setStyleMode("cyberpunk")
+      localStorage.setItem("styleMode", "cyberpunk")
     }
   }, [])
 

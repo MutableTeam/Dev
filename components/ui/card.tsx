@@ -4,9 +4,120 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { useCyberpunkTheme } from "@/contexts/cyberpunk-theme-context"
 import styled from "@emotion/styled"
+import { keyframes } from "@emotion/react"
+
+// Glitch animations for cyberpunk mode
+const glitchAnim1 = keyframes`
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+  7% {
+    transform: skew(-0.5deg, -0.9deg);
+    opacity: 0.75;
+  }
+  10% {
+    transform: none;
+    opacity: 1;
+  }
+  27% {
+    transform: none;
+    opacity: 1;
+  }
+  30% {
+    transform: skew(0.8deg, -0.1deg);
+    opacity: 0.75;
+  }
+  35% {
+    transform: none;
+    opacity: 1;
+  }
+  52% {
+    transform: none;
+    opacity: 1;
+  }
+  55% {
+    transform: skew(-1deg, 0.2deg);
+    opacity: 0.75;
+  }
+  50% {
+    transform: none;
+    opacity: 1;
+  }
+  72% {
+    transform: none;
+    opacity: 1;
+  }
+  75% {
+    transform: skew(0.4deg, 1deg);
+    opacity: 0.75;
+  }
+  80% {
+    transform: none;
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+`
+
+const glitchAnim2 = keyframes`
+  0% {
+    transform: none;
+    opacity: 0.25;
+  }
+  7% {
+    transform: translate(-2px, -3px);
+    opacity: 0.5;
+  }
+  10% {
+    transform: none;
+    opacity: 0.25;
+  }
+  27% {
+    transform: none;
+    opacity: 0.25;
+  }
+  30% {
+    transform: translate(-5px, -2px);
+    opacity: 0.5;
+  }
+  35% {
+    transform: none;
+    opacity: 0.25;
+  }
+  52% {
+    transform: none;
+    opacity: 0.25;
+  }
+  55% {
+    transform: translate(-5px, -1px);
+    opacity: 0.5;
+  }
+  50% {
+    transform: none;
+    opacity: 0.25;
+  }
+  72% {
+    transform: none;
+    opacity: 0.25;
+  }
+  75% {
+    transform: translate(-2px, -6px);
+    opacity: 0.5;
+  }
+  80% {
+    transform: none;
+    opacity: 0.25;
+  }
+  100% {
+    transform: none;
+    opacity: 0.25;
+  }
+`
 
 // Styled components for cyberpunk mode
-
 const CyberCardHeader = styled.div`
   border-bottom: 1px solid rgba(0, 255, 255, 0.3);
   background: rgba(16, 16, 48, 0.7);
@@ -48,7 +159,43 @@ const CyberCardContent = styled.div`
   position: relative;
   z-index: 1;
   padding: 1.5rem;
-  padding-top: 1rem; // Changed from 0 to 1rem to add space between header and content
+  padding-top: 1rem;
+  
+  /* Glitch effect */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 255, 255, 0.05);
+    z-index: -1;
+    animation: ${glitchAnim1} 8s infinite;
+    pointer-events: none;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 0, 255, 0.05);
+    z-index: -1;
+    animation: ${glitchAnim2} 8s infinite;
+    pointer-events: none;
+  }
+  
+  /* Occasional text glitch */
+  & > * {
+    position: relative;
+    
+    &:hover {
+      animation: ${glitchAnim1} 0.3s;
+    }
+  }
 `
 
 const CyberCardFooter = styled.div`

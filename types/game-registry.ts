@@ -1,46 +1,7 @@
 import type React from "react"
 import type { ReactNode } from "react"
 
-// Game status types
-export type GameStatus = "live" | "coming-soon" | "maintenance"
-
-// Game configuration interface
-export interface GameConfig {
-  id: string
-  name: string
-  description: string
-  image?: string
-  icon: ReactNode
-  status: GameStatus
-  minWager: number
-  maxWager?: number
-  defaultWager?: number
-  category?: string
-  tags?: string[]
-  releaseDate?: string
-  lastUpdated?: string
-  version?: string
-  developer?: string
-  publisher?: string
-  platform?: string[]
-  genre?: string[]
-  rating?: string
-  ageRating?: string
-  players?: string
-  languages?: string[]
-  size?: string
-  requirements?: {
-    os?: string[]
-    processor?: string
-    memory?: string
-    graphics?: string
-    storage?: string
-    network?: string
-  }
-  gameType?: string
-  modes?: GameMode[]
-}
-
+// Game mode configuration
 export interface GameMode {
   id: string
   name: string
@@ -48,19 +9,36 @@ export interface GameMode {
   players: number
   icon: ReactNode
   minWager: number
-  duration?: number
-  leaderboardRefresh?: "hourly" | "daily"
 }
 
+// Game configuration
+export interface GameConfig {
+  id: string
+  name: string
+  description: string
+  image: string
+  icon: ReactNode
+  status: "live" | "coming-soon"
+  minWager: number
+  maxPlayers: number
+  gameType: string
+  modes: GameMode[]
+}
+
+// Game initialization parameters
 export interface GameInitParams {
   playerId: string
   playerName: string
   isHost: boolean
   gameMode: string
-  players: { id: string; name: string }[]
+  players: Array<{
+    id: string
+    name: string
+    isHost: boolean
+  }>
 }
 
-// Game interface
+// Game implementation interface
 export interface GameImplementation {
   GameComponent: React.ComponentType<any>
   InstructionsComponent: React.ComponentType<any>
@@ -68,17 +46,8 @@ export interface GameImplementation {
   initializeGameState: (params: GameInitParams) => any
 }
 
-export interface GameInfo {
-  id: string
-  name: string
-  description: string
-  image?: string
-  icon: ReactNode
-  status: GameStatus
-}
-
-// Game registry class
-export class GameRegistry {
+// Game registry to manage all available games
+class GameRegistry {
   private games: Map<string, GameImplementation> = new Map()
 
   // Register a game
@@ -87,8 +56,8 @@ export class GameRegistry {
   }
 
   // Get a game by ID
-  getGame(id: string): GameImplementation | undefined {
-    return this.games.get(id)
+  getGame(id: string): GameImplementation | null {
+    return this.games.get(id) || null
   }
 
   // Get all games
@@ -96,52 +65,32 @@ export class GameRegistry {
     return Array.from(this.games.values())
   }
 
-  // Get games by status
-  getGamesByStatus(status: GameStatus): GameImplementation[] {
-    return this.getAllGames().filter((game) => game.config.status === status)
-  }
-
-  // Get live games
+  // Get only live games
   getLiveGames(): GameImplementation[] {
-    return this.getGamesByStatus("live")
+    return this.getAllGames().filter((game) => game.config.status === "live")
   }
 
-  // Get coming soon games
-  getComingSoonGames(): GameImplementation[] {
-    return this.getGamesByStatus("coming-soon")
-  }
-
-  // Get games by category
-  getGamesByCategory(category: string): GameImplementation[] {
-    return this.getAllGames().filter((game) => game.config.category === category)
-  }
-
-  // Get games by tag
-  getGamesByTag(tag: string): GameImplementation[] {
-    return this.getAllGames().filter((game) => game.config.tags?.includes(tag))
-  }
-
-  // Update game status
-  updateGameStatus(id: string, status: GameStatus): void {
-    const game = this.getGame(id)
-    if (game) {
-      game.config.status = status
-    }
-  }
-
-  // Update game config
-  updateGameConfig(id: string, config: Partial<GameConfig>): void {
-    const game = this.getGame(id)
-    if (game) {
-      game.config = { ...game.config, ...config }
-    }
-  }
-
-  // Clear all games
-  clearGames(): void {
-    this.games.clear()
+  // Get games by type
+  getGamesByType(type: string): GameImplementation[] {
+    return this.getAllGames().filter((game) => game.config.gameType === type)
   }
 }
 
 // Create and export a singleton instance
 export const gameRegistry = new GameRegistry()
+
+export interface GameInfo {
+  id: string
+  name: string
+  description: string
+  thumbnail: string
+  minPlayers: number
+  maxPlayers: number
+  supportedControls: string[]
+  version: string
+  author: string
+  component: React.ComponentType<any>
+  status?: "live" | "coming-soon"
+}
+
+// Make sure the archer-arena game is properly registered

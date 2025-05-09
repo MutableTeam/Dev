@@ -12,7 +12,6 @@ import RetroArcadeBackground from "@/components/retro-arcade-background"
 import { Connection, clusterApiUrl } from "@solana/web3.js"
 import "@/styles/retro-arcade.css"
 import { initializeGoogleAnalytics } from "@/utils/analytics"
-import { StyleSwitcher } from "@/components/style-switcher"
 
 // Google Analytics Measurement ID
 const GA_MEASUREMENT_ID = "G-41DL97N287"
@@ -67,9 +66,6 @@ export default function Home() {
 
       {/* Audio controls positioned at top right below wallet when connected */}
       <div className={`fixed ${walletConnected ? "top-12 sm:top-14" : "top-4"} right-4 md:right-8 z-[90]`}>
-        <div className="flex items-center gap-2">
-          <StyleSwitcher />
-        </div>
         <GlobalAudioControls />
       </div>
 
