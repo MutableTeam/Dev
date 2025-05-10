@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeftRight, TrendingUp, Info, Loader2, RefreshCw, AlertCircle } from "lucide-react"
+import { ArrowLeftRight, TrendingUp, Info, Loader2, AlertCircle } from "lucide-react"
 import Image from "next/image"
 import { type Connection, PublicKey } from "@solana/web3.js"
 import { withClickSound } from "@/utils/sound-utils"
@@ -15,7 +15,6 @@ import { createJupiterApiClient } from "@/utils/jupiter-sdk"
 import { TokenSwapForm } from "./swap/token-swap-form"
 import { MarketOverview } from "./swap/market-overview"
 import { TransactionHistory } from "./swap/transaction-history"
-import { LiquidityPoolStatus } from "./swap/liquidity-pool-status"
 import { SOL_TOKEN, MUTB_TOKEN, DEFAULT_SWAP_PAIR, SUPPORTED_TOKENS } from "@/config/token-registry"
 import { getTokenBalance } from "@/utils/token-utils"
 import type { SwapResult } from "@/types/token-types"
@@ -415,13 +414,8 @@ export default function MutableMarketplace({
             <AlertCircle className="h-4 w-4 text-yellow-400" />
             <AlertTitle className="text-yellow-400 font-mono">Token Not Yet Tradable</AlertTitle>
             <AlertDescription className="text-yellow-300 font-mono">
-              <p className="mb-2">
-                Your {MUTB_TOKEN.symbol} token is not yet indexed by Jupiter. Swaps are disabled until the token is
-                tradable.
-              </p>
-              <p className="text-sm">
-                Jupiter typically takes 24-48 hours to index new liquidity pools. Please check back later.
-              </p>
+              Your {MUTB_TOKEN.symbol} token is not yet indexed by Radium. Swaps are disabled until the token is
+              tradable.
             </AlertDescription>
           </CyberAlert>
         )
@@ -432,13 +426,7 @@ export default function MutableMarketplace({
           <AlertCircle className="h-4 w-4 text-yellow-600" />
           <AlertTitle className="text-yellow-800">Token Not Yet Tradable</AlertTitle>
           <AlertDescription className="text-yellow-700">
-            <p className="mb-2">
-              Your {MUTB_TOKEN.symbol} token is not yet indexed by Jupiter. Swaps are disabled until the token is
-              tradable.
-            </p>
-            <p className="text-sm">
-              Jupiter typically takes 24-48 hours to index new liquidity pools. Please check back later.
-            </p>
+            Your {MUTB_TOKEN.symbol} token is not yet indexed by Radium. Swaps are disabled until the token is tradable.
           </AlertDescription>
         </Alert>
       )
@@ -450,7 +438,7 @@ export default function MutableMarketplace({
           <Info className="h-4 w-4 text-[#0ff]" />
           <AlertTitle className="text-[#0ff] font-mono">{MUTB_TOKEN.symbol} Token is Tradable!</AlertTitle>
           <AlertDescription className="text-[#0ff]/80 font-mono">
-            Your {MUTB_TOKEN.symbol} token is now tradable on Jupiter. You can perform real swaps on Solana devnet.
+            Your {MUTB_TOKEN.symbol} token is now tradable on Radium. You can perform real swaps on Solana devnet.
           </AlertDescription>
         </CyberAlert>
       )
@@ -461,7 +449,7 @@ export default function MutableMarketplace({
         <Info className="h-4 w-4 text-green-600" />
         <AlertTitle className="text-green-800">{MUTB_TOKEN.symbol} Token is Tradable!</AlertTitle>
         <AlertDescription className="text-green-700">
-          Your {MUTB_TOKEN.symbol} token is now tradable on Jupiter. You can perform real swaps on Solana devnet.
+          Your {MUTB_TOKEN.symbol} token is now tradable on Radium. You can perform real swaps on Solana devnet.
         </AlertDescription>
       </Alert>
     )
@@ -533,12 +521,6 @@ export default function MutableMarketplace({
                   <span>HISTORY</span>
                 </div>
               </TabsTrigger>
-              <TabsTrigger value="pool" className="cyber-tab" onClick={withClickSound()}>
-                <div className="flex items-center gap-2">
-                  <RefreshCw className="h-4 w-4" />
-                  <span>POOL</span>
-                </div>
-              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="swap">
@@ -561,16 +543,6 @@ export default function MutableMarketplace({
 
             <TabsContent value="history">
               <TransactionHistory transactions={transactionHistory} />
-            </TabsContent>
-
-            <TabsContent value="pool">
-              <LiquidityPoolStatus
-                tokenA={MUTB_TOKEN}
-                tokenB={SOL_TOKEN}
-                isTokenTradable={isTokenTradable}
-                checkingTradability={checkingTradability}
-                onCheckTradability={checkTokenTradability}
-              />
             </TabsContent>
           </CyberTabs>
         ) : (
@@ -606,16 +578,6 @@ export default function MutableMarketplace({
                   <span>HISTORY</span>
                 </div>
               </TabsTrigger>
-              <TabsTrigger
-                value="pool"
-                className="data-[state=active]:bg-white data-[state=active]:text-black font-mono"
-                onClick={withClickSound()}
-              >
-                <div className="flex items-center gap-2">
-                  <RefreshCw className="h-4 w-4" />
-                  <span>POOL</span>
-                </div>
-              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="swap">
@@ -639,34 +601,9 @@ export default function MutableMarketplace({
             <TabsContent value="history">
               <TransactionHistory transactions={transactionHistory} />
             </TabsContent>
-
-            <TabsContent value="pool">
-              <LiquidityPoolStatus
-                tokenA={MUTB_TOKEN}
-                tokenB={SOL_TOKEN}
-                isTokenTradable={isTokenTradable}
-                checkingTradability={checkingTradability}
-                onCheckTradability={checkTokenTradability}
-              />
-            </TabsContent>
           </Tabs>
         )}
       </CardContent>
-      <CardFooter>
-        {activeTab === "pool" && !isTokenTradable && (
-          <button
-            className={
-              isCyberpunk
-                ? "w-full bg-gradient-to-r from-[#0ff] to-[#f0f] text-black font-mono font-bold py-2 px-4 rounded transition-all hover:shadow-[0_0_15px_rgba(0,255,255,0.7)] hover:translate-y-[-2px]"
-                : "w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono p-2 rounded-md"
-            }
-            onClick={createLiquidityPool}
-            disabled={!publicKey || checkingTradability}
-          >
-            CREATE LIQUIDITY POOL
-          </button>
-        )}
-      </CardFooter>
     </Card>
   )
 }

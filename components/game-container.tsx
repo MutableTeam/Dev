@@ -71,7 +71,7 @@ export function GameContainer({ gameId, playerId, playerName, isHost, gameMode, 
     ],
   })
 
-  // Show loading state while game initializes
+  // Ensure we're using the original styling for the loading state
   if (gameState === "loading") {
     return (
       <div className="flex items-center justify-center h-[600px] bg-gray-800 rounded-lg">
@@ -83,6 +83,7 @@ export function GameContainer({ gameId, playerId, playerName, isHost, gameMode, 
     )
   }
 
+  // Ensure we're using the original styling for the game container
   return (
     <div className="relative w-full h-full">
       {/* Development Banner */}

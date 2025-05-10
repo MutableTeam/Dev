@@ -127,6 +127,8 @@ const CyberpunkCardHeader = styled(CardHeader)`
   background: rgba(16, 16, 48, 0.7);
   position: relative;
   z-index: 1;
+  padding-bottom: 1rem;
+  margin-bottom: 0.5rem;
 `
 
 const CyberpunkCardTitle = styled(CardTitle)`
@@ -722,17 +724,15 @@ export default function MultiWalletConnector({
   return (
     <div className={`${compact && connected ? "flex justify-end w-full" : "space-y-6"} ${className}`}>
       {!connected && !compact && (
-        <ControllerContainer className="controller-container mb-2 sm:mb-6">
-          <ControllerGlitch aria-hidden="true" />
-          <StyledImage
+        <div className="controller-container mb-2 sm:mb-6 relative mx-auto text-center max-w-[400px]">
+          <Image
             src="/images/mutable-logo-transparent.png"
             alt="Mutable Logo"
             width={200}
             height={120}
-            className="w-auto h-auto max-w-[200px] z-10"
-            style={{ opacity: 1 }}
+            className="w-auto h-auto max-w-[200px] z-10 mx-auto"
           />
-        </ControllerContainer>
+        </div>
       )}
 
       {connected && isCollapsed && compact ? (
@@ -740,12 +740,11 @@ export default function MultiWalletConnector({
         <div className="wallet-compact-header wallet-foreground-element">{renderCollapsedWallet()}</div>
       ) : (
         // Regular card view
-        <CyberpunkCard className={`${compact ? "w-full" : "w-full max-w-md mx-auto"} relative overflow-hidden`}>
-          <GridBackground />
-          <CyberpunkCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className={`${compact ? "w-full" : "w-full max-w-md mx-auto"} relative overflow-hidden`}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-2">
               <Wallet className="h-5 w-5 text-[#0ff]" />
-              <CyberpunkCardTitle>SOLANA WALLET</CyberpunkCardTitle>
+              <CardTitle>SOLANA WALLET</CardTitle>
             </div>
             <div className="flex items-center gap-2">
               {connected && !isCollapsed && (
@@ -759,18 +758,18 @@ export default function MultiWalletConnector({
                 </SoundButton>
               )}
             </div>
-          </CyberpunkCardHeader>
+          </CardHeader>
 
           {connected && isCollapsed ? (
-            <CyberpunkCardContent className="pt-4">{renderCollapsedWallet()}</CyberpunkCardContent>
+            <CardContent className="pt-4">{renderCollapsedWallet()}</CardContent>
           ) : (
             <>
               {!connected && (
-                <CardDescription className="px-6 text-[#0ff] mt-2">
+                <CardDescription className="px-6 text-[#0ff] mt-2 mb-4">
                   Connect your Solana wallet to use Mutable
                 </CardDescription>
               )}
-              <CyberpunkCardContent className="space-y-4 text-[#0ff]">
+              <CardContent className="space-y-4 text-[#0ff]">
                 {connected ? (
                   <>
                     <div className="flex justify-between items-center">
@@ -792,7 +791,7 @@ export default function MultiWalletConnector({
                               height={20}
                               className="rounded-full"
                             />
-                            <CyberpunkBadge variant="outline">{activeWallet?.toUpperCase()}</CyberpunkBadge>
+                            <Badge variant="outline">{activeWallet?.toUpperCase()}</Badge>
                           </>
                         )}
                       </div>
@@ -856,7 +855,7 @@ export default function MultiWalletConnector({
                     <div className="grid grid-cols-1 gap-3">
                       {wallets.map((wallet) =>
                         wallet.type === "test" ? (
-                          <TestModeButton
+                          <SoundButton
                             key={wallet.type}
                             onClick={() => connectWallet(wallet.type)}
                             disabled={loading}
@@ -866,9 +865,9 @@ export default function MultiWalletConnector({
                               <TestTube className="h-5 w-5" />
                               <span>{wallet.name}</span>
                             </div>
-                          </TestModeButton>
+                          </SoundButton>
                         ) : (
-                          <CyberpunkButton
+                          <SoundButton
                             key={wallet.type}
                             onClick={() => connectWallet(wallet.type)}
                             disabled={loading || !wallet.available}
@@ -887,14 +886,14 @@ export default function MultiWalletConnector({
                                 <span className="text-xs ml-auto font-bold opacity-70">(Not Detected)</span>
                               )}
                             </div>
-                          </CyberpunkButton>
+                          </SoundButton>
                         ),
                       )}
                     </div>
                   </div>
                 )}
-              </CyberpunkCardContent>
-              <CyberpunkCardFooter>
+              </CardContent>
+              <CardFooter>
                 {!connected ? (
                   <div className="text-center w-full text-sm text-[#0ff]/80">
                     <p>Don't have a Solana wallet?</p>
@@ -918,26 +917,26 @@ export default function MultiWalletConnector({
                     </div>
                   </div>
                 ) : isTestMode ? (
-                  <TestModeButton
+                  <SoundButton
                     variant="outline"
                     className="w-full bg-[#f0f]/10 border-[#f0f]/30 hover:bg-[#f0f]/20"
                     onClick={disconnectWallet}
                   >
                     <span className="relative z-10">DISCONNECT</span>
-                  </TestModeButton>
+                  </SoundButton>
                 ) : (
-                  <CyberpunkButton
+                  <SoundButton
                     variant="outline"
                     className="w-full bg-[#0ff]/10 border-[#0ff]/30 hover:bg-[#0ff]/20"
                     onClick={disconnectWallet}
                   >
                     <span className="relative z-10">DISCONNECT</span>
-                  </CyberpunkButton>
+                  </SoundButton>
                 )}
-              </CyberpunkCardFooter>
+              </CardFooter>
             </>
           )}
-        </CyberpunkCard>
+        </Card>
       )}
     </div>
   )

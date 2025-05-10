@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Skull, Clock, Trophy, Coins } from "lucide-react"
+import { Skull, Clock, Coins, Target, Clock3, Award } from "lucide-react"
 import Image from "next/image"
 import SoundButton from "@/components/sound-button"
 import { lastStandConfig } from "./config"
@@ -147,12 +147,17 @@ export default function LastStandGameLauncher({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Skull className="h-5 w-5" />
+              <Skull className={cn("h-5 w-5", isCyberpunk && "text-cyan-400")} />
               <CardTitle className="font-mono">ARCHER ARENA: LAST STAND</CardTitle>
             </div>
             <Badge
               variant="outline"
-              className="bg-[#FFD54F] text-black border-2 border-black flex items-center gap-1 font-mono"
+              className={cn(
+                "flex items-center gap-1 font-mono",
+                isCyberpunk
+                  ? "bg-black/70 text-cyan-400 border border-cyan-500/50"
+                  : "bg-[#FFD54F] text-black border-2 border-black",
+              )}
             >
               <Image src="/images/mutable-token.png" alt="MUTB" width={16} height={16} className="rounded-full" />
               {mutbBalance.toFixed(2)} MUTB
@@ -170,15 +175,35 @@ export default function LastStandGameLauncher({
             style={isCyberpunk ? { backgroundColor: "rgba(0, 0, 0, 0.5)", borderColor: "rgba(6, 182, 212, 0.5)" } : {}}
           >
             <div className="flex items-center gap-2 mb-2">
-              <Trophy className="h-5 w-5" />
+              <div
+                className={cn(
+                  "p-1 rounded-md flex items-center justify-center w-8 h-8",
+                  isCyberpunk
+                    ? "bg-transparent border border-cyan-500/70 text-cyan-400 shadow-[0_0_5px_rgba(0,255,255,0.5)]"
+                    : "bg-transparent border border-gray-400",
+                )}
+              >
+                {mode.id === "practice" ? (
+                  <Target className={cn("h-5 w-5", isCyberpunk && "text-cyan-400")} />
+                ) : mode.id === "hourly" ? (
+                  <Clock3 className={cn("h-5 w-5", isCyberpunk && "text-cyan-400")} />
+                ) : (
+                  <Award className={cn("h-5 w-5", isCyberpunk && "text-cyan-400")} />
+                )}
+              </div>
               <div className="font-bold">{mode.name}</div>
             </div>
             <p>{mode.description}</p>
 
             {mode.entryFee > 0 && (
-              <div className="mt-4 p-3 bg-[#FFD54F] rounded-md border border-black">
+              <div
+                className={cn(
+                  "mt-4 p-3 rounded-md border",
+                  isCyberpunk ? "bg-black/70 border-cyan-500/50 text-cyan-400" : "bg-[#FFD54F] border-black",
+                )}
+              >
                 <div className="flex items-center gap-2">
-                  <Coins className="h-5 w-5" />
+                  <Coins className={cn("h-5 w-5", isCyberpunk && "text-cyan-400")} />
                   <div className="font-medium">Entry Fee:</div>
                   <div className="flex items-center">
                     <Image src="/images/mutable-token.png" alt="MUTB" width={16} height={16} />
@@ -190,7 +215,7 @@ export default function LastStandGameLauncher({
 
             {mode.duration > 0 && (
               <div className="mt-2 flex items-center gap-2">
-                <Clock className="h-4 w-4" />
+                <Clock className={cn("h-4 w-4", isCyberpunk && "text-cyan-400")} />
                 <span>
                   Duration:{" "}
                   {mode.duration / (60 * 60 * 1000) >= 1
@@ -207,14 +232,20 @@ export default function LastStandGameLauncher({
         <CardFooter className="flex justify-between">
           <SoundButton
             variant="outline"
-            className="border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+            className={cn(
+              "border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all",
+              isCyberpunk && "!border-cyan-500/50 !text-cyan-400 hover:!bg-cyan-900/30",
+            )}
             onClick={() => setSelectedMode(null)}
           >
             Back
           </SoundButton>
 
           <SoundButton
-            className="bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
+            className={cn(
+              "bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono",
+              isCyberpunk && "!bg-gradient-to-r !from-cyan-500 !to-purple-500 !text-black !border-cyan-400",
+            )}
             onClick={handleStartGame}
           >
             {mode.entryFee > 0 ? `PAY ${mode.entryFee} MUTB & START` : "START GAME"}
@@ -236,12 +267,17 @@ export default function LastStandGameLauncher({
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Skull className="h-5 w-5" />
+            <Skull className={cn("h-5 w-5", isCyberpunk && "text-cyan-400")} />
             <CardTitle className="font-mono">ARCHER ARENA: LAST STAND</CardTitle>
           </div>
           <Badge
             variant="outline"
-            className="bg-[#FFD54F] text-black border-2 border-black flex items-center gap-1 font-mono"
+            className={cn(
+              "flex items-center gap-1 font-mono",
+              isCyberpunk
+                ? "bg-black/70 text-cyan-400 border border-cyan-500/50"
+                : "bg-[#FFD54F] text-black border-2 border-black",
+            )}
           >
             <Image src="/images/mutable-token.png" alt="MUTB" width={16} height={16} className="rounded-full" />
             {mutbBalance.toFixed(2)} MUTB
@@ -257,7 +293,7 @@ export default function LastStandGameLauncher({
               key={mode.id}
               className={cn(
                 "border-2 border-black overflow-hidden cursor-pointer hover:bg-[#f5efdc] transition-colors flex flex-col",
-                isCyberpunk && "!bg-black/80 !border-cyan-500/50",
+                isCyberpunk && "!bg-black/80 !border-cyan-500/50 hover:!bg-black/60",
               )}
               style={
                 isCyberpunk ? { backgroundColor: "rgba(0, 0, 0, 0.8)", borderColor: "rgba(6, 182, 212, 0.5)" } : {}
@@ -266,21 +302,32 @@ export default function LastStandGameLauncher({
             >
               <CardHeader className="p-3">
                 <div className="flex items-center gap-2">
-                  {mode.id === "practice" ? (
-                    <div className="bg-[#FFD54F] p-1 rounded-md border border-black">🎯</div>
-                  ) : mode.id === "hourly" ? (
-                    <div className="bg-[#FFD54F] p-1 rounded-md border border-black">⏱️</div>
-                  ) : (
-                    <div className="bg-[#FFD54F] p-1 rounded-md border border-black">🏆</div>
-                  )}
+                  <div
+                    className={cn(
+                      "p-1 rounded-md flex items-center justify-center w-8 h-8",
+                      isCyberpunk
+                        ? "bg-transparent border border-cyan-500/70 text-cyan-400 shadow-[0_0_5px_rgba(0,255,255,0.5)]"
+                        : "bg-transparent border border-gray-400",
+                    )}
+                  >
+                    {mode.id === "practice" ? (
+                      <Target className={cn("h-5 w-5", isCyberpunk && "text-cyan-400")} />
+                    ) : mode.id === "hourly" ? (
+                      <Clock3 className={cn("h-5 w-5", isCyberpunk && "text-cyan-400")} />
+                    ) : (
+                      <Award className={cn("h-5 w-5", isCyberpunk && "text-cyan-400")} />
+                    )}
+                  </div>
                   <CardTitle className="text-base font-mono">{mode.name}</CardTitle>
                 </div>
               </CardHeader>
 
               <CardContent className="p-3 pt-0 flex-grow">
-                <p className="text-sm text-muted-foreground">{mode.description}</p>
+                <p className={cn("text-sm text-muted-foreground", isCyberpunk && "text-gray-400")}>
+                  {mode.description}
+                </p>
 
-                <div className="mt-2 text-xs flex items-center gap-1">
+                <div className={cn("mt-2 text-xs flex items-center gap-1", isCyberpunk && "text-cyan-400/80")}>
                   <span className="font-medium">Entry Fee:</span>
                   <div className="flex items-center">
                     <Image src="/images/mutable-token.png" alt="MUTB" width={12} height={12} />
@@ -289,7 +336,7 @@ export default function LastStandGameLauncher({
                 </div>
 
                 {mode.duration > 0 && (
-                  <div className="mt-1 text-xs flex items-center gap-1">
+                  <div className={cn("mt-1 text-xs flex items-center gap-1", isCyberpunk && "text-cyan-400/80")}>
                     <span className="font-medium">Duration:</span>
                     <span>
                       {mode.duration / (60 * 60 * 1000) >= 1
@@ -300,7 +347,7 @@ export default function LastStandGameLauncher({
                 )}
 
                 {mode.leaderboardRefresh && (
-                  <div className="mt-1 text-xs flex items-center gap-1">
+                  <div className={cn("mt-1 text-xs flex items-center gap-1", isCyberpunk && "text-cyan-400/80")}>
                     <span className="font-medium">Leaderboard:</span>
                     <span>{mode.leaderboardRefresh}</span>
                   </div>
@@ -309,7 +356,10 @@ export default function LastStandGameLauncher({
 
               <CardFooter className="p-3 mt-auto">
                 <SoundButton
-                  className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
+                  className={cn(
+                    "w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono",
+                    isCyberpunk && "!bg-gradient-to-r !from-cyan-500 !to-purple-500 !text-black !border-cyan-400",
+                  )}
                   onClick={() => handleModeSelect(mode.id)}
                   disabled={mode.entryFee > mutbBalance}
                 >
@@ -324,7 +374,10 @@ export default function LastStandGameLauncher({
       <CardFooter>
         <SoundButton
           variant="outline"
-          className="w-full border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
+          className={cn(
+            "w-full border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono",
+            isCyberpunk && "!border-cyan-500/50 !text-cyan-400 hover:!bg-cyan-900/30",
+          )}
           onClick={onExit}
         >
           BACK TO GAME SELECTION

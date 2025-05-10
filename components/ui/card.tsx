@@ -150,9 +150,18 @@ const CyberCardTitle = styled.h3`
 `
 
 const CyberCardDescription = styled.p`
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(0, 255, 255, 0.7);
+  font-family: monospace;
   font-size: 0.875rem;
   margin: 0;
+  text-shadow: 0 0 2px rgba(0, 255, 255, 0.3);
+  letter-spacing: 0.5px;
+  line-height: 1.5;
+  
+  /* Add subtle glitch effect on hover */
+  &:hover {
+    animation: ${glitchAnim1} 0.2s;
+  }
 `
 
 const CyberCardContent = styled.div`
@@ -302,7 +311,7 @@ const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttribu
     const isCyberpunk = styleMode === "cyberpunk"
 
     if (isCyberpunk) {
-      return <CyberCardDescription ref={ref} className={className} {...props} />
+      return <div ref={ref} className={className} {...props} />
     }
 
     return <p ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
