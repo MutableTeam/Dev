@@ -120,6 +120,7 @@ export function CyberpunkTabs({ tabs, defaultValue, className }: CyberpunkTabsPr
     `}</style>
 
       <TabsList
+        id=""
         className={cn(
           "w-full",
           isCyberpunkMode &&
@@ -136,6 +137,7 @@ export function CyberpunkTabs({ tabs, defaultValue, className }: CyberpunkTabsPr
 
         {tabs.map((tab) => (
           <TabsTrigger
+            id=""
             key={tab.value}
             value={tab.value}
             className={cn(
@@ -163,7 +165,7 @@ export function CyberpunkTabs({ tabs, defaultValue, className }: CyberpunkTabsPr
       </TabsList>
 
       {tabs.map((tab) => (
-        <TabsContent key={tab.value} value={tab.value}>
+        <TabsContent id="" key={tab.value} value={tab.value}>
           {tab.content}
         </TabsContent>
       ))}

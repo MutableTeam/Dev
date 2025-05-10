@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { CyberpunkThemeProvider } from "@/contexts/cyberpunk-theme-context"
+import TokenClaimBanner from "@/components/token-claim-banner"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -24,6 +25,7 @@ export default function RootLayout({
         <CyberpunkThemeProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             {children}
+            <TokenClaimBanner />
           </ThemeProvider>
         </CyberpunkThemeProvider>
       </body>
