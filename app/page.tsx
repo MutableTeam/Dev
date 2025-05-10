@@ -12,6 +12,7 @@ import RetroArcadeBackground from "@/components/retro-arcade-background"
 import { Connection, clusterApiUrl } from "@solana/web3.js"
 import "@/styles/retro-arcade.css"
 import { initializeGoogleAnalytics } from "@/utils/analytics"
+import { SignUpBanner } from "@/components/signup-banner"
 
 // Google Analytics Measurement ID
 const GA_MEASUREMENT_ID = "G-41DL97N287"
@@ -54,7 +55,7 @@ export default function Home() {
         className={`fixed ${
           walletConnected
             ? "top-2 right-2 sm:right-4 md:right-6"
-            : "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md"
+            : "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
         } z-[100]`}
       >
         <MultiWalletConnector
@@ -75,19 +76,16 @@ export default function Home() {
 
           {walletConnected && publicKey && (
             <div className="mt-16">
-              <MutablePlatform
-                publicKey={publicKey}
-                balance={balance}
-                provider={provider}
-                connection={connection}
-                isWalletConnected={walletConnected}
-              />
+              <MutablePlatform publicKey={publicKey} balance={balance} provider={provider} connection={connection} />
             </div>
           )}
 
           <DebugOverlay initiallyVisible={false} position="bottom-right" />
         </div>
       </RetroArcadeBackground>
+
+      {/* Sign Up Banner */}
+      <SignUpBanner />
     </main>
   )
 }

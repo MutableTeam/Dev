@@ -373,6 +373,9 @@ const CyberButtonOutline = styled.button`
   text-shadow: 0 0 5px rgba(0, 255, 255, 0.7);
   border-radius: 0.375rem;
   box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+  white-space: normal;
+  word-break: break-word;
+  hyphens: auto;
   
   &:hover {
     background: rgba(0, 255, 255, 0.1);

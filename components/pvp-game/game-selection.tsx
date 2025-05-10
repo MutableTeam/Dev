@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Gamepad2, Target } from "lucide-react"
+import { Gamepad2 } from "lucide-react"
 import Image from "next/image"
 import SoundButton from "../sound-button"
 import { gameRegistry } from "@/types/game-registry"
@@ -144,17 +144,12 @@ const CyberPlayButton = styled(Button)`
   transition: all 0.3s ease;
   text-shadow: none;
   width: 100%;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   
   /* Mobile optimizations */
   ${mediaQueries.mobile} {
-    padding: 0.5rem;
+    padding: 0.75rem;
     font-size: 0.8rem;
     min-height: 44px; /* Ensure touch target size */
-    height: auto;
   }
   
   &:hover {
@@ -231,35 +226,27 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
     originalName: game.config.name, // Store original name for reference
   }))
 
-  // Modify the names for Archer games
+  // Modify the name for Archer Arena: Last Stand
   const processedGames = allGames.map((game) => {
-    if (game.name === "Archer Arena") {
-      return {
-        ...game,
-        name: "Archer: Arena",
-        description: game.description,
-      }
-    }
     if (game.name === "Archer Arena: Last Stand") {
       return {
         ...game,
-        name: "Archer: Last Stand",
-        description: "Archer: Last Stand - " + game.description,
-        icon: <Target className="h-4 w-4" />, // Add Target icon for Last Stand
+        name: "AA: Last Stand",
+        description: "Archer Arena: Last Stand - " + game.description,
       }
     }
     return game
   })
 
-  // Sort games: available games first, then put "Archer: Last Stand" next to "Archer: Arena"
+  // Sort games: available games first, then put "AA: Last Stand" next to "Archer Arena"
   const games = processedGames.sort((a, b) => {
     // First, sort by status (live games first)
     if (a.status === "live" && b.status !== "live") return -1
     if (a.status !== "live" && b.status === "live") return 1
 
-    // Then, ensure "Archer: Last Stand" is next to "Archer: Arena"
-    if (a.name === "Archer: Arena" && b.name === "Archer: Last Stand") return -1
-    if (a.name === "Archer: Last Stand" && b.name === "Archer: Arena") return 1
+    // Then, ensure "AA: Last Stand" is next to "Archer Arena"
+    if (a.name === "Archer Arena" && b.name === "AA: Last Stand") return -1
+    if (a.name === "AA: Last Stand" && b.name === "Archer Arena") return 1
 
     // Default sort by name
     return a.name.localeCompare(b.name)
@@ -267,7 +254,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
 
   // Custom image override for Last Stand
   const getGameImage = (game) => {
-    if (game.originalName === "Archer Arena: Last Stand" || game.name === "Archer: Last Stand") {
+    if (game.originalName === "Archer Arena: Last Stand" || game.name === "AA: Last Stand") {
       return "/images/last-stand.jpg"
     }
     return game.image || "/placeholder.svg"
@@ -379,9 +366,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                     disabled={game.status !== "live"}
                     onClick={() => handleGameSelect(game.id)}
                   >
-                    <span className="block w-full text-center">
-                      {game.status === "live" ? "PLAY NOW" : "COMING SOON"}
-                    </span>
+                    {game.status === "live" ? "PLAY NOW" : "COMING SOON"}
                   </CyberPlayButton>
                 </CardFooter>
               </CyberGameCard>
@@ -426,13 +411,11 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                 <div className="mt-auto"></div>
                 <CardFooter className={isMobile ? "p-2" : "p-3"}>
                   <SoundButton
-                    className="w-full h-11 flex items-center justify-center bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
+                    className="w-full bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono"
                     disabled={game.status !== "live"}
                     onClick={() => handleGameSelect(game.id)}
                   >
-                    <span className="block w-full text-center">
-                      {game.status === "live" ? "PLAY NOW" : "COMING SOON"}
-                    </span>
+                    {game.status === "live" ? "PLAY NOW" : "COMING SOON"}
                   </SoundButton>
                 </CardFooter>
               </Card>

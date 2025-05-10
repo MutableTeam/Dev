@@ -671,7 +671,7 @@ export default function MultiWalletConnector({
   // Render the collapsed wallet view when connected
   const renderCollapsedWallet = () => {
     return (
-      <div className="flex items-center justify-between bg-gradient-to-r from-[#0a0a24]/80 to-[#1a1a4a]/80 rounded-full px-3 py-2 shadow-md border border-[#0ff]/50 ml-auto backdrop-blur-sm">
+      <div className="flex items-center justify-between bg-gradient-to-r from-[#0a0a24]/80 to-[#1a1a4a]/80 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 shadow-md border border-[#0ff]/50 ml-auto backdrop-blur-sm">
         <div className="flex items-center gap-1 sm:gap-2">
           {isTestMode ? (
             <div className="bg-[#f0f]/80 p-1 rounded-full">
@@ -722,9 +722,7 @@ export default function MultiWalletConnector({
 
   // Update the return statement to conditionally render based on compact mode
   return (
-    <div
-      className={`${compact && connected ? "flex justify-end w-full" : "space-y-6 w-full max-w-[95vw] mx-auto sm:max-w-md"} ${className}`}
-    >
+    <div className={`${compact && connected ? "flex justify-end w-full" : "space-y-6"} ${className}`}>
       {!connected && !compact && (
         <div className="controller-container mb-2 sm:mb-6 relative mx-auto text-center max-w-[400px]">
           <Image
@@ -742,7 +740,7 @@ export default function MultiWalletConnector({
         <div className="wallet-compact-header wallet-foreground-element">{renderCollapsedWallet()}</div>
       ) : (
         // Regular card view
-        <Card className={`${compact ? "w-full" : "w-full mx-auto"} relative overflow-hidden shadow-lg`}>
+        <Card className={`${compact ? "w-full" : "w-full max-w-md mx-auto"} relative overflow-hidden`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-2">
               <Wallet className="h-5 w-5 text-[#0ff]" />
@@ -771,7 +769,7 @@ export default function MultiWalletConnector({
                   Connect your Solana wallet to use Mutable
                 </CardDescription>
               )}
-              <CardContent className="space-y-5 text-[#0ff] p-4 sm:p-6">
+              <CardContent className="space-y-4 text-[#0ff]">
                 {connected ? (
                   <>
                     <div className="flex justify-between items-center">
@@ -798,14 +796,14 @@ export default function MultiWalletConnector({
                         )}
                       </div>
                     </div>
-                    <div className="flex justify-between items-center flex-wrap gap-2">
+                    <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Address:</span>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-mono break-all">{shortenAddress(getWalletAddress())}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono">{shortenAddress(getWalletAddress())}</span>
                         <SoundButton
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-[#0ff] hover:text-[#0ff]/80 hover:bg-[#0ff]/10 flex-shrink-0"
+                          className="h-8 w-8 text-[#0ff] hover:text-[#0ff]/80 hover:bg-[#0ff]/10"
                           onClick={copyAddress}
                         >
                           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -861,7 +859,7 @@ export default function MultiWalletConnector({
                             key={wallet.type}
                             onClick={() => connectWallet(wallet.type)}
                             disabled={loading}
-                            className="w-full justify-start h-14 font-bold px-4 text-base"
+                            className="w-full justify-start h-12 font-bold"
                           >
                             <div className="flex items-center gap-2 z-10 relative">
                               <TestTube className="h-5 w-5" />
@@ -873,7 +871,7 @@ export default function MultiWalletConnector({
                             key={wallet.type}
                             onClick={() => connectWallet(wallet.type)}
                             disabled={loading || !wallet.available}
-                            className="w-full justify-start h-14 font-bold px-4 text-base"
+                            className="w-full justify-start h-12 font-bold"
                           >
                             <div className="flex items-center gap-2 z-10 relative">
                               <Image
