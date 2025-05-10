@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Gamepad2, ArrowLeftRight, Smartphone, Code, Mail, CheckCircle, AlertCircle } from "lucide-react"
+import { Gamepad2, ArrowLeftRight, Smartphone, Code, Mail, CheckCircle, AlertCircle, Wallet } from "lucide-react"
 import Image from "next/image"
 import MutableMarketplace from "./mutable-marketplace"
 import GameSelection from "./pvp-game/game-selection"
@@ -208,9 +208,16 @@ interface MutablePlatformProps {
   balance: number | null
   provider: any
   connection: Connection
+  isWalletConnected: boolean
 }
 
-export default function MutablePlatform({ publicKey, balance, provider, connection }: MutablePlatformProps) {
+export default function MutablePlatform({
+  publicKey,
+  balance,
+  provider,
+  connection,
+  isWalletConnected,
+}: MutablePlatformProps) {
   const { styleMode } = useCyberpunkTheme()
   const isCyberpunk = styleMode === "cyberpunk"
 
@@ -332,91 +339,120 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
               : {}
           }
         >
-          {selectedGame ? (
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <SoundButton
-                  variant="outline"
-                  className={cn(
-                    "border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all dark:border-gray-700 dark:text-white dark:hover:bg-[#D4AF37] dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]",
-                    isCyberpunk && "border-cyan-500 text-cyan-400 bg-black/50 hover:bg-cyan-900/50 shadow-cyan-500/30",
-                  )}
-                  onClick={handleBackToSelection}
-                >
-                  Back to Game Selection
-                </SoundButton>
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "ml-auto bg-[#FFD54F] text-black border-2 border-black flex items-center gap-1 font-mono dark:bg-[#D4AF37] dark:border-gray-700 dark:text-black",
-                    isCyberpunk && "bg-black/70 border-cyan-500 text-cyan-400",
-                  )}
-                >
-                  <Image src="/images/mutable-token.png" alt="MUTB" width={16} height={16} className="rounded-full" />
-                  {mutbBalance.toFixed(2)} MUTB
-                </Badge>
-              </div>
-              {selectedGame === "top-down-shooter" || selectedGame === "mutball-pool" ? (
-                <MatchmakingLobby
-                  publicKey={publicKey}
-                  playerName={getPlayerName()}
-                  mutbBalance={mutbBalance}
-                  onExit={handleBackToSelection}
-                  selectedGame={selectedGame}
-                />
-              ) : selectedGame === "archer-arena" ? (
-                <div className="space-y-4">
-                  <LastStandGameLauncher
+          {isWalletConnected ? (
+            selectedGame ? (
+              // Game content
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <SoundButton
+                    variant="outline"
+                    className={cn(
+                      "border-2 border-black text-black hover:bg-[#FFD54F] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all dark:border-gray-700 dark:text-white dark:hover:bg-[#D4AF37] dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]",
+                      isCyberpunk &&
+                        "border-cyan-500 text-cyan-400 bg-black/50 hover:bg-cyan-900/50 shadow-cyan-500/30",
+                    )}
+                    onClick={handleBackToSelection}
+                  >
+                    Back to Game Selection
+                  </SoundButton>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "ml-auto bg-[#FFD54F] text-black border-2 border-black flex items-center gap-1 font-mono dark:bg-[#D4AF37] dark:border-gray-700 dark:text-black",
+                      isCyberpunk && "bg-black/70 border-cyan-500 text-cyan-400",
+                    )}
+                  >
+                    <Image src="/images/mutable-token.png" alt="MUTB" width={16} height={16} className="rounded-full" />
+                    {mutbBalance.toFixed(2)} MUTB
+                  </Badge>
+                </div>
+                {selectedGame === "top-down-shooter" || selectedGame === "mutball-pool" ? (
+                  <MatchmakingLobby
                     publicKey={publicKey}
                     playerName={getPlayerName()}
                     mutbBalance={mutbBalance}
                     onExit={handleBackToSelection}
+                    selectedGame={selectedGame}
                   />
-                </div>
-              ) : (
-                <Card className={cn("arcade-card", isCyberpunk && "bg-black/80 border-cyan-500/50")}>
-                  <CardContent className="p-12 flex flex-col items-center justify-center">
-                    <Gamepad2
-                      size={64}
-                      className={cn("mb-4 text-gray-700 dark:text-gray-400", isCyberpunk && "text-cyan-500")}
+                ) : selectedGame === "archer-arena" ? (
+                  <div className="space-y-4">
+                    <LastStandGameLauncher
+                      publicKey={publicKey}
+                      playerName={getPlayerName()}
+                      mutbBalance={mutbBalance}
+                      onExit={handleBackToSelection}
                     />
-                    <h2
-                      className={cn(
-                        "text-3xl font-bold font-mono text-center mb-2 dark:text-white",
-                        isCyberpunk && "text-cyan-400",
-                      )}
-                    >
-                      COMING SOON
-                    </h2>
-                    <p
-                      className={cn(
-                        "text-center text-gray-700 max-w-md dark:text-gray-300",
-                        isCyberpunk && "text-cyan-300/70",
-                      )}
-                    >
-                      This game is currently in development and will be available soon!
-                    </p>
-                    <SoundButton
-                      onClick={handleBackToSelection}
-                      className={cn(
-                        "mt-8 bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono dark:bg-[#D4AF37] dark:hover:bg-[#C4A137] dark:border-gray-700 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] dark:text-black",
-                        isCyberpunk &&
-                          "bg-cyan-900/50 hover:bg-cyan-800/50 text-cyan-400 border-cyan-500 shadow-cyan-500/30",
-                      )}
-                    >
-                      BACK TO GAMES
-                    </SoundButton>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+                  </div>
+                ) : (
+                  <Card className={cn("arcade-card", isCyberpunk && "bg-black/80 border-cyan-500/50")}>
+                    <CardContent className="p-12 flex flex-col items-center justify-center">
+                      <Gamepad2
+                        size={64}
+                        className={cn("mb-4 text-gray-700 dark:text-gray-400", isCyberpunk && "text-cyan-500")}
+                      />
+                      <h2
+                        className={cn(
+                          "text-3xl font-bold font-mono text-center mb-2 dark:text-white",
+                          isCyberpunk && "text-cyan-400",
+                        )}
+                      >
+                        COMING SOON
+                      </h2>
+                      <p
+                        className={cn(
+                          "text-center text-gray-700 max-w-md dark:text-gray-300",
+                          isCyberpunk && "text-cyan-300/70",
+                        )}
+                      >
+                        This game is currently in development and will be available soon!
+                      </p>
+                      <SoundButton
+                        onClick={handleBackToSelection}
+                        className={cn(
+                          "mt-8 bg-[#FFD54F] hover:bg-[#FFCA28] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all font-mono dark:bg-[#D4AF37] dark:hover:bg-[#C4A137] dark:border-gray-700 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] dark:text-black",
+                          isCyberpunk &&
+                            "bg-cyan-900/50 hover:bg-cyan-800/50 text-cyan-400 border-cyan-500 shadow-cyan-500/30",
+                        )}
+                      >
+                        BACK TO GAMES
+                      </SoundButton>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            ) : (
+              <GameSelection
+                publicKey={publicKey}
+                balance={localBalance}
+                mutbBalance={mutbBalance}
+                onSelectGame={handleSelectGame}
+              />
+            )
           ) : (
-            <GameSelection
-              publicKey={publicKey}
-              balance={localBalance}
-              mutbBalance={mutbBalance}
-              onSelectGame={handleSelectGame}
-            />
+            <Card className={cn("arcade-card", isCyberpunk && "bg-black/80 border-cyan-500/50")}>
+              <CardContent className="p-12 flex flex-col items-center justify-center">
+                <Wallet
+                  size={64}
+                  className={cn("mb-4 text-gray-700 dark:text-gray-400", isCyberpunk && "text-cyan-500")}
+                />
+                <h2
+                  className={cn(
+                    "text-3xl font-bold font-mono text-center mb-2 dark:text-white",
+                    isCyberpunk && "text-cyan-400",
+                  )}
+                >
+                  CONNECT WALLET
+                </h2>
+                <p
+                  className={cn(
+                    "text-center text-gray-700 max-w-md dark:text-gray-300",
+                    isCyberpunk && "text-cyan-300/70",
+                  )}
+                >
+                  Please connect your wallet to access the games.
+                </p>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 

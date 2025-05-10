@@ -54,7 +54,7 @@ export default function Home() {
         className={`fixed ${
           walletConnected
             ? "top-2 right-2 sm:right-4 md:right-6"
-            : "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            : "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md"
         } z-[100]`}
       >
         <MultiWalletConnector
@@ -75,7 +75,13 @@ export default function Home() {
 
           {walletConnected && publicKey && (
             <div className="mt-16">
-              <MutablePlatform publicKey={publicKey} balance={balance} provider={provider} connection={connection} />
+              <MutablePlatform
+                publicKey={publicKey}
+                balance={balance}
+                provider={provider}
+                connection={connection}
+                isWalletConnected={walletConnected}
+              />
             </div>
           )}
 
