@@ -39,7 +39,7 @@ const CyberBanner = styled.div`
   background: linear-gradient(90deg, rgba(16, 16, 48, 0.95) 0%, rgba(32, 16, 64, 0.95) 100%);
   border-top: 2px solid rgba(0, 255, 255, 0.5);
   padding: 1rem;
-  z-index: 50;
+  z-index: 9999;
   animation: ${slideUp} 0.5s ease-out forwards;
   backdrop-filter: blur(10px);
   
@@ -95,16 +95,8 @@ export function SignUpBanner({ onSignUp }: SignUpBannerProps) {
   const isCyberpunk = styleMode === "cyberpunk"
 
   useEffect(() => {
-    // Show banner after a short delay
-    const timer = setTimeout(() => {
-      // Check if banner was previously dismissed
-      const bannerDismissed = localStorage.getItem("signupBannerDismissed")
-      if (!bannerDismissed) {
-        setIsVisible(true)
-      }
-    }, 2000)
-
-    return () => clearTimeout(timer)
+    // Show banner immediately without checking localStorage
+    setIsVisible(true)
   }, [])
 
   const handleClose = () => {
@@ -125,18 +117,18 @@ export function SignUpBanner({ onSignUp }: SignUpBannerProps) {
 
   if (!isCyberpunk) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 border-t p-4 z-50 flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-sm">
+      <div className="fixed bottom-0 left-0 right-0 bg-black/90 border-t border-blue-500 p-4 z-[9999] flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-sm text-white">
         <div className="flex items-center gap-3">
-          <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-primary">
+          <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-blue-500">
             <Image src="/images/mutable-token.png" alt="MUTB Token" fill className="object-cover" />
           </div>
           <p className="font-medium">Sign up now and receive up to 100 Free MUTB Tokens!</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={handleSignUp} className="whitespace-nowrap">
+          <Button onClick={handleSignUp} className="whitespace-nowrap bg-blue-600 hover:bg-blue-700">
             Sign Up Now
           </Button>
-          <button onClick={handleClose} className="p-1 text-muted-foreground hover:text-foreground">
+          <button onClick={handleClose} className="p-1 text-gray-300 hover:text-white">
             <X size={20} />
           </button>
         </div>
