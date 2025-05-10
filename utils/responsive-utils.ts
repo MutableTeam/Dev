@@ -62,19 +62,15 @@ const spacing = {
 }
 
 // Helper function to generate responsive styles
-const responsive = <T>(
-  property: string,\
-  values: { [key: string]: T }
-): string => {
-  return Object.entries(values)
+const responsive = <T,>(property: string, values: { [key: string]: T }): string =>
+  Object.entries(values)
     .map(([breakpoint, value]) => {
-      if (breakpoint === 'base') {
-        return `${property}: ${value};`;
+      if (breakpoint === "base") {
+        return `${property}: ${value};`
       }
-      return `${mediaQueries[breakpoint]} { ${property}: ${value}; }`;
+      return `${mediaQueries[breakpoint]} { ${property}: ${value}; }`
     })
-    .join('\n');
-};
+    .join("\n")
 
 // Touch interaction helpers
 const touchInteractions = {
@@ -83,7 +79,7 @@ const touchInteractions = {
     min-height: 44px;
     min-width: 44px;
   `,
-  
+
   // Remove hover effects on touch devices
   noHoverOnTouch: `
     ${mediaQueries.touch} {
@@ -94,7 +90,7 @@ const touchInteractions = {
       }
     }
   `,
-  
+
   // Add active state for touch feedback
   touchFeedback: `
     ${mediaQueries.touch} {
@@ -104,7 +100,7 @@ const touchInteractions = {
       }
     }
   `,
-};
+}
 
 // Performance optimizations for mobile
 const mobileOptimizations = {
@@ -115,19 +111,19 @@ const mobileOptimizations = {
       transitionDuration: 50% !important;
     }
   `,
-  
+
   // Use hardware acceleration for smoother scrolling/animations
   hardwareAcceleration: `
     transform: translateZ(0);
     backface-visibility: hidden;
   `,
-  
+
   // Optimize images for mobile
   responsiveImage: `
     max-width: 100%;
     height: auto;
   `,
-};
+}
 
 // Common responsive patterns
 const responsivePatterns = {
@@ -140,7 +136,7 @@ const responsivePatterns = {
       flex-direction: row;
     }
   `,
-  
+
   // Grid that adjusts columns based on screen size
   responsiveGrid: `
     display: grid;
@@ -158,14 +154,14 @@ const responsivePatterns = {
       grid-template-columns: repeat(4, 1fr);
     }
   `,
-  
+
   // Hide elements on mobile
   hideOnMobile: `
     ${mediaQueries.mobile} {
       display: none;
     }
   `,
-  
+
   // Show elements only on mobile
   showOnlyOnMobile: `
     display: block;
@@ -174,7 +170,7 @@ const responsivePatterns = {
       display: none;
     }
   `,
-  
+
   // Adjust font sizes responsively
   responsiveText: `
     font-size: 1rem;
@@ -187,7 +183,7 @@ const responsivePatterns = {
       font-size: 1.2rem;
     }
   `,
-  
+
   // Full-width on mobile, constrained on larger screens
   containerResponsive: `
     width: 100%;
@@ -209,24 +205,24 @@ const responsivePatterns = {
       max-width: 1280px;
     }
   `,
-};
+}
 
 // Hook to detect mobile devices (to be used with React)
 const useMobileDetection = () => {
-  if (typeof window === 'undefined') return false;
-  
+  if (typeof window === "undefined") return false
+
   // Check for touch capability
-  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  
+  const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0
+
   // Check screen size
-  const isMobileSize = window.innerWidth < breakpoints.md;
-  
+  const isMobileSize = window.innerWidth < breakpoints.md
+
   // Check user agent for mobile devices
-  const userAgent = navigator.userAgent.toLowerCase();
-  const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
-  
-  return hasTouch && (isMobileSize || isMobileDevice);
-};
+  const userAgent = navigator.userAgent.toLowerCase()
+  const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent)
+
+  return hasTouch && (isMobileSize || isMobileDevice)
+}
 
 // Export everything as named exports
 export {
@@ -237,8 +233,8 @@ export {
   touchInteractions,
   mobileOptimizations,
   responsivePatterns,
-  useMobileDetection
-};
+  useMobileDetection,
+}
 
 // Also export as default for convenience
 export default {
@@ -249,5 +245,5 @@ export default {
   touchInteractions,
   mobileOptimizations,
   responsivePatterns,
-  useMobileDetection
-};
+  useMobileDetection,
+}
