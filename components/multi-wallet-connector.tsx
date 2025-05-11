@@ -695,7 +695,7 @@ export default function MultiWalletConnector({
               className="font-mono text-xs px-1.5 py-0.5 h-5 font-bold badge flex items-center gap-1"
             >
               <Image
-                src={MUTB_TOKEN.logoURI || "/placeholder.svg"}
+                src={MUTB_TOKEN.logoURI || "/images/mutable-token.png"}
                 alt="MUTB"
                 width={12}
                 height={12}
@@ -817,7 +817,7 @@ export default function MultiWalletConnector({
                       <div className="flex flex-col gap-1 items-end">
                         <div className="flex items-center gap-2">
                           <Image
-                            src={SOL_TOKEN.logoURI || "/placeholder.svg"}
+                            src={SOL_TOKEN.logoURI || "/solana-logo.png"}
                             alt="SOL"
                             width={16}
                             height={16}
@@ -831,7 +831,7 @@ export default function MultiWalletConnector({
                         </div>
                         <div className="flex items-center gap-2">
                           <Image
-                            src={MUTB_TOKEN.logoURI || "/placeholder.svg"}
+                            src={MUTB_TOKEN.logoURI || "/images/mutable-token.png"}
                             alt="MUTB"
                             width={16}
                             height={16}
