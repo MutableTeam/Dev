@@ -736,7 +736,10 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
                           "bg-cyan-900/70 hover:bg-cyan-800/70 border-cyan-500 shadow-cyan-500/30 text-cyan-300",
                       )}
                     >
-                      <Mail className="h-4 w-4 mr-2" /> CONTACT US NOW
+                      <div className="flex items-center justify-center">
+                        <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <span>CONTACT US</span>
+                      </div>
                     </SoundButton>
                   </div>
 

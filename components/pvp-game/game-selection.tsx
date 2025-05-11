@@ -12,6 +12,7 @@ import styled from "@emotion/styled"
 import { keyframes } from "@emotion/react"
 import { useIsMobile } from "@/components/ui/use-mobile"
 import { ResponsiveGrid } from "@/components/mobile-optimized-container"
+import { GAME_IMAGES, TOKENS } from "@/utils/image-paths"
 
 // Define breakpoints locally to avoid import issues
 const breakpoints = {
@@ -255,7 +256,13 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
   // Custom image override for Last Stand
   const getGameImage = (game) => {
     if (game.originalName === "Archer Arena: Last Stand" || game.name === "AA: Last Stand") {
-      return "/images/last-stand.jpg"
+      return GAME_IMAGES.LAST_STAND
+    }
+    if (game.id === "archer-arena") {
+      return GAME_IMAGES.ARCHER
+    }
+    if (game.id === "pixel-pool") {
+      return GAME_IMAGES.PIXEL_POOL
     }
     return game.image || "/placeholder.svg"
   }
@@ -308,7 +315,13 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                 : "bg-[#FFD54F] text-black border-2 border-black flex items-center gap-1 font-mono"
             }
           >
-            <Image src="/images/mutable-token.png" alt="MUTB" width={16} height={16} className="rounded-full" />
+            <Image
+              src={TOKENS.MUTABLE || "/placeholder.svg"}
+              alt="MUTB"
+              width={16}
+              height={16}
+              className="rounded-full"
+            />
             {mutbBalance.toFixed(2)} MUTB
           </Badge>
         </div>
@@ -354,7 +367,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                   <div className={`mt-2 ${isMobile ? "text-xs" : "text-sm"} flex items-center gap-1 text-[#0ff]/80`}>
                     <span className="font-medium">Min Wager:</span>
                     <div className="flex items-center">
-                      <Image src="/images/mutable-token.png" alt="MUTB" width={12} height={12} />
+                      <Image src={TOKENS.MUTABLE || "/placeholder.svg"} alt="MUTB" width={12} height={12} />
                       <span>{game.minWager} MUTB</span>
                     </div>
                   </div>
@@ -403,7 +416,7 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                   <div className={`mt-2 ${isMobile ? "text-xs" : "text-xs"} flex items-center gap-1`}>
                     <span className="font-medium">Min Wager:</span>
                     <div className="flex items-center">
-                      <Image src="/images/mutable-token.png" alt="MUTB" width={12} height={12} />
+                      <Image src={TOKENS.MUTABLE || "/placeholder.svg"} alt="MUTB" width={12} height={12} />
                       <span>{game.minWager} MUTB</span>
                     </div>
                   </div>

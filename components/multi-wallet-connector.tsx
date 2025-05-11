@@ -10,7 +10,7 @@ import Image from "next/image"
 import SoundButton from "./sound-button"
 import { audioManager, playIntroSound, initializeAudio, loadAudioFiles } from "@/utils/audio-manager"
 import { ThemeToggle } from "./theme-toggle"
-import { SOL_TOKEN, MUTB_TOKEN } from "@/config/token-registry"
+import { LOGOS, TOKENS } from "@/utils/image-paths"
 
 // Add this after the existing imports
 import { keyframes } from "@emotion/react"
@@ -85,7 +85,7 @@ const ControllerGlitch = styled.div`
   margin: auto;
   width: 100%;
   height: 100%;
-  background-image: url('/images/mutable-logo-transparent.png');
+  background-image: url('${LOGOS.MUTABLE.TRANSPARENT}');
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
@@ -307,13 +307,13 @@ export default function MultiWalletConnector({
     {
       name: "Phantom",
       type: "phantom",
-      icon: "/images/phantom-wallet.png",
+      icon: LOGOS.PHANTOM,
       available: false,
     },
     {
       name: "Solflare",
       type: "solflare",
-      icon: "/images/solflare-icon.png",
+      icon: LOGOS.SOLFLARE,
       available: false,
     },
     {
@@ -681,7 +681,7 @@ export default function MultiWalletConnector({
             </div>
           ) : (
             <Image
-              src={activeWallet === "phantom" ? "/images/phantom-wallet.png" : "/images/solflare-icon.png"}
+              src={activeWallet === "phantom" ? LOGOS.PHANTOM : LOGOS.SOLFLARE}
               alt={activeWallet === "phantom" ? "Phantom" : "Solflare"}
               width={20}
               height={20}
@@ -695,7 +695,7 @@ export default function MultiWalletConnector({
               className="font-mono text-xs px-1.5 py-0.5 h-5 font-bold badge flex items-center gap-1"
             >
               <Image
-                src={MUTB_TOKEN.logoURI || "/images/mutable-token.png"}
+                src={TOKENS.MUTABLE || "/placeholder.svg"}
                 alt="MUTB"
                 width={12}
                 height={12}
@@ -726,7 +726,7 @@ export default function MultiWalletConnector({
       {!connected && !compact && (
         <div className="controller-container mb-2 sm:mb-6 relative mx-auto text-center max-w-[400px]">
           <Image
-            src="/images/mutable-logo-transparent.png"
+            src={LOGOS.MUTABLE.TRANSPARENT || "/placeholder.svg"}
             alt="Mutable Logo"
             width={200}
             height={120}
@@ -785,9 +785,7 @@ export default function MultiWalletConnector({
                         ) : (
                           <>
                             <Image
-                              src={
-                                activeWallet === "phantom" ? "/images/phantom-wallet.png" : "/images/solflare-icon.png"
-                              }
+                              src={activeWallet === "phantom" ? LOGOS.PHANTOM : LOGOS.SOLFLARE}
                               alt={activeWallet === "phantom" ? "Phantom" : "Solflare"}
                               width={20}
                               height={20}
@@ -817,7 +815,7 @@ export default function MultiWalletConnector({
                       <div className="flex flex-col gap-1 items-end">
                         <div className="flex items-center gap-2">
                           <Image
-                            src={SOL_TOKEN.logoURI || "/solana-logo.png"}
+                            src={TOKENS.SOL || "/placeholder.svg"}
                             alt="SOL"
                             width={16}
                             height={16}
@@ -831,7 +829,7 @@ export default function MultiWalletConnector({
                         </div>
                         <div className="flex items-center gap-2">
                           <Image
-                            src={MUTB_TOKEN.logoURI || "/images/mutable-token.png"}
+                            src={TOKENS.MUTABLE || "/placeholder.svg"}
                             alt="MUTB"
                             width={16}
                             height={16}
