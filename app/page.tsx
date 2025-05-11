@@ -56,7 +56,7 @@ export default function Home() {
           walletConnected
             ? "top-2 right-2 sm:right-4 md:right-6"
             : "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-        } z-[100]`}
+        } z-[100] ${!walletConnected ? "w-full max-w-md px-4 sm:px-0" : ""}`}
       >
         <MultiWalletConnector
           onConnectionChange={handleWalletConnection}
@@ -84,8 +84,8 @@ export default function Home() {
         </div>
       </RetroArcadeBackground>
 
-      {/* Sign Up Banner */}
-      <SignUpBanner />
+      {/* Sign Up Banner - now only shows when wallet is connected */}
+      <SignUpBanner walletConnected={walletConnected} />
     </main>
   )
 }

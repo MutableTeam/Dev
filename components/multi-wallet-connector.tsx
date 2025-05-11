@@ -102,6 +102,8 @@ const CyberpunkCard = styled(Card)`
   backdrop-filter: blur(5px);
   position: relative;
   overflow: hidden;
+  width: 100%;
+  min-width: 280px;
 
   &::before {
     content: '';

@@ -87,17 +87,22 @@ const CloseButton = styled.button`
 
 interface SignUpBannerProps {
   onSignUp?: () => void
+  walletConnected?: boolean // New prop to check wallet connection status
 }
 
-export function SignUpBanner({ onSignUp }: SignUpBannerProps) {
+export function SignUpBanner({ onSignUp, walletConnected = false }: SignUpBannerProps) {
   const [isVisible, setIsVisible] = useState(false)
   const { styleMode } = useCyberpunkTheme()
   const isCyberpunk = styleMode === "cyberpunk"
 
   useEffect(() => {
-    // Show banner immediately without checking localStorage
-    setIsVisible(true)
-  }, [])
+    // Only show banner if wallet is connected and banner wasn't dismissed
+    if (walletConnected && !localStorage.getItem("signupBannerDismissed")) {
+      setIsVisible(true)
+    } else {
+      setIsVisible(false)
+    }
+  }, [walletConnected])
 
   const handleClose = () => {
     setIsVisible(false)
