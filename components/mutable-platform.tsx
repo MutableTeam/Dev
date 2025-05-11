@@ -246,7 +246,7 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       <Tabs defaultValue="desktop-games" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className={isCyberpunk ? "" : tabStyles.container}>
           {isCyberpunk ? (
@@ -292,14 +292,10 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
 
         <TabsContent
           value="exchange"
-          className={cn(
-            "mt-0 h-full min-h-[500px] pt-4",
-            isCyberpunk && "!border !border-cyan-500/30 rounded-lg p-4 shadow-[0_0_15px_rgba(0,255,255,0.1)]",
-          )}
+          className={cn("mt-0 h-full min-h-[500px] pt-4", isCyberpunk && "rounded-lg py-4 px-0")}
           style={
             isCyberpunk
               ? {
-                  borderColor: "rgba(6, 182, 212, 0.3)",
                   color: "rgb(224, 255, 255) !important",
                 }
               : {}
@@ -323,7 +319,7 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
 
         <TabsContent
           value="desktop-games"
-          className={cn("mt-0 h-full min-h-[500px] pt-4", isCyberpunk && "rounded-lg p-4")}
+          className={cn("mt-0 h-full min-h-[500px] pt-4", isCyberpunk && "rounded-lg py-4 px-0")}
           style={
             isCyberpunk
               ? {
@@ -422,14 +418,10 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
 
         <TabsContent
           value="mobile-games"
-          className={cn(
-            "mt-0 h-full min-h-[500px] pt-4",
-            isCyberpunk && "!border !border-cyan-500/30 rounded-lg p-4 shadow-[0_0_15px_rgba(0,255,255,0.1)]",
-          )}
+          className={cn("mt-0 h-full min-h-[500px] pt-4", isCyberpunk && "rounded-lg py-4 px-0")}
           style={
             isCyberpunk
               ? {
-                  borderColor: "rgba(6, 182, 212, 0.3)",
                   color: "rgb(224, 255, 255) !important",
                 }
               : {}
@@ -502,14 +494,10 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
 
         <TabsContent
           value="develop"
-          className={cn(
-            "mt-0 h-full min-h-[500px] pt-4",
-            isCyberpunk && "!border !border-cyan-500/30 rounded-lg p-4 shadow-[0_0_15px_rgba(0,255,255,0.1)]",
-          )}
+          className={cn("mt-0 h-full min-h-[500px] pt-4", isCyberpunk && "rounded-lg py-4 px-0")}
           style={
             isCyberpunk
               ? {
-                  borderColor: "rgba(6, 182, 212, 0.3)",
                   color: "rgb(224, 255, 255) !important",
                 }
               : {}
