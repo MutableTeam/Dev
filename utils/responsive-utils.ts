@@ -224,6 +224,14 @@ const useMobileDetection = () => {
   return hasTouch && (isMobileSize || isMobileDevice)
 }
 
+// Add a utility class for text shadow glow effect that can be used with the cn utility
+export const textShadowGlow = "text-shadow-[0_0_10px_rgba(0,255,255,0.7)]"
+
+// Add more cyberpunk-specific utility classes
+export const cyberpunkGradientText = "bg-gradient-to-r from-cyan-400 to-purple-500 text-transparent bg-clip-text"
+export const cyberpunkBorderGlow = "border-cyan-400 shadow-[0_0_10px_rgba(0,255,255,0.7)]"
+export const cyberpunkPulse = "animate-pulse"
+
 // Export everything as named exports
 export {
   breakpoints,

@@ -376,6 +376,19 @@ const CyberButtonOutline = styled.button`
   white-space: normal;
   word-break: break-word;
   hyphens: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  min-height: 2.5rem;
+  
+  @media (max-width: 640px) {
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    padding: 0.4rem 0.8rem;
+    line-height: 1.2;
+  }
   
   &:hover {
     background: rgba(0, 255, 255, 0.1);

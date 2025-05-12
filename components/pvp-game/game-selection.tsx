@@ -232,8 +232,10 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
     if (game.name === "Archer Arena: Last Stand") {
       return {
         ...game,
-        name: "AA: Last Stand",
+        name: "Archer Arena: LS",
         description: "Archer Arena: Last Stand - " + game.description,
+        // Add a custom icon flag to identify this game for special icon treatment
+        hasCustomIcon: true,
       }
     }
     return game
@@ -358,7 +360,27 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                 </div>
                 <CardHeader className={isMobile ? "p-2" : "p-3"}>
                   <div className="flex items-center gap-2">
-                    <div className="bg-[#0a0a24] p-1 rounded-md border border-[#0ff]/50 text-[#0ff]">{game.icon}</div>
+                    <div className="bg-[#0a0a24] p-1 rounded-md border border-[#0ff]/50 text-[#0ff]">
+                      {game.hasCustomIcon ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="text-[#0ff]"
+                        >
+                          <path d="M3 8a7 7 0 0 1 14 0a6.97 6.97 0 0 1-2 4.9V22h-3v-3h-4v3h-3v-9.1A6.97 6.97 0 0 1 3 8z" />
+                          <path d="M19 8a3 3 0 0 1 6 0c0 3-2 4-2 9h-4c0-5-2-6-2-9a3 3 0 0 1 2-3z" />
+                        </svg>
+                      ) : (
+                        game.icon
+                      )}
+                    </div>
                     <CardTitle className={`text-base font-mono ${isMobile ? "text-sm" : ""}`}>{game.name}</CardTitle>
                   </div>
                 </CardHeader>
@@ -407,7 +429,27 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
                 </div>
                 <CardHeader className={isMobile ? "p-2" : "p-3"}>
                   <div className="flex items-center gap-2">
-                    <div className="bg-[#FFD54F] p-1 rounded-md border border-black">{game.icon}</div>
+                    <div className="bg-[#FFD54F] p-1 rounded-md border border-black">
+                      {game.hasCustomIcon ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="text-amber-700"
+                        >
+                          <path d="M3 8a7 7 0 0 1 14 0a6.97 6.97 0 0 1-2 4.9V22h-3v-3h-4v3h-3v-9.1A6.97 6.97 0 0 1 3 8z" />
+                          <path d="M19 8a3 3 0 0 1 6 0c0 3-2 4-2 9h-4c0-5-2-6-2-9a3 3 0 0 1 2-3z" />
+                        </svg>
+                      ) : (
+                        game.icon
+                      )}
+                    </div>
                     <CardTitle className={`text-base font-mono ${isMobile ? "text-sm" : ""}`}>{game.name}</CardTitle>
                   </div>
                 </CardHeader>

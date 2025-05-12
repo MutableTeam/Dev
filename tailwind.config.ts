@@ -71,10 +71,28 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        pulse: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
+        cyberpunkPulse: {
+          "0%, 100%": {
+            textShadow: "0 0 8px rgba(0, 255, 255, 0.7), 0 0 12px rgba(0, 255, 255, 0.4)",
+            boxShadow: "0 0 8px rgba(0, 255, 255, 0.7), 0 0 12px rgba(0, 255, 255, 0.4)",
+          },
+          "50%": {
+            textShadow: "0 0 15px rgba(0, 255, 255, 0.9), 0 0 20px rgba(0, 255, 255, 0.6)",
+            boxShadow: "0 0 15px rgba(0, 255, 255, 0.9), 0 0 20px rgba(0, 255, 255, 0.6)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "pulse-fast": "pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "cyberpunk-pulse": "cyberpunkPulse 2s infinite",
       },
     },
   },

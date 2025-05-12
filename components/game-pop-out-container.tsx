@@ -9,6 +9,21 @@ import SoundButton from "./sound-button"
 import { withClickSound } from "@/utils/sound-utils"
 import { debugManager } from "@/utils/debug-utils"
 
+// Add after the imports
+const textShadowGlow = `
+  .text-shadow-glow {
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.7), 0 0 10px rgba(0, 255, 255, 0.5);
+  }
+`
+
+// Then add this before the component definition
+// Add the style to the document
+if (typeof document !== "undefined") {
+  const style = document.createElement("style")
+  style.textContent = textShadowGlow
+  document.head.appendChild(style)
+}
+
 interface GamePopOutContainerProps {
   isOpen: boolean
   onClose: () => void
@@ -146,13 +161,28 @@ export default function GamePopOutContainer({
             layoutId="game-container"
           >
             {/* Header */}
-            <div className="bg-[#FFD54F] dark:bg-[#D4AF37] border-b-4 border-black dark:border-gray-700 p-3 flex items-center justify-between">
-              <h2 className="font-mono font-bold text-black text-lg">{title}</h2>
-              <div className="flex items-center gap-2">
+            <div className="bg-black border-b-2 border-cyan-500 p-3 flex items-center justify-between relative overflow-hidden">
+              {/* Cyberpunk background effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-900/30 to-cyan-900/30"></div>
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0)_0%,rgba(0,255,255,0.1)_20%,rgba(0,0,0,0)_40%,rgba(0,0,0,0)_60%,rgba(255,0,255,0.1)_80%,rgba(0,0,0,0)_100%)]"></div>
+
+              {/* Grid overlay */}
+              <div
+                className="absolute inset-0 opacity-20"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(0deg, transparent 24%, rgba(0, 255, 255, 0.3) 25%, rgba(0, 255, 255, 0.3) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.3) 75%, rgba(0, 255, 255, 0.3) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, 0.3) 25%, rgba(0, 255, 255, 0.3) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.3) 75%, rgba(0, 255, 255, 0.3) 76%, transparent 77%, transparent)",
+                  backgroundSize: "30px 30px",
+                }}
+              ></div>
+
+              {/* Content */}
+              <h2 className="font-mono font-bold text-cyan-400 text-lg relative z-10 text-shadow-glow">{title}</h2>
+              <div className="flex items-center gap-2 relative z-10">
                 <SoundButton
                   variant="outline"
                   size="icon"
-                  className="h-8 w-8 border-2 border-black bg-white hover:bg-gray-100 text-black"
+                  className="h-8 w-8 border-2 border-cyan-500 bg-black hover:bg-gray-900 text-cyan-400 hover:text-cyan-300 transition-colors"
                   onClick={withClickSound(toggleFullscreen)}
                 >
                   {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
@@ -161,7 +191,7 @@ export default function GamePopOutContainer({
                 <SoundButton
                   variant="outline"
                   size="icon"
-                  className="h-8 w-8 border-2 border-black bg-white hover:bg-gray-100 text-black"
+                  className="h-8 w-8 border-2 border-cyan-500 bg-black hover:bg-gray-900 text-cyan-400 hover:text-cyan-300 transition-colors"
                   onClick={withClickSound(onClose)}
                 >
                   <X size={16} />
