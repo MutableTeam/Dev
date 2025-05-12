@@ -70,10 +70,10 @@ export function StyleSwitcher({ className, size = "default" }: StyleSwitcherProp
   const isCyberpunk = styleMode === "cyberpunk"
 
   // Create a tooltip text that indicates what will happen when clicked
-  const tooltipText = isCyberpunk ? "Switch to Regular UI" : "Switch to Cyber UI"
+  const tooltipText = isCyberpunk ? "Switch to Light UI" : "Switch to Dark UI"
 
   // The button text now reflects the current state
-  const buttonText = isCyberpunk ? "Cyber UI" : "Regular UI"
+  const buttonText = isCyberpunk ? "Dark UI" : "Light UI"
 
   return (
     <>

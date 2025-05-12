@@ -23,6 +23,7 @@ export interface GameConfig {
   maxPlayers: number
   gameType: string
   modes: GameMode[]
+  useEnhancedRenderer?: boolean
 }
 
 // Game initialization parameters

@@ -299,7 +299,6 @@ export default function GameSelection({ publicKey, balance, mutbBalance, onSelec
           : "bg-[#fbf3de] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
       }
       style={isCyberpunk ? { backgroundColor: "rgba(0, 0, 0, 0.8)", borderColor: "rgba(6, 182, 212, 0.5)" } : {}}
-      data-game="archer-arena"
     >
       <CardHeader className={isMobile ? "p-4" : undefined}>
         <div className="flex items-center justify-between">

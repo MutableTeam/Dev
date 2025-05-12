@@ -13,6 +13,7 @@ import { Connection, clusterApiUrl } from "@solana/web3.js"
 import "@/styles/retro-arcade.css"
 import { initializeGoogleAnalytics } from "@/utils/analytics"
 import { SignUpBanner } from "@/components/signup-banner"
+import { initializeEnhancedRenderer } from "@/utils/enhanced-renderer-bridge"
 
 // Google Analytics Measurement ID
 const GA_MEASUREMENT_ID = "G-41DL97N287"
@@ -32,6 +33,9 @@ export default function Home() {
   // Initialize games registry
   useEffect(() => {
     registerGames()
+
+    // Initialize enhanced renderer
+    initializeEnhancedRenderer()
   }, [])
 
   const handleWalletConnection = (connected: boolean, publicKey: string, balance: number | null, provider: any) => {

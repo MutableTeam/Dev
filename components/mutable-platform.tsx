@@ -545,6 +545,12 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
                         <CheckCircle
                           className={cn("h-4 w-4 text-green-600 mt-0.5 flex-shrink-0", isCyberpunk && "text-cyan-500")}
                         />
+                        <span>Official SDK for Unity and Godot integration</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle
+                          className={cn("h-4 w-4 text-green-600 mt-0.5 flex-shrink-0", isCyberpunk && "text-cyan-500")}
+                        />
                         <span>Revenue sharing from in-game transactions and token swaps</span>
                       </li>
                       <li className="flex items-start gap-2">
@@ -632,6 +638,14 @@ export default function MutablePlatform({ publicKey, balance, provider, connecti
                       We provide resources to help you develop games for our platform:
                     </p>
                     <ul className={cn("space-y-2 text-sm dark:text-gray-300", isCyberpunk && "text-cyan-300/70")}>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle
+                          className={cn("h-4 w-4 text-green-600 mt-0.5 flex-shrink-0", isCyberpunk && "text-cyan-500")}
+                        />
+                        <span>
+                          <strong>Mutable SDK</strong> - Our official SDK for Unity and Godot integration
+                        </span>
+                      </li>
                       <li className="flex items-start gap-2">
                         <CheckCircle
                           className={cn("h-4 w-4 text-green-600 mt-0.5 flex-shrink-0", isCyberpunk && "text-cyan-500")}

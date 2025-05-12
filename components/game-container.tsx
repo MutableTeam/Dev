@@ -8,6 +8,7 @@ import { debugManager } from "@/utils/debug-utils"
 import { cyberpunkColors } from "@/styles/cyberpunk-theme"
 import styled from "@emotion/styled"
 import { keyframes } from "@emotion/react"
+import GameControllerEnhanced from "@/components/pvp-game/game-controller-enhanced"
 
 // Cyberpunk styled components for the game container
 const CyberpunkGameContainer = styled.div`
@@ -250,15 +251,25 @@ export function GameContainer({ gameId, playerId, playerName, isHost, gameMode, 
       <CyberpunkDevBanner>Sprite Sheet System Currently In Development</CyberpunkDevBanner>
 
       <GameErrorBoundary>
-        <GameComponent
-          playerId={playerId}
-          playerName={playerName}
-          isHost={isHost}
-          gameMode={gameMode}
-          initialGameState={initialGameState}
-          onGameEnd={onGameEnd}
-          onError={handleError}
-        />
+        {game.id === "archer-arena" || game.id === "last-stand" ? (
+          <GameControllerEnhanced
+            playerId={playerId}
+            playerName={playerName}
+            isHost={isHost}
+            gameMode={gameMode}
+            onGameEnd={onGameEnd}
+          />
+        ) : (
+          <GameComponent
+            playerId={playerId}
+            playerName={playerName}
+            isHost={isHost}
+            gameMode={gameMode}
+            initialGameState={initialGameState}
+            onGameEnd={onGameEnd}
+            onError={handleError}
+          />
+        )}
       </GameErrorBoundary>
     </CyberpunkGameContainer>
   )
